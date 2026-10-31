@@ -10,7 +10,7 @@ window.KYVO_AUTH_CONFIG = {
     url: 'https://bvszmqmfwtwedceqeymi.supabase.co',
     anonKey: 'sb_publishable_o2EgvYEii1clHpAnCO3EpQ_U87vJnnv',   // publishable key (public)
   },
-  google: { enabled: false, provider: 'supabase' },   // v8.25: flip to true after GOOGLE_LOGIN_SETUP.md
+  google: { enabled: true, provider: 'supabase' },   // v8.27: Google via Supabase Auth
   // legacy Firebase (e-mail link) — placeholders, unused
   firebase: {
     apiKey: 'PASTE_FIREBASE_API_KEY',
