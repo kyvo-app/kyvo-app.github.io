@@ -1,4 +1,5 @@
-/* KYVO_LIVE_v8_25 — v8.25: 🏆 Wyniki — każdy Runner zapisany od razu po skanie (serwer co ~90 s, pierwsza cena i MC, historia oznaczeń do audytu) + 🏃 Runner: lepsza preselekcja (najgorętsze coiny najpierw, do 15 na sieć) + 🔁 Kolejna fala liczona też na serwerze (w apce znaczek „📱 tylko ten telefon” dla wykrytych lokalnie) + 🔔 tydzień promocji: wszyscy dostają pushe Premium/Runners do 7.11 23:59, nieudane pushe odrzucane po 3 próbach + 🔑 logowanie Google (Supabase, UE — włączy się po konfiguracji) + 👻 Phantom na telefonie: logowanie przez aplikację Phantom z powrotem do Kyvo (tylko podpis wiadomości) + kod Cloudflare Worker do szybkich pushy (wyłączony).
+/* KYVO_LIVE_v8_26 — v8.26: 🔗 link do coina (push / udostępnienie) otwiera stronę coina od razu przy starcie apki — jeden coin pobierany bezpośrednio (DexScreener z ponowieniem, zapas GeckoTerminal), szkielet ładowania, „Nie znaleziono.” dopiero po nieudanych próbach + „Spróbuj ponownie” + 🏠 pierwszy start: ładowanie zamiast „Brak coinów dla tych filtrów”, dopóki nie przyjdą pierwsze dane.
+   KYVO_LIVE_v8_25 — v8.25: 🏆 Wyniki — każdy Runner zapisany od razu po skanie (serwer co ~90 s, pierwsza cena i MC, historia oznaczeń do audytu) + 🏃 Runner: lepsza preselekcja (najgorętsze coiny najpierw, do 15 na sieć) + 🔁 Kolejna fala liczona też na serwerze (w apce znaczek „📱 tylko ten telefon” dla wykrytych lokalnie) + 🔔 tydzień promocji: wszyscy dostają pushe Premium/Runners do 7.11 23:59, nieudane pushe odrzucane po 3 próbach + 🔑 logowanie Google (Supabase, UE — włączy się po konfiguracji) + 👻 Phantom na telefonie: logowanie przez aplikację Phantom z powrotem do Kyvo (tylko podpis wiadomości) + kod Cloudflare Worker do szybkich pushy (wyłączony).
    KYVO_LIVE_v8_24 — v8.24: 🔔 powiadomienia tylko o super ważnych tweetach (Trump i Kimchi: każdy nowy post; Elon i duże konta krypto — CZ, Vitalik, Saylor, Armstrong, Toly, Ansem, Murad, Cobie, Hsaka, Hayes, ZachXBT, Pentoshi, top traderzy memecoinów — tylko coin / rynek / ogromny zasięg; max 5 dziennie na konto, 20 łącznie) + nowy wygląd pushy (autor + @handle, treść tweeta, zmiana ceny coina od tweeta z prawdziwych danych, avatar / logo coina, „· Kyvo”; Runner: $TICKER + % 1h, logo, otwiera stronę coina) + 🏃 Runner: ostrzejszy filtr dla pul < 30 min, test cienia reguły „wczesny Runner” (tylko log, bez pushy), Wyniki: max liczony tylko ze świec po sygnale + baner „🔔 Włącz powiadomienia” w zainstalowanej apce · v8.23: ⭐ New Tweet: Elon Musk + Donald Trump replies too (↪ Odpowiedź + the post they replied to) + VIP push for every new Elon / Trump post or reply (grouped, ≥10 min apart, ≤20/day per account; Premium + Runners, everyone during the free week) · v8.22: 🎁 free launch week (everyone gets the top tier Runners until 7.11 23:59 Warsaw, expires on its own; paid status + push tags unchanged) · v8.20: 🎴 Kreator P&L in Journal (9:16 card with your own photo / video background → PNG / MP4·WebM; v8.19 free hour removed) · v8.19: free hour (ended 19:00 Warsaw Oct 28) · v8.18: homepage "Największy znaleziony coin +X%" pill · v8.17: 📅 Kalendarz P&L in Journal (month grid in $, Record W-L-BE, month profit, on-chain badge, tap a day, share month card) · v8.16: v8.16: tier-aware push (OneSignal tag tier=free/premium/runners; server routes each push type per plan) · v8.15: 📓 Journal (Premium) + Obsidian design layer (theme.css, fx.js, self-hosted fonts) on top of
    KYVO_LIVE_v8_14_1 — v8.14.1 pricing: two paid tiers (Premium $9.99→$4.99 launch -50%: 3 Runners/day + full Gold/Tracker/notifications · 🏃 Runners $49.99→$24.99: all Runners + Runner/smart-money push; free 1 Runner/day; owner = Runners; payments not live) · v8.14 pump.fun-style coin page (live trades stream, area/candle chart with MC axis, KOL/whale markers, Callouts/Holders/About/Pairs tabs, alerts, pump.fun CTA), pump.fun traders in Ranking (source chips), 👀 Tracker (follow wallets, live swaps, cluster buys, Premium push) · v8.13 launch sweep: one main-pool price rule (pairs.js), watchlist entry repair · v8.12 🥇 Gold tab (Orangie-style coin DD: Sprawdź coin + Gold feed + Gold alerts) · v8.11 Runners = Premium (free: 1 Runner / Warsaw day) + owner unlock · v8.10 New Tweet = every fresh tweet of ~43 big accounts (Elon, Trump, CZ, KOLs) + mentioned / related coin · v8.9 continuous server feeds (~1-3 min) + 📈 Big runner ($1M–$100M) + robust charts · v8.8 👑 KOL coin + 🚀 Moon run · v8.7 watchlist P/L since added · multi-chain Pulse + smart money + leaderboard + Viral z X + onboarding/legal/login. Not financial advice. */
 (function () {
@@ -412,6 +413,7 @@
   let mobilePulseTab = 'new';
   let selectedKey = null;
   let lastFetch = 0;
+  let liveLoaded = false;   // v8.26: true after the FIRST live fetch finished (ok or not) -> before that an empty list = loading, not 'Brak coinów'
   let fetchErr = null;
   let sourceLabel = '';
   let filtOpen = false;
@@ -1680,6 +1682,7 @@
           ? `<div class="card" style="padding:4px 10px">${list.map((c, i) => coinRow(c, Object.assign({ listId: (opts.filtTab || view) + ':' + activeChain, good: (opts.filtTab || view) === 'good', upside: (opts.filtTab || view) === 'good' ? i < 60 : (opts.filtTab || view) === 'new' ? i < 40 : i < 5 }, opts.rowOpts))).join('')}</div>`
           : opts.hideNote
             ? ''
+            : !liveLoaded ? `<div class="loading"><div class="spin"></div>Ładuję live dane…</div>`
             : opts.emptyHtml || `<div class="empty">Brak coinów dla tych filtrów.</div>`
       }
       ${opts.footnote || ''}
@@ -1729,6 +1732,7 @@
         ${
           list.length
             ? list.map((c, i) => coinRow(c, Object.assign({ listId: listKey + ':' + activeChain, upside: listKey === 'new' ? i < 40 : i < 5 }, rowOpts))).join('')
+            : !liveLoaded ? `<div class="loading" style="padding:16px 4px"><div class="spin"></div>Ładuję live dane…</div>`
             : `<div class="empty" style="padding:16px 4px">${esc(emptyNote || 'Brak coinów — zmień filtry albo poczekaj chwilę na odświeżenie')}</div>`
         }
       </div>`;
@@ -1820,17 +1824,101 @@
       return;
     }
     show('coin');
-    $('#coinBody').innerHTML = `<div class="loading"><div class="spin"></div>Ładuję coin…</div>`;
+    loadCoinDirect(key);
+  }
+
+  /* ---- v8.26 cold coin deep link: fetch THIS one coin directly (no waiting for all feeds). DexScreener up to 3 tries
+     (0 / 1.2 s / 2.5 s), then GeckoTerminal (token + top pools). Skeleton while loading; 'Nie znaleziono.' only after
+     every source failed, with 'Spróbuj ponownie'. ---- */
+  const GT_DEX = { 'pump-fun': 'pumpfun', 'pumpfun': 'pumpfun', 'pump-swap': 'pumpswap', 'raydium-clmm': 'raydium', 'raydium-cpmm': 'raydium', 'meteora-dlmm': 'meteora', 'meteora-damm-v2': 'meteora', 'pancakeswap_v2': 'pancakeswap', 'pancakeswap-v3-bsc': 'pancakeswap', 'four-meme': 'fourmeme' };
+  function coinSkeleton() {
+    const bar = (w, h, mt) => `<div style="height:${h}px;width:${w};margin-top:${mt}px;border-radius:8px;background:linear-gradient(90deg,#ffffff0d,#ffffff1a,#ffffff0d);background-size:200% 100%;animation:kySk 1.2s linear infinite"></div>`;
+    return `<style>@keyframes kySk{0%{background-position:200% 0}100%{background-position:-200% 0}}</style>
+      <div class="kyskel" aria-busy="true" style="padding:12px 4px">
+        <div style="display:flex;gap:12px;align-items:center"><div style="width:52px;height:52px;border-radius:50%;background:#ffffff14"></div><div style="flex:1">${bar('55%', 18, 0)}${bar('35%', 12, 8)}</div></div>
+        ${bar('100%', 220, 18)}${bar('100%', 54, 14)}${bar('80%', 14, 14)}${bar('60%', 14, 10)}
+        <div class="loading" style="padding:14px 0 0"><div class="spin"></div>Ładuję coin…</div>
+      </div>`;
+  }
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  function gtToPairs(g, chain) {
+    const tok = (g && g.data && g.data.attributes) || {};
+    const out = [];
+    for (const inc of (g && g.included) || []) {
+      if (!inc || inc.type !== 'pool' || !inc.attributes) continue;
+      const a = inc.attributes, rel = inc.relationships || {};
+      const baseId = rel.base_token && rel.base_token.data && rel.base_token.data.id;
+      if (baseId && tok.address && String(baseId).toLowerCase() !== (GECKO_NET[chain] + '_' + tok.address).toLowerCase()) continue;
+      const dexRaw = (rel.dex && rel.dex.data && rel.dex.data.id) || '';
+      const num = (o) => { const r = {}; for (const k of ['m5', 'h1', 'h6', 'h24']) r[k] = o && o[k] != null ? Number(o[k]) : null; return r; };
+      const tx = a.transactions || {};
+      out.push({
+        chainId: chain, dexId: GT_DEX[dexRaw] || dexRaw, pairAddress: a.address,
+        url: 'https://dexscreener.com/' + chain + '/' + a.address,
+        baseToken: { address: tok.address, name: tok.name, symbol: tok.symbol },
+        priceUsd: a.base_token_price_usd, marketCap: a.market_cap_usd != null ? Number(a.market_cap_usd) : null,
+        fdv: a.fdv_usd != null ? Number(a.fdv_usd) : null, liquidity: { usd: Number(a.reserve_in_usd) || 0 },
+        volume: num(a.volume_usd), priceChange: num(a.price_change_percentage),
+        txns: { h1: tx.h1 ? { buys: tx.h1.buys, sells: tx.h1.sells } : undefined, h24: tx.h24 ? { buys: tx.h24.buys, sells: tx.h24.sells } : undefined },
+        pairCreatedAt: a.pool_created_at ? Date.parse(a.pool_created_at) : null,
+        info: tok.image_url && !/missing/.test(tok.image_url) ? { imageUrl: tok.image_url } : {},
+      });
+    }
+    return out;
+  }
+  async function fetchCoinDirect(chain, addr) {
+    const k = coinKey(chain, addr);
+    const pick = (map) => map[k] || Object.values(map).find((x) => x.address && x.address.toLowerCase() === addr.toLowerCase() && x.chainId === chain) || null;
+    for (const wait of [0, 1200, 2500, 5000]) {   // DexScreener rate-limits bursts (429) -> back off
+      if (wait) await sleep(wait);
+      try {
+        const d = await fetchJson(DS + '/latest/dex/tokens/' + encodeURIComponent(addr));
+        const map = {};
+        ingestPairs(d.pairs || [], null, map);
+        const hit = pick(map);
+        if (hit) return hit;
+        if (Array.isArray(d.pairs)) break;   // valid answer without this coin -> no point retrying DexScreener
+      } catch (e) {}
+    }
+    const net = GECKO_NET[chain];
+    if (net) {
+      for (const wait of [0, 2500]) {
+        if (wait) await sleep(wait);
+        try {
+          const url = GT + '/networks/' + net + '/tokens/' + encodeURIComponent(addr) + '?include=top_pools';
+          const r = await fetch(url, { headers: { Accept: 'application/json' } });   // direct (not the 2-min shared gate cache: one call, user is waiting)
+          if (r.status === 404) break;
+          if (!r.ok) continue;
+          const map = {};
+          ingestPairs(gtToPairs(await r.json(), chain), null, map);
+          const hit = pick(map);
+          if (hit) { if (!hit.image) hit.image = cachedImg(hit.chainId, hit.address); return hit; }
+          break;
+        } catch (e) {}
+      }
+    }
+    return null;
+  }
+  function loadCoinDirect(key) {
+    const chain = key.includes(':') ? key.split(':')[0] : 'solana';
     const addr = key.includes(':') ? key.split(':').slice(1).join(':') : key;
-    enrichCoin({ address: addr, chainId: key.includes(':') ? key.split(':')[0] : 'solana' }).then((nc) => {
+    const still = () => view === 'coin' && selectedKey === key;
+    $('#coinBody').innerHTML = coinSkeleton();
+    fetchCoinDirect(chain, addr).then((nc) => {
+      if (!still()) return;
+      if (!nc) nc = byKey[key] || null;   // the live feed may have brought it meanwhile
       if (!nc) {
-        $('#coinBody').innerHTML = `<div class="err">Nie znaleziono.<div class="back" id="backFail">‹ Wróć</div></div>`;
-        $('#backFail') && $('#backFail').addEventListener('click', () => history.back());
+        $('#coinBody').innerHTML = `<div class="err">Nie znaleziono.<div class="mut" style="font-size:12px;margin-top:6px">Nie udało się pobrać tego coina (DexScreener / GeckoTerminal). Sprawdź internet i spróbuj ponownie.</div>
+          <div style="margin-top:12px;display:flex;gap:8px;justify-content:center"><button type="button" class="pill" id="coinRetry">Spróbuj ponownie</button><button type="button" class="pill" id="backFail">‹ Wróć</button></div></div>`;
+        $('#coinRetry').addEventListener('click', () => { if (still()) loadCoinDirect(key); });
+        $('#backFail').addEventListener('click', () => (history.length > 1 ? history.back() : setView('pulse')));
         return;
       }
+      if (!nc.image) nc.image = cachedImg(nc.chainId, nc.address);
       byKey[keyOf(nc)] = nc;
       selectedKey = keyOf(nc);
-      paint(nc);
+      show('coin');
+      renderCoin(nc);
     });
   }
 
@@ -2732,6 +2820,7 @@
     const hadData = coins.length > 0;
     if (!hadData || manual) $('#livePill').textContent = '…';
     let ok = await loadLiveCoins();
+    liveLoaded = true;
     if (!ok && hadData) { refreshFails++; fetchErr = null; $('#livePill').textContent = refreshFails >= 3 ? 'ERR' : 'LIVE'; return; }
     if (ok) refreshFails = 0;
     $('#livePill').textContent = ok ? 'LIVE' : 'ERR';
@@ -2847,6 +2936,8 @@
   loadCache();
   // Ranking / trader / profil don't need live coins — route them as soon as the snapshot is in
   let earlyRouted = null;
+  // v8.26: a coin deep link (push / shared link) opens at once; the coin is fetched on its own (loadCoinDirect)
+  if (/^#coin\//.test(location.hash || '')) { earlyRouted = location.hash; routeFromHash(); }
   const pLb = loadLeaderboard().then(() => {
     const h = (location.hash || '').slice(1).split('/')[0];
     if (['rank', 'trader', 'profil', 'leaderboard', 'gold', 'journal'].includes(h)) { earlyRouted = location.hash; routeFromHash(); }
