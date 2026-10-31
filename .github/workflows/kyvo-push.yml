@@ -1,0 +1,96 @@
+# Kyvo v8.6: phone push (app CLOSED) for genuinely new important tweets + new Runner coins, via OneSignal.
+# v8.8: Runner also covers 👑 KOL coin / 🚀 Moon run overrides (tools/kol_coins.py), feed data/kol_live.json for the app.
+# v8.12: + 🥇 Gold feed every ~5 min (tools/gold.py -> data/gold.json, public APIs only: DexScreener, GeckoTerminal, RugCheck, Google News RSS) and Premium Gold push alerts.
+# v8.14: + pump.fun callouts / top-trader trades for hot coins every ~6 min (tools/pump_social.py -> data/pf_social.json, public pump.fun reads, no keys).
+# v8.14: + 👀 Tracker smart-money feed every ~4 min (tools/pump_tracker.py -> data/tracker_feed.json: top ~60 Ranking wallets' public
+#        pump.fun trades + DexScreener; cluster buys) and a Premium-only push when ≥3 top traders buy one coin within 30 min.
+# v8.9: CONTINUOUS — one run loops for ~51 min (tools/kyvo_loop.py): Runner scan every ~90 s, New Tweet every ~4 min, push
+#       right after each step, feed commits only on new items (≤ 1 per 3 min, ≤ 7 per hour; Pages soft limit 10 builds/h).
+#       At the end the run queues its successor (workflow_dispatch), so there is always one running; the cron is only a
+#       backstop. concurrency keeps exactly one running + one queued (a newer queued run replaces an older queued one,
+#       which then shows as "cancelled" — harmless). Kill switch: repo variable KYVO_LOOP_CHAIN = 0 (no self-requeue).
+# v8.25: every flag is merged into data/track_record.json right after its scan (+ data/flag_history.json audit log) and rides
+#        along with the feed commits; tools/git_sync.py JSON-merges those files on a push race with kyvo-calls (performance).
+#        Push: KYVO_PROMO_ALL on by default until KYVO_PROMO_UNTIL (7.11 23:59 Warsaw), failed pushes dropped after 3 tries.
+# Runs on GitHub's servers only (never on the trading VPS). Secret: ONESIGNAL_REST_API_KEY (Settings -> Secrets and
+# variables -> Actions). Missing secret = feeds still refresh, push step is a no-op. The key is never printed.
+name: kyvo-push
+on:
+  schedule:
+    - cron: "*/15 * * * *"        # backstop only (GitHub fires it every ~30-40 min in practice)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (print payloads, send nothing, commit nothing, no requeue)"
+        type: boolean
+        default: false
+      minutes:
+        description: "Loop length per chunk in minutes (3 chunks)"
+        required: false
+        default: "17"
+permissions:
+  contents: write                 # only to commit data/track_record.json + data/flag_history.json (v8.25) + data/x_live.json + data/kol_live.json + data/gold.json + data/pf_social.json + data/tracker_feed.json (the in-app feeds)
+  actions: write                  # only to queue the next kyvo-push run (gh workflow run)
+concurrency:
+  group: kyvo-push
+  cancel-in-progress: false
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 62
+    env:
+      ONESIGNAL_REST_API_KEY: ${{ secrets.ONESIGNAL_REST_API_KEY }}
+      KYVO_APP_URL: ${{ vars.KYVO_APP_URL || 'https://kyvo-app.github.io/' }}   # v8.25: push deep links / Discord links base (tools/kyvo_config.py)
+      # v8.25: github (default) | worker = plain 🏃 Runner pushes come from the Cloudflare worker (kyvo_cf_worker), never twice
+      RUNNER_PUSH_SOURCE: ${{ vars.RUNNER_PUSH_SOURCE || 'github' }}
+      # v8.25: worker base URL; the loop merges its GET /flags into data/track_record.json. Empty = off (default)
+      KYVO_WORKER_FLAGS_URL: ${{ vars.KYVO_WORKER_FLAGS_URL || '' }}
+      LOOP_MIN: ${{ github.event.inputs.minutes || '17' }}
+      DRY: ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4     # runnerRule / bigRunnerRule = tools/upside_estimate.js (same code as the app)
+        with:
+          node-version: "20"
+      - name: Restore sent-ids state
+        uses: actions/cache/restore@v4
+        with:
+          path: .kyvo_push
+          key: kyvo-push-${{ github.run_id }}-0
+          restore-keys: kyvo-push-
+      - run: |
+          mkdir -p .kyvo_push
+          git config user.name "kyvo-push-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Loop 1/3 (scan ~90 s, tweets ~4 min, push at once, commit on change)
+        run: python3 tools/kyvo_loop.py --max-min "$LOOP_MIN" $DRY
+      - name: Save state (chunk 1)
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .kyvo_push
+          key: kyvo-push-${{ github.run_id }}-1
+      - name: Loop 2/3
+        run: python3 tools/kyvo_loop.py --max-min "$LOOP_MIN" $DRY
+      - name: Save state (chunk 2)
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .kyvo_push
+          key: kyvo-push-${{ github.run_id }}-2
+      - name: Loop 3/3
+        run: python3 tools/kyvo_loop.py --max-min "$LOOP_MIN" $DRY
+      - name: Save state (final)
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .kyvo_push
+          key: kyvo-push-${{ github.run_id }}-3
+      - name: Queue the next run (keeps the feed continuous)
+        if: ${{ success() && github.event.inputs.dry_run != 'true' && vars.KYVO_LOOP_CHAIN != '0' }}   # never after a failure (no fast fail-requeue spin)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run kyvo-push.yml --ref "${GITHUB_REF_NAME}" || echo "requeue failed -> the cron backstop starts the next run"

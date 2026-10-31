@@ -1,0 +1,31 @@
+{
+  "_doc": "v8.12 🔎 Gold auto-scanner (Orangie 'Memecoin Digester' style). tools/gold.py scans public lists every run, keeps coins that pass a filter, runs the Gold DD on them, tags the card '🔎 Filtr: …' and (if alert) queues a Gold push. Tune numbers here; no code change needed. Pre = DexScreener pair data (mcap, liq, h1 %, vol1h, ageH = pair age, dex, buys1h). Post = after the DD (metrics from gold-rules.js); a hit that fails post is dropped.",
+  "enabled": true,
+  "max_hits_per_run": 5,
+  "keep_hours": 6,
+  "alert": { "enabled": true, "levels": ["gold", "hazard"], "cooldown_h": 12, "max_per_hour": 3 },
+  "sources": { "chains": ["solana", "bsc"], "gt_trending_pages": 2, "gt_new_pools_pages": 2, "ds_latest_profiles": 30, "ds_boosts_latest": 30 },
+  "filters": [
+    {
+      "id": "x2_1h", "emoji": "🚀", "enabled": true, "alert": true,
+      "pl": "+100% w 1 h i MC ≥ $1M", "en": "+100% in 1 h and MC ≥ $1M",
+      "chains": ["solana", "bsc"],
+      "pre": { "min_h1": 100, "min_mcap": 1000000, "min_liq": 40000, "min_vol1h": 100000 },
+      "post": {}
+    },
+    {
+      "id": "fresh_grad", "emoji": "🎓", "enabled": true, "alert": true,
+      "pl": "Świeżo zmigrowany z pump.fun (< 1 h), MC ≥ $75K, prawdziwi holderzy", "en": "Fresh pump.fun graduate (< 1 h), MC ≥ $75K, real holders",
+      "chains": ["solana"],
+      "pre": { "dex": ["pumpswap"], "max_age_h": 1, "min_mcap": 75000, "min_liq": 20000, "min_buys1h": 60 },
+      "post": { "min_holders": 150, "min_traders24": 100, "min_avg_trade": 30, "max_top10": 45 }
+    },
+    {
+      "id": "vol_surge", "emoji": "🌊", "enabled": true, "alert": false,
+      "pl": "Wolumen 1 h ≥ 50% MC, +20% w 1 h, MC $250K–$5M", "en": "1 h volume ≥ 50% of MC, +20% in 1 h, MC $250K–$5M",
+      "chains": ["solana", "bsc"],
+      "pre": { "min_mcap": 250000, "max_mcap": 5000000, "min_liq": 30000, "min_h1": 20, "min_vol1h_mcap": 0.5 },
+      "post": { "min_avg_trade": 25 }
+    }
+  ]
+}

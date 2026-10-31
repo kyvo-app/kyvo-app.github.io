@@ -1,0 +1,82 @@
+# Kyvo auto-calls + YouTube alerts -> Discord. Runs on GitHub's servers (never on the trading VPS).
+# Secrets: DISCORD_WEBHOOK_SOL, DISCORD_WEBHOOK_BSC, optional DISCORD_WEBHOOK_NEWS, DISCORD_WEBHOOK_YT, DISCORD_WEBHOOK_ANNOUNCE
+# (repo Settings -> Secrets and variables -> Actions). Missing secrets = the job does nothing.
+name: kyvo-calls
+on:
+  schedule:
+    - cron: "*/15 * * * *"        # GitHub may delay scheduled runs by a few minutes
+  workflow_dispatch:
+    inputs:
+      news:
+        description: "Changelog text to post to DISCORD_WEBHOOK_NEWS (leave empty to run a normal scan)"
+        required: false
+        default: ""
+      dry_run:
+        description: "Dry run (print embeds in the log, post nothing)"
+        type: boolean
+        default: false
+permissions:
+  contents: write                 # v8.3: only to commit data/track_record.json (at most ~hourly; v8.25: performance only); dedupe state stays in actions/cache
+concurrency:
+  group: kyvo-calls
+  cancel-in-progress: false
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      KYVO_APP_URL: ${{ vars.KYVO_APP_URL || 'https://kyvo-app.github.io/' }}   # v8.25: Discord embed links base (tools/kyvo_config.py)
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            tools
+            data
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4     # v8.3: Good Coins rule = tools/upside_estimate.js (same code as the app)
+        with:
+          node-version: "20"
+      - name: Restore dedupe state
+        uses: actions/cache/restore@v4
+        with:
+          path: .kyvo_calls
+          key: kyvo-calls-${{ github.run_id }}
+          restore-keys: kyvo-calls-
+      - run: mkdir -p .kyvo_calls
+      - name: Changelog post (manual)
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.news != '' }}
+        env:
+          DISCORD_WEBHOOK_NEWS: ${{ secrets.DISCORD_WEBHOOK_NEWS }}
+          NEWS: ${{ github.event.inputs.news }}
+        run: python3 tools/discord_calls.py --news "$NEWS" ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }}
+      - name: Scan and post strong coins
+        if: ${{ github.event_name == 'schedule' || github.event.inputs.news == '' }}
+        env:
+          DISCORD_WEBHOOK_SOL: ${{ secrets.DISCORD_WEBHOOK_SOL }}
+          DISCORD_WEBHOOK_BSC: ${{ secrets.DISCORD_WEBHOOK_BSC }}
+        run: python3 tools/discord_calls.py --flags-out .kyvo_calls/flags.json ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }}
+      - name: Track record (Wyniki) - performance since flag (v8.25 perf only; NEW flags are saved by the kyvo-push loop right after each scan)
+        id: track
+        if: ${{ github.event_name == 'schedule' || github.event.inputs.news == '' }}
+        run: python3 tools/track_record.py --perf-only --out data/track_record.json
+      - name: Commit track record (>= 60 min since last commit; conflict-safe JSON merge with the loop's commits)
+        if: ${{ steps.track.outputs.commit == 'true' && github.event.inputs.dry_run != 'true' }}
+        run: |
+          git config user.name "kyvo-track-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python3 tools/git_sync.py -m "track record: update [skip ci]" data/track_record.json
+      - name: YouTube new videos / live (public RSS, @calytonnx)
+        if: ${{ github.event_name == 'schedule' || github.event.inputs.news == '' }}
+        env:
+          DISCORD_WEBHOOK_YT: ${{ secrets.DISCORD_WEBHOOK_YT }}
+          DISCORD_WEBHOOK_ANNOUNCE: ${{ secrets.DISCORD_WEBHOOK_ANNOUNCE }}
+          YT_CHANNEL_IDS: UCOVnFqOFnZu9U3xEdIU3MpA
+        run: python3 tools/youtube_alerts.py ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }}
+      - name: Save dedupe state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .kyvo_calls
+          key: kyvo-calls-${{ github.run_id }}

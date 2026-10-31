@@ -1,0 +1,1255 @@
+{
+  "source": "x MCP: search_posts_all (7), get_users_posts (3), get_users_by_usernames (1), search_news (1) — 12 reads this refresh; coins resolved via DexScreener public API",
+  "note": "Static snapshot. Real posts only; coins shown only when they resolve on DexScreener. Not financial advice.",
+  "key_accounts": [
+    {
+      "handle": "orangie",
+      "name": "orangie",
+      "id": "2758205289"
+    },
+    {
+      "handle": "blknoiz06",
+      "name": "Ansem",
+      "id": "973261472"
+    },
+    {
+      "handle": "MustStopMurad",
+      "name": "Murad",
+      "id": "844304603336232960"
+    },
+    {
+      "handle": "Cupseyy",
+      "name": "Cupsey",
+      "id": "1168903946989010944"
+    },
+    {
+      "handle": "Pumpfun",
+      "name": "Pump.fun",
+      "id": "1622243071806128131"
+    }
+  ],
+  "topics": [
+    {
+      "id": "roadster",
+      "label": "Latający Roadster (Elon)",
+      "query": "roadster",
+      "hints": [
+        "flying car",
+        "tesla roadster"
+      ],
+      "source_post": "https://x.com/elonmusk/status/2111507158215057620",
+      "why": "Elon: przyszłe pokazy Roadstera mają latać nad Snake River / Wielkim Kanionem (128k ♥)",
+      "coins": [
+        {
+          "chain": "bsc",
+          "address": "0xa2Ab94E4d3457Fb2A6b2Cb60F0120263c76F31B6",
+          "symbol": "Roadster",
+          "name": "Roadster V2",
+          "image": null,
+          "mcap": 14970982,
+          "liquidity": 1082270.93,
+          "price_usd": 0.01497,
+          "change_h24": 55.18,
+          "volume_h24": 1809251.71,
+          "pair": "0x79554a1583Ab00C2896c2600cAA8A1BA423E5F54",
+          "dex": "pancakeswap",
+          "pair_created_at": 1792162842000,
+          "dexscreener": "https://dexscreener.com/bsc/0x79554a1583ab00c2896c2600caa8a1ba423e5f54",
+          "kyvo": true,
+          "score": 100,
+          "match": "speculative"
+        },
+        {
+          "chain": "solana",
+          "address": "5ztpHra9musuXGtkfthsUfYMcS9ki9dWJS5HTAUzpump",
+          "symbol": "Roadster",
+          "name": "Tesla Roadster",
+          "image": null,
+          "mcap": 1239069,
+          "liquidity": 93976.35,
+          "price_usd": 0.001241,
+          "change_h24": 2726,
+          "volume_h24": 117331.19,
+          "pair": "DS6S11gJ4mPyv4J39EoYHewRuijkrdcYjerZvabA82qo",
+          "dex": "pumpswap",
+          "pair_created_at": 1792392236000,
+          "dexscreener": "https://dexscreener.com/solana/ds6s11gj4mpyv4j39eoyhewruijkrdcyjerzvaba82qo",
+          "kyvo": true,
+          "score": 100,
+          "match": "speculative"
+        },
+        {
+          "chain": "bsc",
+          "address": "0x32fA5412Ecef32Fa5C7f3FAE3e357d2Baea77777",
+          "symbol": "Roadster",
+          "name": "Roadster",
+          "image": null,
+          "mcap": 157727,
+          "liquidity": 41730.5,
+          "price_usd": 0.0001692,
+          "change_h24": -26.76,
+          "volume_h24": 118897,
+          "pair": "0x387B34757aB0542934cc07b7734990Df65cAcaDF",
+          "dex": "pancakeswap",
+          "pair_created_at": 1792038538000,
+          "dexscreener": "https://dexscreener.com/bsc/0x387b34757ab0542934cc07b7734990df65cacadf",
+          "kyvo": true,
+          "score": 100,
+          "match": "speculative"
+        }
+      ],
+      "coins_resolved_at": "2026-10-20T06:43:44Z",
+      "label_en": "Flying Roadster (Elon)",
+      "why_en": "Elon: future Roadster demos may fly over the Snake River / Grand Canyon (128k ♥)",
+      "source_posted_at": "2026-10-17T17:18:31.000Z"
+    },
+    {
+      "id": "spacex_kids",
+      "label": "Akcje SpaceX dla każdego dziecka",
+      "query": "spacex",
+      "hints": [
+        "spcx",
+        "space x"
+      ],
+      "source_post": "https://x.com/elonmusk/status/2112089556615123114",
+      "why": "Elon: w przyszłym roku da jedną akcję SpaceX każdemu dziecku w USA (555k ♥)",
+      "coins": [
+        {
+          "chain": "robinhood",
+          "address": "0xA27C2a62B71bc361B62a26c83B90F45ca60Fb0e3",
+          "symbol": "SPCX",
+          "name": "SpaceX - Backpack Securities",
+          "image": null,
+          "mcap": 67365,
+          "liquidity": 43535.77,
+          "price_usd": 0.0002949,
+          "change_h24": 794,
+          "volume_h24": 101205.68,
+          "pair": "0x82b47c245c2471eef69137027c2dca4575985c1947468e163de8d14b3b10536f",
+          "dex": "uniswap",
+          "pair_created_at": 1792397290000,
+          "dexscreener": "https://dexscreener.com/robinhood/0x82b47c245c2471eef69137027c2dca4575985c1947468e163de8d14b3b10536f",
+          "kyvo": true,
+          "score": 100,
+          "match": "speculative"
+        },
+        {
+          "chain": "solana",
+          "address": "SPCXxcqXj6e5dJDVNovHN8744zkbhM2bYudU45BimGb",
+          "symbol": "SPCX",
+          "name": "SpaceX - Backpack Securities",
+          "image": null,
+          "mcap": 9459629,
+          "liquidity": 2504759.77,
+          "price_usd": 147.59,
+          "change_h24": -0.31,
+          "volume_h24": 5352010.29,
+          "pair": "FjuBy7jjf9DXj9d3R7cHpvcnoFW2iQxf7F7P3vqx4Jza",
+          "dex": "raydium",
+          "pair_created_at": 1781279832000,
+          "dexscreener": "https://dexscreener.com/solana/fjuby7jjf9dxj9d3r7chpvcnofw2iqxf7f7p3vqx4jza",
+          "kyvo": true,
+          "score": 100,
+          "match": "speculative"
+        },
+        {
+          "chain": "bsc",
+          "address": "0xbe9D156892E55e7154BcD3cB0FEA677F9D3103E1",
+          "symbol": "SPCXB",
+          "name": "SpaceX",
+          "image": null,
+          "mcap": 137352925,
+          "liquidity": 1658202.01,
+          "price_usd": 147.78,
+          "change_h24": -0.25,
+          "volume_h24": 2221067.74,
+          "pair": "0x66faaD27cf481f82d0089ec8156B3AA3636010C7",
+          "dex": "pancakeswap",
+          "pair_created_at": 1785595204000,
+          "dexscreener": "https://dexscreener.com/bsc/0x66faad27cf481f82d0089ec8156b3aa3636010c7",
+          "kyvo": true,
+          "score": 100,
+          "match": "speculative"
+        },
+        {
+          "chain": "robinhood",
+          "address": "0x4a0E65A3EcceC6dBe60AE065F2e7bb85Fae35eEa",
+          "symbol": "SPCX",
+          "name": "Space Exploration Technologies Corp. Class A Common Stock • Robinhood Token",
+          "image": null,
+          "mcap": 10095023,
+          "liquidity": 1440489.95,
+          "price_usd": 147.5,
+          "change_h24": -0.39,
+          "volume_h24": 4940991.33,
+          "pair": "0xc61284332117c3FB23A2A56cceFFD07F7aF60029",
+          "dex": "uniswap",
+          "pair_created_at": 1784807794000,
+          "dexscreener": "https://dexscreener.com/robinhood/0xc61284332117c3fb23a2a56cceffd07f7af60029",
+          "kyvo": true,
+          "score": 100,
+          "match": "speculative"
+        }
+      ],
+      "coins_resolved_at": "2026-10-20T06:43:45Z",
+      "label_en": "SpaceX shares for every kid",
+      "why_en": "Elon: next year he'll give one SpaceX share to every child in the US (555k ♥)",
+      "source_posted_at": "2026-10-19T07:52:45.000Z"
+    },
+    {
+      "id": "grok",
+      "label": "Grok jako pracownik",
+      "query": "grok",
+      "hints": [
+        "grok ai"
+      ],
+      "source_post": "https://x.com/elonmusk/status/2112083685872644421",
+      "why": "Elon kilka razy w 2 dni promuje Groka („Hire Grok today”)",
+      "coins": [
+        {
+          "chain": "solana",
+          "address": "6HU4CmRb15C2nQDx8Ld2f2W2wTdmog6aZiiXdrT5Pzi8",
+          "symbol": "GROK",
+          "name": "Grokification",
+          "image": "https://cdn.dexscreener.com/cms/images/1jG9r1tfFQ8VjmB-?width=800&height=800&quality=95&format=auto",
+          "mcap": 133385,
+          "liquidity": 49219.44,
+          "price_usd": 0.0001333,
+          "change_h24": -13.78,
+          "volume_h24": 11411.11,
+          "pair": "3NAxQ3UgevvpTLSTjT4e6PuzLrk8YoW6BsLhTYcU9XeG",
+          "dex": "raydium",
+          "pair_created_at": 1790016873000,
+          "dexscreener": "https://dexscreener.com/solana/3naxq3ugevvptlstjt4e6puzlrk8yow6bslhtycu9xeg",
+          "kyvo": true,
+          "score": 100,
+          "match": "speculative"
+        }
+      ],
+      "coins_resolved_at": "2026-10-20T06:43:46Z",
+      "label_en": "Grok as an employee",
+      "why_en": "Elon promoted Grok several times in 2 days (“Hire Grok today”)",
+      "source_posted_at": "2026-10-19T07:29:25.000Z"
+    },
+    {
+      "id": "papertrade",
+      "label": "Papertrade (Ansem)",
+      "query": "papertrade",
+      "hints": [
+        "paper"
+      ],
+      "source_post": "https://x.com/blknoiz06/status/2112028564987990046",
+      "why": "Ansem: papertrade może być „generational setup” (perpy z dźwignią)",
+      "coins": [
+        {
+          "chain": "robinhood",
+          "address": "0xc32402E8723E6e0cF326c76478036351350b1F53",
+          "symbol": "PAPER",
+          "name": "Paper",
+          "image": null,
+          "mcap": 10204076,
+          "liquidity": 10252055.08,
+          "price_usd": 0.0102,
+          "change_h24": 1940,
+          "volume_h24": 14016321.54,
+          "pair": "0x27b4f034822bee247049d4e89a0954a870ba09e0df7ab84d131b428e156544b2",
+          "dex": "uniswap",
+          "pair_created_at": 1792416298000,
+          "dexscreener": "https://dexscreener.com/robinhood/0x27b4f034822bee247049d4e89a0954a870ba09e0df7ab84d131b428e156544b2",
+          "kyvo": true,
+          "score": 100,
+          "match": "speculative"
+        }
+      ],
+      "coins_resolved_at": "2026-10-20T06:43:47Z",
+      "label_en": "Papertrade (Ansem)",
+      "why_en": "Ansem: papertrade could be a “generational setup” (leveraged perps)",
+      "source_posted_at": "2026-10-19T03:50:24.000Z"
+    },
+    {
+      "id": "pump",
+      "label": "$PUMP i Custom Pairs",
+      "query": "pump",
+      "hints": [
+        "pump.fun"
+      ],
+      "source_post": "https://x.com/a1lon9/status/2110876217591177396",
+      "why": "Alon (pump.fun): część podaży $PUMP schodzi z obiegu przez Custom Pairs",
+      "coins": [
+        {
+          "chain": "solana",
+          "address": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+          "symbol": "PUMP",
+          "name": "Pump",
+          "image": "https://cdn.dexscreener.com/cms/images/a0d07b12d0c34be414b8ac98a827ff862cfd684554c8da4c63fa647eef0af501?width=800&height=800&quality=95&format=auto",
+          "mcap": 2045487172,
+          "liquidity": 23461430.72,
+          "price_usd": 0.004424,
+          "change_h24": -0.64,
+          "volume_h24": 4344652.95,
+          "pair": "2uF4Xh61rDwxnG9woyxsVQP7zuA6kLFpb3NvnRQeoiSd",
+          "dex": "pumpswap",
+          "pair_created_at": 1752512149000,
+          "dexscreener": "https://dexscreener.com/solana/2uf4xh61rdwxng9woyxsvqp7zua6klfpb3nvnrqeoisd",
+          "kyvo": true,
+          "score": 100,
+          "match": "speculative"
+        },
+        {
+          "chain": "solana",
+          "address": "9593dFjsLKKRAaz4LX1eK2DDEgrzfu3idb6yvMysD6A1",
+          "symbol": "PUMP",
+          "name": "Pump.fun",
+          "image": null,
+          "mcap": 2255926,
+          "liquidity": 2050322.6,
+          "price_usd": 0.002255,
+          "change_h24": null,
+          "volume_h24": 107329.86,
+          "pair": "7q2dQbjtxxP4DqmHEC2nsGXWSytQ8jaxdyGswmAg3PFP",
+          "dex": "raydium",
+          "pair_created_at": 1785648131000,
+          "dexscreener": "https://dexscreener.com/solana/7q2dqbjtxxp4dqmhec2nsgxwsytq8jaxdygswmag3pfp",
+          "kyvo": true,
+          "score": 100,
+          "match": "speculative"
+        }
+      ],
+      "coins_resolved_at": "2026-10-20T06:43:47Z",
+      "label_en": "$PUMP and Custom Pairs",
+      "why_en": "Alon (pump.fun): part of the $PUMP supply is leaving circulation via Custom Pairs",
+      "source_posted_at": "2026-10-15T23:31:23.000Z"
+    },
+    {
+      "id": "cate",
+      "label": "$CATE blisko $75 mln MC",
+      "query": "catecoin",
+      "hints": [
+        "cate"
+      ],
+      "source_post": "https://x.com/i/trending/2111691646127722587",
+      "why": "X News: $CATE z pump.fun ~ $73 mln MC, stała akumulacja holderów",
+      "coins": [
+        {
+          "chain": "solana",
+          "address": "Ai66LHZG9MCzg1WKdawwqduVAXpNDUuV8M3uyq5ppump",
+          "symbol": "CATE",
+          "name": "Catecoin",
+          "image": "https://cdn.dexscreener.com/cms/images/_aILGflqFiJQJ4A-?width=800&height=800&quality=95&format=auto",
+          "mcap": 60423959,
+          "liquidity": 2854622.08,
+          "price_usd": 0.06266,
+          "change_h24": -10.23,
+          "volume_h24": 1539704.41,
+          "pair": "HMzvsEEmtzHhvZNw9uwbaG85HCTmFnkbhzUx16cy7ca3",
+          "dex": "pumpswap",
+          "pair_created_at": 1785083563000,
+          "dexscreener": "https://dexscreener.com/solana/hmzvseemtzhhvznw9uwbag85hctmfnkbhzux16cy7ca3",
+          "kyvo": true,
+          "score": 100,
+          "match": "speculative"
+        },
+        {
+          "chain": "solana",
+          "address": "6y6j2SQbUtmAF8uMkk1Zf7ERgrq81zGAmZJjwkQV3RrQ",
+          "symbol": "CATE",
+          "name": "CATE APE",
+          "image": null,
+          "mcap": 1600118,
+          "liquidity": 1477130.24,
+          "price_usd": 0.0016,
+          "change_h24": null,
+          "volume_h24": 107329.86,
+          "pair": "5WAnry95iLzYeuA3cmPM9jaq4Jyra8VQKPoe4TdNkog8",
+          "dex": "raydium",
+          "pair_created_at": 1785993672000,
+          "dexscreener": "https://dexscreener.com/solana/5wanry95ilzyeua3cmpm9jaq4jyra8vqkpoe4tdnkog8",
+          "kyvo": true,
+          "score": 100,
+          "match": "speculative"
+        }
+      ],
+      "coins_resolved_at": "2026-10-20T06:43:48Z",
+      "label_en": "$CATE near $75M MC",
+      "why_en": "X News: pump.fun's $CATE at ~$73M MC, steady holder accumulation"
+    }
+  ],
+  "us_trends": [],
+  "posts": [
+    {
+      "author_name": "Elon Musk",
+      "handle": "elonmusk",
+      "avatar": "https://pbs.twimg.com/profile_images/2103567689515954176/aR-Kjpp4_normal.jpg",
+      "text": "Future fun Roadster demos will include flying over the Snake River or maybe Grand Canyon and landing on its wheels and exceeding half the speed of sound https://t.co/YAhLDbXZur",
+      "created_at": "2026-10-17T17:18:31.000Z",
+      "url": "https://x.com/elonmusk/status/2111507158215057620",
+      "metrics": {
+        "likes": 128496,
+        "reposts": 12425,
+        "replies": 6968,
+        "quotes": 1211,
+        "bookmarks": 4294,
+        "views": 6606376
+      },
+      "tags": [],
+      "topic_hints": [],
+      "topic_id": "roadster",
+      "posted_at": "2026-10-17T17:18:31.000Z",
+      "metrics_at": "2026-10-20T06:42:15Z",
+      "coin_match": "speculative",
+      "spec_coins": [
+        {
+          "chain": "bsc",
+          "address": "0xa2Ab94E4d3457Fb2A6b2Cb60F0120263c76F31B6",
+          "symbol": "Roadster",
+          "name": "Roadster V2",
+          "image": null,
+          "mcap": 14970982,
+          "liquidity": 1082270.93,
+          "price_usd": 0.01497,
+          "change_h24": 55.18,
+          "volume_h24": 1809251.71,
+          "pair": "0x79554a1583Ab00C2896c2600cAA8A1BA423E5F54",
+          "dex": "pancakeswap",
+          "pair_created_at": 1792162842000,
+          "dexscreener": "https://dexscreener.com/bsc/0x79554a1583ab00c2896c2600caa8a1ba423e5f54",
+          "kyvo": true,
+          "score": 100,
+          "match": "speculative"
+        },
+        {
+          "chain": "solana",
+          "address": "5ztpHra9musuXGtkfthsUfYMcS9ki9dWJS5HTAUzpump",
+          "symbol": "Roadster",
+          "name": "Tesla Roadster",
+          "image": null,
+          "mcap": 1239069,
+          "liquidity": 93976.35,
+          "price_usd": 0.001241,
+          "change_h24": 2726,
+          "volume_h24": 117331.19,
+          "pair": "DS6S11gJ4mPyv4J39EoYHewRuijkrdcYjerZvabA82qo",
+          "dex": "pumpswap",
+          "pair_created_at": 1792392236000,
+          "dexscreener": "https://dexscreener.com/solana/ds6s11gj4mpyv4j39eoyhewruijkrdcyjerzvaba82qo",
+          "kyvo": true,
+          "score": 100,
+          "match": "speculative"
+        },
+        {
+          "chain": "bsc",
+          "address": "0x32fA5412Ecef32Fa5C7f3FAE3e357d2Baea77777",
+          "symbol": "Roadster",
+          "name": "Roadster",
+          "image": null,
+          "mcap": 157727,
+          "liquidity": 41730.5,
+          "price_usd": 0.0001692,
+          "change_h24": -26.76,
+          "volume_h24": 118897,
+          "pair": "0x387B34757aB0542934cc07b7734990Df65cAcaDF",
+          "dex": "pancakeswap",
+          "pair_created_at": 1792038538000,
+          "dexscreener": "https://dexscreener.com/bsc/0x387b34757ab0542934cc07b7734990df65cacadf",
+          "kyvo": true,
+          "score": 100,
+          "match": "speculative"
+        }
+      ],
+      "spec_keywords": [
+        "roadster",
+        "flying car",
+        "tesla roadster"
+      ]
+    },
+    {
+      "author_name": "Elon Musk",
+      "handle": "elonmusk",
+      "avatar": "https://pbs.twimg.com/profile_images/2103567689515954176/aR-Kjpp4_normal.jpg",
+      "text": "Next year, I will give one of my SpaceX shares to every kid in America.\n\nThis will be the first of many.",
+      "created_at": "2026-10-19T07:52:45.000Z",
+      "url": "https://x.com/elonmusk/status/2112089556615123114",
+      "metrics": {
+        "likes": 555379,
+        "reposts": 56584,
+        "replies": 38112,
+        "quotes": 13358,
+        "bookmarks": 26362,
+        "views": 29594388
+      },
+      "tags": [],
+      "topic_hints": [],
+      "topic_id": "spacex_kids",
+      "posted_at": "2026-10-19T07:52:45.000Z",
+      "metrics_at": "2026-10-20T06:42:15Z",
+      "coin_match": "speculative",
+      "spec_coins": [
+        {
+          "chain": "robinhood",
+          "address": "0xA27C2a62B71bc361B62a26c83B90F45ca60Fb0e3",
+          "symbol": "SPCX",
+          "name": "SpaceX - Backpack Securities",
+          "image": null,
+          "mcap": 67365,
+          "liquidity": 43535.77,
+          "price_usd": 0.0002949,
+          "change_h24": 794,
+          "volume_h24": 101205.68,
+          "pair": "0x82b47c245c2471eef69137027c2dca4575985c1947468e163de8d14b3b10536f",
+          "dex": "uniswap",
+          "pair_created_at": 1792397290000,
+          "dexscreener": "https://dexscreener.com/robinhood/0x82b47c245c2471eef69137027c2dca4575985c1947468e163de8d14b3b10536f",
+          "kyvo": true,
+          "score": 100,
+          "match": "speculative"
+        },
+        {
+          "chain": "solana",
+          "address": "SPCXxcqXj6e5dJDVNovHN8744zkbhM2bYudU45BimGb",
+          "symbol": "SPCX",
+          "name": "SpaceX - Backpack Securities",
+          "image": null,
+          "mcap": 9459629,
+          "liquidity": 2504759.77,
+          "price_usd": 147.59,
+          "change_h24": -0.31,
+          "volume_h24": 5352010.29,
+          "pair": "FjuBy7jjf9DXj9d3R7cHpvcnoFW2iQxf7F7P3vqx4Jza",
+          "dex": "raydium",
+          "pair_created_at": 1781279832000,
+          "dexscreener": "https://dexscreener.com/solana/fjuby7jjf9dxj9d3r7chpvcnofw2iqxf7f7p3vqx4jza",
+          "kyvo": true,
+          "score": 100,
+          "match": "speculative"
+        },
+        {
+          "chain": "bsc",
+          "address": "0xbe9D156892E55e7154BcD3cB0FEA677F9D3103E1",
+          "symbol": "SPCXB",
+          "name": "SpaceX",
+          "image": null,
+          "mcap": 137352925,
+          "liquidity": 1658202.01,
+          "price_usd": 147.78,
+          "change_h24": -0.25,
+          "volume_h24": 2221067.74,
+          "pair": "0x66faaD27cf481f82d0089ec8156B3AA3636010C7",
+          "dex": "pancakeswap",
+          "pair_created_at": 1785595204000,
+          "dexscreener": "https://dexscreener.com/bsc/0x66faad27cf481f82d0089ec8156b3aa3636010c7",
+          "kyvo": true,
+          "score": 100,
+          "match": "speculative"
+        }
+      ],
+      "spec_keywords": [
+        "spacex",
+        "spcx",
+        "space x"
+      ]
+    },
+    {
+      "author_name": "Elon Musk",
+      "handle": "elonmusk",
+      "avatar": "https://pbs.twimg.com/profile_images/2103567689515954176/aR-Kjpp4_normal.jpg",
+      "text": "Hire Grok @Bot today. You won’t regret it. https://t.co/tYxqBHckMK",
+      "created_at": "2026-10-19T07:29:25.000Z",
+      "url": "https://x.com/elonmusk/status/2112083685872644421",
+      "metrics": {
+        "likes": 15068,
+        "reposts": 1348,
+        "replies": 1641,
+        "quotes": 184,
+        "bookmarks": 856,
+        "views": 6628148
+      },
+      "tags": [],
+      "topic_hints": [],
+      "topic_id": "grok",
+      "posted_at": "2026-10-19T07:29:25.000Z",
+      "metrics_at": "2026-10-20T06:42:15Z",
+      "coin_match": "speculative",
+      "spec_coins": [
+        {
+          "chain": "solana",
+          "address": "6HU4CmRb15C2nQDx8Ld2f2W2wTdmog6aZiiXdrT5Pzi8",
+          "symbol": "GROK",
+          "name": "Grokification",
+          "image": "https://cdn.dexscreener.com/cms/images/1jG9r1tfFQ8VjmB-?width=800&height=800&quality=95&format=auto",
+          "mcap": 133385,
+          "liquidity": 49219.44,
+          "price_usd": 0.0001333,
+          "change_h24": -13.78,
+          "volume_h24": 11411.11,
+          "pair": "3NAxQ3UgevvpTLSTjT4e6PuzLrk8YoW6BsLhTYcU9XeG",
+          "dex": "raydium",
+          "pair_created_at": 1790016873000,
+          "dexscreener": "https://dexscreener.com/solana/3naxq3ugevvptlstjt4e6puzlrk8yow6bslhtycu9xeg",
+          "kyvo": true,
+          "score": 100,
+          "match": "speculative"
+        }
+      ],
+      "spec_keywords": [
+        "grok",
+        "grok ai"
+      ]
+    },
+    {
+      "author_name": "Ansem 🐂🀄️",
+      "handle": "blknoiz06",
+      "avatar": "https://pbs.twimg.com/profile_images/2052070109758226438/xlyPdLmn_normal.jpg",
+      "text": "know ive been tweeting about this a lot but really think papertrade could be a generational setup\n\nhigh leverage perps are crypto's most profitable product to date, demand for speculation is not going to go away\n\nability to open/close synthetic 1000x positions w/ no market impact",
+      "created_at": "2026-10-19T03:50:24.000Z",
+      "url": "https://x.com/blknoiz06/status/2112028564987990046",
+      "metrics": {
+        "likes": 1310,
+        "reposts": 118,
+        "replies": 274,
+        "quotes": 48,
+        "bookmarks": 505,
+        "views": 183155
+      },
+      "tags": [],
+      "topic_hints": [],
+      "topic_id": "papertrade",
+      "posted_at": "2026-10-19T03:50:24.000Z",
+      "metrics_at": "2026-10-20T06:42:15Z",
+      "author_followers": 1449049,
+      "coin_match": "speculative",
+      "spec_coins": [
+        {
+          "chain": "robinhood",
+          "address": "0xc32402E8723E6e0cF326c76478036351350b1F53",
+          "symbol": "PAPER",
+          "name": "Paper",
+          "image": null,
+          "mcap": 10204076,
+          "liquidity": 10252055.08,
+          "price_usd": 0.0102,
+          "change_h24": 1940,
+          "volume_h24": 14016321.54,
+          "pair": "0x27b4f034822bee247049d4e89a0954a870ba09e0df7ab84d131b428e156544b2",
+          "dex": "uniswap",
+          "pair_created_at": 1792416298000,
+          "dexscreener": "https://dexscreener.com/robinhood/0x27b4f034822bee247049d4e89a0954a870ba09e0df7ab84d131b428e156544b2",
+          "kyvo": true,
+          "score": 100,
+          "match": "speculative"
+        }
+      ],
+      "spec_keywords": [
+        "papertrade",
+        "paper"
+      ]
+    },
+    {
+      "author_name": "Ansem 🐂🀄️",
+      "handle": "blknoiz06",
+      "avatar": "https://pbs.twimg.com/profile_images/2052070109758226438/xlyPdLmn_normal.jpg",
+      "text": "i've always viewed social awareness as one of the biggest edges in memecoin trading\n\nbeing early to viral trends matters, but understanding who's behind the attention and how committed the community is can be just as important\n\ni pay close attention to holder distribution, https://t.co/ola16AgaB1",
+      "created_at": "2026-10-19T04:21:56.000Z",
+      "url": "https://x.com/blknoiz06/status/2112036503463546953",
+      "metrics": {
+        "likes": 858,
+        "reposts": 121,
+        "replies": 365,
+        "quotes": 22,
+        "bookmarks": 118,
+        "views": 108471
+      },
+      "tags": [],
+      "topic_hints": [],
+      "topic_id": null,
+      "posted_at": "2026-10-19T04:21:56.000Z",
+      "metrics_at": "2026-10-20T06:42:15Z",
+      "author_followers": 1449049,
+      "coin_match": "none",
+      "spec_coins": []
+    },
+    {
+      "author_name": "alon",
+      "handle": "a1lon9",
+      "avatar": "https://pbs.twimg.com/profile_images/1875434258426187776/XUJTdd67_normal.jpg",
+      "text": "noticed an interesting $PUMP insight as a result of Custom Pairs:\n\nsince Custom Pairs launched last month, 0.33% of the current circulating supply (~$5.9M) has been taken out of circulation: locked LPs, burned, or in the pump protocol fee wallets.\n\nannualizing can be a gimmick,",
+      "created_at": "2026-10-15T23:31:23.000Z",
+      "url": "https://x.com/a1lon9/status/2110876217591177396",
+      "metrics": {
+        "likes": 975,
+        "reposts": 99,
+        "replies": 393,
+        "quotes": 96,
+        "bookmarks": 52,
+        "views": 144510
+      },
+      "tags": [],
+      "topic_hints": [],
+      "topic_id": "pump",
+      "posted_at": "2026-10-15T23:31:23.000Z",
+      "metrics_at": "2026-10-20T06:42:15Z",
+      "author_followers": 430253,
+      "coin_match": "named",
+      "coins": [
+        {
+          "chain": "solana",
+          "address": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+          "symbol": "PUMP",
+          "name": "Pump",
+          "image": "https://cdn.dexscreener.com/cms/images/a0d07b12d0c34be414b8ac98a827ff862cfd684554c8da4c63fa647eef0af501?width=800&height=800&quality=95&format=auto",
+          "mcap": 2133115593,
+          "liquidity": 23972449.03,
+          "price_usd": 0.004616,
+          "change_h24": 4.27,
+          "volume_h24": 5335506.54,
+          "pair": "2uF4Xh61rDwxnG9woyxsVQP7zuA6kLFpb3NvnRQeoiSd",
+          "dex": "pumpswap",
+          "pair_created_at": 1752512149000,
+          "dexscreener": "https://dexscreener.com/solana/2uf4xh61rdwxng9woyxsvqp7zua6klfpb3nvnrqeoisd",
+          "kyvo": true,
+          "match": "cashtag",
+          "mention": "$PUMP"
+        }
+      ]
+    },
+    {
+      "author_name": "Murad 💹🧲",
+      "handle": "MustStopMurad",
+      "avatar": "https://pbs.twimg.com/profile_images/2084373240508510208/BCXFWGNA_normal.jpg",
+      "text": "In a market saturated with scammers, shitcoins and non-believers, believing in something and persisting together with an ultra-hardcore community is the only way to win.",
+      "created_at": "2026-10-19T14:25:56.000Z",
+      "url": "https://x.com/MustStopMurad/status/2112188502557524405",
+      "metrics": {
+        "likes": 1413,
+        "reposts": 264,
+        "replies": 293,
+        "quotes": 59,
+        "bookmarks": 37,
+        "views": 72084
+      },
+      "tags": [],
+      "topic_hints": [],
+      "topic_id": null,
+      "posted_at": "2026-10-19T14:25:56.000Z",
+      "metrics_at": "2026-10-20T06:42:15Z",
+      "coin_match": "none",
+      "spec_coins": []
+    },
+    {
+      "author_name": "Pump.fun",
+      "handle": "Pumpfun",
+      "avatar": "https://pbs.twimg.com/profile_images/2039436355806416896/V0Hhi9n-_normal.jpg",
+      "text": "Recently, we introduced Custom Pairs, allowing you to launch coins paired with tokenized stocks, whitelisted coins, etc.\n\nNow, you can pair new tokens with ANY coin that was launched on pump fun\n\nLess PVP, more PVE. Learn more 👇 https://t.co/Gtr9uGJ29b",
+      "created_at": "2026-10-08T18:37:10.000Z",
+      "url": "https://x.com/Pumpfun/status/2108265460697624755",
+      "metrics": {
+        "likes": 2356,
+        "reposts": 306,
+        "replies": 720,
+        "quotes": 406,
+        "bookmarks": 282,
+        "views": 863473
+      },
+      "tags": [],
+      "topic_hints": [],
+      "topic_id": "pump",
+      "posted_at": "2026-10-08T18:37:10.000Z",
+      "metrics_at": "2026-10-20T06:42:15Z",
+      "coin_match": "speculative",
+      "spec_coins": [
+        {
+          "chain": "solana",
+          "address": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+          "symbol": "PUMP",
+          "name": "Pump",
+          "image": "https://cdn.dexscreener.com/cms/images/a0d07b12d0c34be414b8ac98a827ff862cfd684554c8da4c63fa647eef0af501?width=800&height=800&quality=95&format=auto",
+          "mcap": 2045487172,
+          "liquidity": 23461430.72,
+          "price_usd": 0.004424,
+          "change_h24": -0.64,
+          "volume_h24": 4344652.95,
+          "pair": "2uF4Xh61rDwxnG9woyxsVQP7zuA6kLFpb3NvnRQeoiSd",
+          "dex": "pumpswap",
+          "pair_created_at": 1752512149000,
+          "dexscreener": "https://dexscreener.com/solana/2uf4xh61rdwxng9woyxsvqp7zua6klfpb3nvnrqeoisd",
+          "kyvo": true,
+          "score": 100,
+          "match": "speculative"
+        },
+        {
+          "chain": "solana",
+          "address": "9593dFjsLKKRAaz4LX1eK2DDEgrzfu3idb6yvMysD6A1",
+          "symbol": "PUMP",
+          "name": "Pump.fun",
+          "image": null,
+          "mcap": 2255926,
+          "liquidity": 2050322.6,
+          "price_usd": 0.002255,
+          "change_h24": null,
+          "volume_h24": 107329.86,
+          "pair": "7q2dQbjtxxP4DqmHEC2nsGXWSytQ8jaxdyGswmAg3PFP",
+          "dex": "raydium",
+          "pair_created_at": 1785648131000,
+          "dexscreener": "https://dexscreener.com/solana/7q2dqbjtxxp4dqmhec2nsgxwsytq8jaxdygswmag3pfp",
+          "kyvo": true,
+          "score": 100,
+          "match": "speculative"
+        }
+      ],
+      "spec_keywords": [
+        "pump",
+        "pump.fun"
+      ]
+    }
+  ],
+  "refresh_reads_approx": 12,
+  "updated_at": "2026-10-20T06:43:12Z",
+  "updated_at_warsaw": "2026-10-20T08:43:12+02:00",
+  "trader_tweets": [
+    {
+      "id": "2110876217591177396",
+      "handle": "a1lon9",
+      "author_name": "alon",
+      "avatar": "https://pbs.twimg.com/profile_images/1875434258426187776/XUJTdd67_normal.jpg",
+      "role": "kol",
+      "wallet_id": null,
+      "text": "noticed an interesting $PUMP insight as a result of Custom Pairs:\n\nsince Custom Pairs launched last month, 0.33% of the current circulating supply (~$5.9M) has been taken out of circulation: locked LPs, burned, or in the pump protocol fee wallets.\n\nannualizing can be a gimmick, but assuming $PUMP pair activity stays flat, that's ~3.35% of the current float being taken out of circulation every year.\n\nthe Custom Pairs update launched into an onchain market that isn't too hot, so it's not crazy to think that we're nowhere near seeing how crazy this can get.\n\nthis is especially true for memes or other onchain coins with market caps much lower than billions - if adopted as Custom Pairs these can do REALLY well from all the volume and buy pressure routing through them.",
+      "created_at": "2026-10-15T23:31:23.000Z",
+      "is_reply": false,
+      "url": "https://x.com/a1lon9/status/2110876217591177396",
+      "metrics": {
+        "likes": 975,
+        "reposts": 99,
+        "replies": 393,
+        "quotes": 96,
+        "bookmarks": 52,
+        "views": 144510
+      },
+      "coins": [
+        {
+          "chain": "solana",
+          "address": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+          "symbol": "PUMP",
+          "name": "Pump",
+          "image": "https://cdn.dexscreener.com/cms/images/a0d07b12d0c34be414b8ac98a827ff862cfd684554c8da4c63fa647eef0af501?width=800&height=800&quality=95&format=auto",
+          "mcap": 2045468738,
+          "liquidity": 23461324.87,
+          "price_usd": 0.004424,
+          "change_h24": -1.19,
+          "volume_h24": 4344760,
+          "pair": "2uF4Xh61rDwxnG9woyxsVQP7zuA6kLFpb3NvnRQeoiSd",
+          "dex": "pumpswap",
+          "pair_created_at": 1752512149000,
+          "dexscreener": "https://dexscreener.com/solana/2uf4xh61rdwxng9woyxsvqp7zua6klfpb3nvnrqeoisd",
+          "kyvo": true,
+          "match": "cashtag",
+          "mention": "$PUMP"
+        }
+      ],
+      "posted_at": "2026-10-15T23:31:23.000Z",
+      "metrics_at": "2026-10-20T06:42:15Z",
+      "author_followers": 430253,
+      "coin_match": "named"
+    },
+    {
+      "id": "2110409350598795529",
+      "handle": "Dior100x",
+      "author_name": "Dior",
+      "avatar": "https://pbs.twimg.com/profile_images/2044557055139172352/yOwOwull_normal.jpg",
+      "role": "kol",
+      "wallet_id": null,
+      "text": "When $triplet goes to 9-10 figures eventually\n\nremember which side of the market runs\n\nnot 60k toppers that take 0 skill unless your a wallet with low entry",
+      "created_at": "2026-10-14T16:36:13.000Z",
+      "is_reply": false,
+      "url": "https://x.com/Dior100x/status/2110409350598795529",
+      "metrics": {
+        "likes": 122,
+        "reposts": 16,
+        "replies": 29,
+        "quotes": 0,
+        "bookmarks": 2,
+        "views": 8781
+      },
+      "coins": [
+        {
+          "chain": "solana",
+          "address": "J8PSdNP3QewKq2Z1JJJFDMaqF7KcaiJhR7gbr5KZpump",
+          "symbol": "TripleT",
+          "name": "Tung Tung Tung Sahur",
+          "image": "https://cdn.dexscreener.com/cms/images/KHXna9UvJkXO9zwP?width=800&height=800&quality=95&format=auto",
+          "mcap": 5289452,
+          "liquidity": 522228.66,
+          "price_usd": 0.005289,
+          "change_h24": -10.82,
+          "volume_h24": 140886.43,
+          "pair": "3KFCgJ5R3zshW8hTDbzjSrrKSRYmKvsMfhc4Vo4iddxD",
+          "dex": "pumpswap",
+          "pair_created_at": 1771922626000,
+          "dexscreener": "https://dexscreener.com/solana/3kfcgj5r3zshw8htdbzjsrrksrymkvsmfhc4vo4iddxd",
+          "kyvo": true,
+          "match": "cashtag",
+          "mention": "$TRIPLET"
+        }
+      ],
+      "posted_at": "2026-10-14T16:36:13.000Z",
+      "metrics_at": "2026-10-20T06:42:15Z",
+      "author_followers": 128322,
+      "coin_match": "named"
+    },
+    {
+      "id": "2110198880210137182",
+      "handle": "CryptoKaleo",
+      "author_name": "K A L E O",
+      "avatar": "https://pbs.twimg.com/profile_images/2103001655104901120/E3gT5gmK_normal.jpg",
+      "role": "kol",
+      "wallet_id": null,
+      "text": "$HMM \n\n突破阻力位，直创历史新高。 https://t.co/PBGPstFk0S https://t.co/fW8LGWH4hM",
+      "created_at": "2026-10-14T02:39:53.000Z",
+      "is_reply": false,
+      "url": "https://x.com/CryptoKaleo/status/2110198880210137182",
+      "metrics": {
+        "likes": 142,
+        "reposts": 18,
+        "replies": 33,
+        "quotes": 0,
+        "bookmarks": 3,
+        "views": 23209
+      },
+      "coins": [
+        {
+          "chain": "robinhood",
+          "address": "0x7FE995a80075dF3Dc8Ae11A9b82c7FE4202CD87f",
+          "symbol": "HMM",
+          "name": "Thinking Cat",
+          "image": "https://cdn.dexscreener.com/cms/images/M-tVSdxn8tmiZwiC?width=800&height=800&quality=95&format=auto",
+          "mcap": 6908719,
+          "liquidity": 343194.04,
+          "price_usd": 0.006994,
+          "change_h24": -5.26,
+          "volume_h24": 111545.49,
+          "pair": "0x2b0D0183d017c58B924401cA8AC362f6E01F0E9e",
+          "dex": "uniswap",
+          "pair_created_at": 1784447643000,
+          "dexscreener": "https://dexscreener.com/robinhood/0x2b0d0183d017c58b924401ca8ac362f6e01f0e9e",
+          "kyvo": true,
+          "match": "cashtag",
+          "mention": "$HMM"
+        }
+      ],
+      "posted_at": "2026-10-14T02:39:53.000Z",
+      "metrics_at": "2026-10-20T06:42:15Z",
+      "author_followers": 730049,
+      "coin_match": "named"
+    },
+    {
+      "id": "2110050310232342864",
+      "handle": "Pumpfun",
+      "author_name": "Pump.fun",
+      "avatar": "https://pbs.twimg.com/profile_images/2039436355806416896/V0Hhi9n-_normal.jpg",
+      "role": "kol",
+      "wallet_id": null,
+      "text": "icymarlin showing everyone what it means to have conviction in your callout 🐈💛\n\nA 2 month old callout on $CATE is up $85,000 and he's still holding! https://t.co/DJQax77Xud",
+      "created_at": "2026-10-13T16:49:31.000Z",
+      "is_reply": false,
+      "url": "https://x.com/Pumpfun/status/2110050310232342864",
+      "metrics": {
+        "likes": 538,
+        "reposts": 124,
+        "replies": 186,
+        "quotes": 18,
+        "bookmarks": 26,
+        "views": 66383
+      },
+      "coins": [
+        {
+          "chain": "solana",
+          "address": "Ai66LHZG9MCzg1WKdawwqduVAXpNDUuV8M3uyq5ppump",
+          "symbol": "CATE",
+          "name": "Catecoin",
+          "image": "https://cdn.dexscreener.com/cms/images/_aILGflqFiJQJ4A-?width=800&height=800&quality=95&format=auto",
+          "mcap": 60072719,
+          "liquidity": 2846308.33,
+          "price_usd": 0.0623,
+          "change_h24": -10.75,
+          "volume_h24": 1539704.38,
+          "pair": "HMzvsEEmtzHhvZNw9uwbaG85HCTmFnkbhzUx16cy7ca3",
+          "dex": "pumpswap",
+          "pair_created_at": 1785083563000,
+          "dexscreener": "https://dexscreener.com/solana/hmzvseemtzhhvznw9uwbag85hctmfnkbhzux16cy7ca3",
+          "kyvo": true,
+          "match": "cashtag",
+          "mention": "$CATE"
+        }
+      ],
+      "posted_at": "2026-10-13T16:49:31.000Z",
+      "metrics_at": "2026-10-20T06:42:15Z",
+      "coin_match": "named"
+    },
+    {
+      "id": "2109999482763174192",
+      "handle": "CryptoKaleo",
+      "author_name": "K A L E O",
+      "avatar": "https://pbs.twimg.com/profile_images/2103001655104901120/E3gT5gmK_normal.jpg",
+      "role": "kol",
+      "wallet_id": null,
+      "text": "$PONS is still free here.\n\nInsane we’re barely in the first inning of the greatest bull market we’ll see in our lifetimes and people are already trying to call it dead. https://t.co/yAzMlvuFhX",
+      "created_at": "2026-10-13T13:27:33.000Z",
+      "is_reply": false,
+      "url": "https://x.com/CryptoKaleo/status/2109999482763174192",
+      "metrics": {
+        "likes": 249,
+        "reposts": 22,
+        "replies": 49,
+        "quotes": 4,
+        "bookmarks": 7,
+        "views": 34957
+      },
+      "coins": [
+        {
+          "chain": "robinhood",
+          "address": "0x39dBED3a2bd333467115dE45665cC57F813C4571",
+          "symbol": "PONS",
+          "name": "Pons",
+          "image": "https://cdn.dexscreener.com/cms/images/dkmXs8KYMyMXjuU1?width=800&height=800&quality=95&format=auto",
+          "mcap": 180880741,
+          "liquidity": 2735736.5,
+          "price_usd": 0.2684,
+          "change_h24": 2.49,
+          "volume_h24": 504654.48,
+          "pair": "0x10CC6BD38112cAc182db90B6a71d8Bb5939526bA",
+          "dex": "uniswap",
+          "pair_created_at": 1783975341000,
+          "dexscreener": "https://dexscreener.com/robinhood/0x10cc6bd38112cac182db90b6a71d8bb5939526ba",
+          "kyvo": true,
+          "match": "cashtag",
+          "mention": "$PONS"
+        }
+      ],
+      "posted_at": "2026-10-13T13:27:33.000Z",
+      "metrics_at": "2026-10-20T06:42:15Z",
+      "author_followers": 730049,
+      "coin_match": "named"
+    },
+    {
+      "id": "2109924954838012015",
+      "handle": "CryptoKaleo",
+      "author_name": "K A L E O",
+      "avatar": "https://pbs.twimg.com/profile_images/2103001655104901120/E3gT5gmK_normal.jpg",
+      "role": "kol",
+      "wallet_id": null,
+      "text": "The Chinese are bidding their favorite cat again \n\n趁大家都睡着的时候发送 $HMM\n\n是时候让Robinhood再次伟大了🤔🐈 https://t.co/mOgUDuE7sU https://t.co/pe5RGn26mB",
+      "created_at": "2026-10-13T08:31:24.000Z",
+      "is_reply": false,
+      "url": "https://x.com/CryptoKaleo/status/2109924954838012015",
+      "metrics": {
+        "likes": 110,
+        "reposts": 13,
+        "replies": 33,
+        "quotes": 1,
+        "bookmarks": 1,
+        "views": 24137
+      },
+      "coins": [
+        {
+          "chain": "robinhood",
+          "address": "0x7FE995a80075dF3Dc8Ae11A9b82c7FE4202CD87f",
+          "symbol": "HMM",
+          "name": "Thinking Cat",
+          "image": "https://cdn.dexscreener.com/cms/images/M-tVSdxn8tmiZwiC?width=800&height=800&quality=95&format=auto",
+          "mcap": 6908719,
+          "liquidity": 343194.04,
+          "price_usd": 0.006994,
+          "change_h24": -5.26,
+          "volume_h24": 111545.49,
+          "pair": "0x2b0D0183d017c58B924401cA8AC362f6E01F0E9e",
+          "dex": "uniswap",
+          "pair_created_at": 1784447643000,
+          "dexscreener": "https://dexscreener.com/robinhood/0x2b0d0183d017c58b924401ca8ac362f6e01f0e9e",
+          "kyvo": true,
+          "match": "cashtag",
+          "mention": "$HMM"
+        }
+      ],
+      "posted_at": "2026-10-13T08:31:24.000Z",
+      "metrics_at": "2026-10-20T06:42:15Z",
+      "author_followers": 730049,
+      "coin_match": "named"
+    },
+    {
+      "id": "2108265477588062696",
+      "handle": "Pumpfun",
+      "author_name": "Pump.fun",
+      "avatar": "https://pbs.twimg.com/profile_images/2039436355806416896/V0Hhi9n-_normal.jpg",
+      "role": "kol",
+      "wallet_id": null,
+      "text": "For example: \n\n1. A trader buys $1000 USDC of $BATON, which is paired with $PUMP\n2. In order to purchase $BATON, the transaction must swap $1000 USDC for $PUMP\n3. $PUMP is then swapped for $BATON, which the trader ultimately receives \n\nDespite the trader never intentionally",
+      "created_at": "2026-10-08T18:37:14.000Z",
+      "is_reply": true,
+      "url": "https://x.com/Pumpfun/status/2108265477588062696",
+      "metrics": {
+        "likes": 441,
+        "reposts": 88,
+        "replies": 57,
+        "quotes": 67,
+        "bookmarks": 49,
+        "views": 80223
+      },
+      "coins": [
+        {
+          "chain": "solana",
+          "address": "Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump",
+          "symbol": "baton",
+          "name": "baton",
+          "image": "https://cdn.dexscreener.com/cms/images/9nrLv-ulY69PhjgY?width=800&height=800&quality=95&format=auto",
+          "mcap": 7464761,
+          "liquidity": 519632.79,
+          "price_usd": 0.007474,
+          "change_h24": 12.63,
+          "volume_h24": 588312.69,
+          "pair": "Cb7ZRgPLhji3Th7htXyKEqbXvNjPpeTvckXuWakBUhXu",
+          "dex": "pumpswap",
+          "pair_created_at": 1788985934000,
+          "dexscreener": "https://dexscreener.com/solana/cb7zrgplhji3th7htxykeqbxvnjppetvckxuwakbuhxu",
+          "kyvo": true,
+          "match": "cashtag",
+          "mention": "$BATON"
+        },
+        {
+          "chain": "solana",
+          "address": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+          "symbol": "PUMP",
+          "name": "Pump",
+          "image": "https://cdn.dexscreener.com/cms/images/a0d07b12d0c34be414b8ac98a827ff862cfd684554c8da4c63fa647eef0af501?width=800&height=800&quality=95&format=auto",
+          "mcap": 2045468738,
+          "liquidity": 23461324.87,
+          "price_usd": 0.004424,
+          "change_h24": -1.19,
+          "volume_h24": 4344760,
+          "pair": "2uF4Xh61rDwxnG9woyxsVQP7zuA6kLFpb3NvnRQeoiSd",
+          "dex": "pumpswap",
+          "pair_created_at": 1752512149000,
+          "dexscreener": "https://dexscreener.com/solana/2uf4xh61rdwxng9woyxsvqp7zua6klfpb3nvnrqeoisd",
+          "kyvo": true,
+          "match": "cashtag",
+          "mention": "$PUMP"
+        }
+      ],
+      "posted_at": "2026-10-08T18:37:14.000Z",
+      "metrics_at": "2026-10-20T06:42:15Z",
+      "coin_match": "named"
+    },
+    {
+      "id": "2107931464574918916",
+      "handle": "Quanterty",
+      "author_name": "Q",
+      "avatar": "https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png",
+      "role": "trader",
+      "wallet_id": "quanterty",
+      "text": "$PUMP $NEAR both really strong",
+      "created_at": "2026-10-07T20:29:59.000Z",
+      "is_reply": false,
+      "url": "https://x.com/Quanterty/status/2107931464574918916",
+      "metrics": {
+        "likes": 244,
+        "reposts": 10,
+        "replies": 38,
+        "quotes": 1,
+        "bookmarks": 4,
+        "views": 16433
+      },
+      "coins": [
+        {
+          "chain": "solana",
+          "address": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+          "symbol": "PUMP",
+          "name": "Pump",
+          "image": "https://cdn.dexscreener.com/cms/images/a0d07b12d0c34be414b8ac98a827ff862cfd684554c8da4c63fa647eef0af501?width=800&height=800&quality=95&format=auto",
+          "mcap": 2045468738,
+          "liquidity": 23461324.87,
+          "price_usd": 0.004424,
+          "change_h24": -1.19,
+          "volume_h24": 4344760,
+          "pair": "2uF4Xh61rDwxnG9woyxsVQP7zuA6kLFpb3NvnRQeoiSd",
+          "dex": "pumpswap",
+          "pair_created_at": 1752512149000,
+          "dexscreener": "https://dexscreener.com/solana/2uf4xh61rdwxng9woyxsvqp7zua6klfpb3nvnrqeoisd",
+          "kyvo": true,
+          "match": "cashtag",
+          "mention": "$PUMP"
+        }
+      ],
+      "posted_at": "2026-10-07T20:29:59.000Z",
+      "metrics_at": "2026-10-20T06:42:15Z",
+      "coin_match": "named"
+    }
+  ],
+  "tracked_accounts": [
+    {
+      "handle": "orangie",
+      "role": "trader"
+    },
+    {
+      "handle": "Quanterty",
+      "role": "trader"
+    },
+    {
+      "handle": "Cupseyy",
+      "role": "trader"
+    },
+    {
+      "handle": "blknoiz06",
+      "role": "kol"
+    },
+    {
+      "handle": "MustStopMurad",
+      "role": "kol"
+    },
+    {
+      "handle": "Ga__ke",
+      "role": "kol"
+    },
+    {
+      "handle": "Cented7",
+      "role": "kol"
+    },
+    {
+      "handle": "notthreadguy",
+      "role": "kol"
+    },
+    {
+      "handle": "frankdegods",
+      "role": "kol"
+    },
+    {
+      "handle": "jijo_exe",
+      "role": "kol"
+    },
+    {
+      "handle": "MarcellxMarcell",
+      "role": "kol"
+    },
+    {
+      "handle": "Dior100x",
+      "role": "kol"
+    },
+    {
+      "handle": "kreo444",
+      "role": "kol"
+    },
+    {
+      "handle": "traderpow",
+      "role": "kol"
+    },
+    {
+      "handle": "CryptoKaleo",
+      "role": "kol"
+    },
+    {
+      "handle": "a1lon9",
+      "role": "kol"
+    },
+    {
+      "handle": "Pumpfun",
+      "role": "kol"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+# Kyvo v8.4: trader leaderboard refresh (public kolscan.io page + Binance SOL price). Runs on GitHub's servers only.
+# No secrets needed. If the source fails, data/leaderboard.json is left unchanged (UI shows "Zaktualizowano: <date>").
+name: kyvo-leaderboard
+on:
+  schedule:
+    - cron: "23 */6 * * *"        # every 6h (00:23, 06:23, 12:23, 18:23 UTC); GitHub may delay a few minutes
+  workflow_dispatch:
+permissions:
+  contents: write                 # only to commit data/leaderboard.json
+concurrency:
+  group: kyvo-leaderboard
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build leaderboard
+        run: python3 tools/build_leaderboard.py
+      - name: Commit (no [skip ci], so GitHub Pages republishes the new data)
+        run: |
+          git config user.name "kyvo-leaderboard-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/leaderboard.json
+          git diff --cached --quiet && exit 0
+          git commit -m "leaderboard: scheduled refresh"
+          for i in 1 2 3; do git pull --rebase -q origin "${GITHUB_REF_NAME}" && git push -q origin "HEAD:${GITHUB_REF_NAME}" && break; sleep 5; done

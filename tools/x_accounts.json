@@ -1,0 +1,419 @@
+{
+ "note": "Public X accounts read for 'Tweety traderów'. role=trader: wallet publicly attributed in wallets_public.json; role=kol: well-known public memecoin/crypto account (X profile verified to exist via x MCP get_users_by_usernames, 2026-10-20). No wallet attribution implied for kol.",
+ "accounts": [
+  {
+   "handle": "orangie",
+   "id": "2758205289",
+   "role": "trader",
+   "wallet_id": "orangie",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "Quanterty",
+   "id": "1501306277351366660",
+   "role": "trader",
+   "wallet_id": "quanterty"
+  },
+  {
+   "handle": "Cupseyy",
+   "id": "1168903946989010944",
+   "role": "trader",
+   "wallet_id": "cupsey",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "blknoiz06",
+   "id": "973261472",
+   "role": "kol",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "MustStopMurad",
+   "id": "844304603336232960",
+   "role": "kol",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "Ga__ke",
+   "id": "86647812",
+   "role": "kol"
+  },
+  {
+   "handle": "Cented7",
+   "id": "1048768598494199809",
+   "role": "kol",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "notthreadguy",
+   "id": "1426732252768182281",
+   "role": "kol",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "frankdegods",
+   "id": "1441835930889818113",
+   "role": "kol",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "jijo_exe",
+   "id": "1705421907326033920",
+   "role": "kol"
+  },
+  {
+   "handle": "MarcellxMarcell",
+   "id": "1585960998321770497",
+   "role": "kol"
+  },
+  {
+   "handle": "Dior100x",
+   "id": "2728708501",
+   "role": "kol",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "kreo444",
+   "id": "1562555201231265793",
+   "role": "kol"
+  },
+  {
+   "handle": "traderpow",
+   "id": "1325739682752204800",
+   "role": "kol"
+  },
+  {
+   "handle": "CryptoKaleo",
+   "id": "906234475604037637",
+   "role": "kol"
+  },
+  {
+   "handle": "a1lon9",
+   "id": "1470958472409792515",
+   "role": "kol",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "Pumpfun",
+   "id": "1622243071806128131",
+   "role": "kol",
+   "vip_rule": "crypto"
+  }
+ ],
+ "live_extra": [
+  {
+   "handle": "elonmusk",
+   "role": "celebrity",
+   "replies": true,
+   "vip": true,
+   "vip_rule": "keywords"
+  },
+  {
+   "handle": "cz_binance",
+   "role": "celebrity",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "heyibinance",
+   "role": "kol",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "realDonaldTrump",
+   "role": "celebrity",
+   "replies": true,
+   "vip": true,
+   "vip_rule": "posts"
+  },
+  {
+   "handle": "gainzy222",
+   "role": "kol",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "Loopierr",
+   "role": "kol"
+  },
+  {
+   "handle": "0xSisyphus",
+   "role": "kol"
+  },
+  {
+   "handle": "kimchi1x",
+   "role": "kol",
+   "note": "v8.8: Solana trader/KOL, Pump.fun partner (bio @pumpfun). Verified via api.fxtwitter.com 2026-10-22: verified, ~213k followers. v8.24: VIP (important-tweet push). Re-verified via x get_users_by_username 2026-10-31: id 1133110690615418880, bio '@pumpfun', ~228k followers; the trader known for the (disputed: Bubblemaps traced ~$6M) $40M $TRUMP profit claim.",
+   "name": "Kimchi",
+   "vip": true,
+   "vip_rule": "posts",
+   "id": "1133110690615418880"
+  }
+ ],
+ "live_note": "v8.6 New Tweet feed (tools/x_live.py): accounts + live_extra are read every ~5 min from the public FxTwitter API (no X key). live_extra verified to exist via api.fxtwitter.com/2/profile on 2026-10-21.",
+ "kol_extra": [
+  {
+   "handle": "kimchi1x",
+   "why": "Pump.fun partner trader; $KIMCHI (CSoc…pump) linked x.com/kimchi1x in on-chain metadata"
+  },
+  {
+   "handle": "theunipcs",
+   "why": "well-known Solana memecoin figure (Bonk), verified, ~338k followers (fxtwitter 2026-10-22)"
+  },
+  {
+   "handle": "rajgokal",
+   "why": "Solana co-founder, verified, ~2.4M followers (fxtwitter 2026-10-22)"
+  },
+  {
+   "handle": "ShockedJS",
+   "why": "well-known memecoin trader/KOL, verified, ~72k followers (fxtwitter 2026-10-22)"
+  }
+ ],
+ "kol_note": "v8.8 KOL-coin list (tools/kol_coins.py) = accounts + live_extra + kol_extra + every kolscan leaderboard handle (data/leaderboard.json). Exact handle match only (e.g. @Ansem is NOT @blknoiz06).",
+ "live_more": [
+  {
+   "handle": "WhiteHouse",
+   "role": "celebrity"
+  },
+  {
+   "handle": "saylor",
+   "role": "celebrity",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "justinsuntron",
+   "role": "celebrity",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "brian_armstrong",
+   "role": "celebrity",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "VitalikButerin",
+   "role": "celebrity",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "MrBeast",
+   "role": "celebrity"
+  },
+  {
+   "handle": "Cobratate",
+   "role": "celebrity"
+  },
+  {
+   "handle": "cb_doge",
+   "role": "kol"
+  },
+  {
+   "handle": "DogeDesigner",
+   "role": "kol"
+  },
+  {
+   "handle": "KookCapitalLLC",
+   "role": "kol"
+  },
+  {
+   "handle": "ZssBecker",
+   "role": "kol"
+  },
+  {
+   "handle": "theunipcs",
+   "role": "kol",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "rajgokal",
+   "role": "kol",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "ShockedJS",
+   "role": "kol"
+  },
+  {
+   "handle": "WatcherGuru",
+   "role": "news",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "binance",
+   "role": "project",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "BNBCHAIN",
+   "role": "project"
+  },
+  {
+   "handle": "solana",
+   "role": "project",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "toly",
+   "id": "2327407569",
+   "role": "kol",
+   "note": "v8.24: Solana co-founder (Toly; bio 'Co-Founder of Solana Labs', ~2.7M; @aeyakovenko no longer exists); verified via x get_users_by_usernames 2026-10-31",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "cobie",
+   "id": "2259434528",
+   "role": "kol",
+   "note": "v8.24: Cobie (@echodotxyz, ~1.25M); verified via x get_users_by_usernames 2026-10-31",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "HsakaTrades",
+   "id": "944686196331966464",
+   "role": "kol",
+   "note": "v8.24: Hsaka, trader (~600k); verified via x get_users_by_usernames 2026-10-31",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "CryptoHayes",
+   "id": "983993370048630785",
+   "role": "kol",
+   "note": "v8.24: Arthur Hayes (~815k); verified via x get_users_by_usernames 2026-10-31",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "zachxbt",
+   "id": "3012852462",
+   "role": "kol",
+   "note": "v8.24: ZachXBT, on-chain investigator — hacks / rugs (~1.1M); verified via x get_users_by_usernames 2026-10-31",
+   "vip_rule": "crypto"
+  },
+  {
+   "handle": "Pentosh1",
+   "id": "1138993163706753029",
+   "role": "kol",
+   "note": "v8.24: Pentoshi, trader (~944k); verified via x get_users_by_usernames 2026-10-31",
+   "vip_rule": "crypto"
+  }
+ ],
+ "live_more_note": "v8.10 New Tweet only (tools/x_live.py; NOT used for 👑 KOL coin): big accounts whose tweets often spawn memecoins (Elon circle, politics, exchanges, news). Each verified to answer on api.fxtwitter.com/2/profile/<handle>/statuses on 2026-10-22.",
+ "note_replies": "v8.23: replies=true -> x_live.py reads the timeline WITH replies (FxTwitter ?with_replies=1) and keeps every reply, not only ones naming a coin; vip=true -> server push for every new post / reply (tools/kyvo_push.py VIP block). v8.24: push is no longer for every post — see vip_push (important-tweet filter).",
+ "vip_push": {
+  "note": "v8.24 ⭐ important-tweet push (tools/kyvo_push.py). The New Tweet feed still shows EVERY post; only pushes are filtered. Per-account vip_rule: 'posts' = every ORIGINAL post (not replies) pushes, replies only if important; 'keywords' = post or reply pushes only if its text (+ quoted post, + the post it replies to) hits a keyword / cashtag / named coin, or its early engagement passes the thresholds; 'all' = old v8.23 behaviour (every post + reply). Env KYVO_VIP_DAY_CAP / KYVO_VIP_GAP_S override day_cap / gap_s. 'crypto' (big crypto names, no ⭐ in the feed): push only when the post names a coin / $CASHTAG / contract address, hits a crypto_keywords word, or passes engagement_crypto. Accounts with vip=true (Elon, Trump, Kimchi) are the ⭐ VIP chip in the app; vip_rule alone only enables the push.",
+  "day_cap": 5,
+  "gap_s": 600,
+  "max_age_min": 45,
+  "engagement": {
+   "min_likes": 25000,
+   "likes_per_min": 600,
+   "min_views": 3000000,
+   "note": "reached while the post is ≤ max_age_min old: likes ≥ min_likes, OR likes/min since posting ≥ likes_per_min (counted only from 5 min old), OR views ≥ min_views. Elon's ordinary posts sit around 5–15k likes at ~1.5 h (data/x_live.json, 2026-10-31)."
+  },
+  "keywords": [
+   "crypto",
+   "bitcoin",
+   "btc",
+   "ethereum",
+   "eth",
+   "solana",
+   "sol",
+   "doge",
+   "dogecoin",
+   "memecoin",
+   "meme coin",
+   "coin",
+   "token",
+   "tokens",
+   "blockchain",
+   "stablecoin",
+   "xrp",
+   "bnb",
+   "pump.fun",
+   "pumpfun",
+   "binance",
+   "coinbase",
+   "ca:",
+   "contract",
+   "tariff",
+   "tariffs",
+   "fed",
+   "federal reserve",
+   "interest rate",
+   "interest rates",
+   "rate cut",
+   "rate hike",
+   "inflation",
+   "powell",
+   "recession",
+   "treasury",
+   "strategic reserve",
+   "sec",
+   "etf",
+   "war",
+   "ceasefire",
+   "sanctions",
+   "ban",
+   "banned",
+   "executive order",
+   "launch",
+   "launching",
+   "buy",
+   "buying",
+   "bought",
+   "x money",
+   "xmoney",
+   "payments",
+   "trump coin",
+   "$trump",
+   "$doge",
+   "stock market",
+   "stocks",
+   "nasdaq",
+   "s&p"
+  ],
+  "keywords_note": "case-insensitive whole-word match ('sol' does not hit 'solid'); any $CASHTAG or a coin the server resolved in the tweet also counts.",
+  "crypto_keywords": [
+   "launch",
+   "launching",
+   "launched",
+   "listing",
+   "will list",
+   "listed on",
+   "delist",
+   "hack",
+   "hacked",
+   "exploit",
+   "exploited",
+   "drained",
+   "etf",
+   "approved",
+   "approval",
+   "ban",
+   "banned",
+   "sec",
+   "lawsuit",
+   "arrested",
+   "airdrop",
+   "ca:",
+   "contract address",
+   "acquire",
+   "acquired",
+   "acquisition",
+   "strategic reserve",
+   "bankrupt",
+   "bankruptcy",
+   "insolvent",
+   "tariff",
+   "tariffs",
+   "rate cut",
+   "rate hike",
+   "fomc",
+   "executive order",
+   "breaking"
+  ],
+  "engagement_crypto": {
+   "min_likes": 6000,
+   "likes_per_min": 150,
+   "min_views": 1000000
+  },
+  "total_day_cap": 20,
+  "per_run": 2
+ }
+}
