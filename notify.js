@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   const SKEY = 'kyvo_notif_v1', GKEY = 'kyvo_seen_good_v1', TKEY = 'kyvo_seen_tw_v1';
-  const DEF = { good: true, tweets: true, runner: true, gold: true, vip: true, minScore: 75 };
+  const DEF = { good: true, tweets: true, runner: true, gold: true, smart: true, vip: true, minScore: 75 }; // v8.28: + 👀 smart
   let D = null;
   const T = (x) => (window.KyvoI18n ? window.KyvoI18n.t(x) : x);
   const EN = () => !!(window.KyvoI18n && window.KyvoI18n.isEn());
@@ -166,6 +166,7 @@
       <div class="h" style="font-size:14px;margin:0 0 6px">🔔 ${L('Powiadomienia', 'Notifications')}</div>
       <label class="nrow"><input type="checkbox" data-nt="runner" ${S.runner !== false ? 'checked' : ''}><span><b>🏃 Runner</b><small>${L('najmocniejsze sygnały: ogromny rosnący wolumen, tysiące transakcji, super-ważne tweety (kilka–kilkanaście dziennie)', 'strongest signals: huge rising volume, thousands of txns, super-important tweets (a handful to ~20 a day)')}</small></span></label>
       <label class="nrow"><input type="checkbox" data-nt="gold" ${S.gold !== false ? 'checked' : ''}><span><b>🥇 Gold</b><small>${L('alerty dla coinów z werdyktem Gold: cena ±15–20%, kopia (wampir) powyżej $500K MC, nowy artykuł o narracji · Premium', 'alerts for coins with a Gold verdict: price ±15–20%, a copy (vamp) above $500K MC, a new article about the narrative · Premium')}</small></span></label>
+      <label class="nrow"><input type="checkbox" data-nt="smart" ${S.smart !== false ? 'checked' : ''}><span><b>👀 Smart money</b><small>${L('kilku top traderów z Rankingu kupiło ten sam coin w 30 min · 🏃 Runners · w tygodniu z darmowym Premium dla wszystkich', 'several top Ranking traders bought the same coin within 30 min · 🏃 Runners · free for everyone during the free Premium week')}</small></span></label>
       <label class="nrow"><input type="checkbox" data-nt="good" ${S.good ? 'checked' : ''}><span><b>${L('Nowy coin w Good Coins', 'New coin in Good Coins')}</b><small>${L('tylko z wysokim wynikiem Kyvo Check', 'only with a high Kyvo Check score')}</small></span></label>
       <label class="nrow"><input type="checkbox" data-nt="vip" ${S.vip !== false ? 'checked' : ''}><span><b>⭐ ${L('Super ważne tweety', 'Super important tweets')}</b><small>${L('tylko naprawdę ważne posty: każdy nowy post Trumpa i Kimchiego, Elon i duże konta krypto (CZ, Vitalik, Saylor, Toly, Ansem…) tylko gdy chodzi o coina, rynek lub ma ogromny zasięg · max 5 dziennie na konto · Premium · w tygodniu z darmowym Premium dla wszystkich', 'only really important posts: every new Trump and Kimchi post; Elon and big crypto accounts (CZ, Vitalik, Saylor, Toly, Ansem…) only about a coin, the market, or going hugely viral · max 5 a day per account · Premium · free for everyone during the free Premium week')}</small></span></label>
       <label class="nrow"><input type="checkbox" data-nt="tweets" ${S.tweets ? 'checked' : ''}><span><b>${L('Nowy ważny tweet z coinem', 'New important tweet with a coin')}</b><small>${L('znany trader, KOL lub celebryta tweetuje o coinie (New Tweet, sprawdzane co kilka minut)', 'a well-known trader, KOL or celebrity tweets about a coin (New Tweet, checked every few minutes)')}</small></span></label>
@@ -182,7 +183,13 @@
   function wireSettings(root, rerender) {
     const box = root && root.querySelector('[data-nset]');
     if (!box) return;
-    box.querySelectorAll('[data-nt]').forEach((i) => (i.onchange = () => { S[i.dataset.nt] = i.checked; save(SKEY, S); if (window.KyvoPush && window.KyvoPush.syncTags) window.KyvoPush.syncTags(); if (D && D.toast) D.toast(L('Zapisano', 'Saved')); }));
+    /* v8.28: "Zapisano" only after the OneSignal tags really changed; otherwise a clear error + retry later (dirty flag). */
+    box.querySelectorAll('[data-nt]').forEach((i) => (i.onchange = async () => {
+      S[i.dataset.nt] = i.checked; save(SKEY, S);
+      let ok = true;
+      if (window.KyvoPush && window.KyvoPush.syncTags) ok = await window.KyvoPush.syncTags({ fromToggle: true });
+      if (D && D.toast) D.toast(ok ? L('Zapisano', 'Saved') : L('Nie zapisano – otwórz Kyvo z ekranu głównego', 'Not saved – open Kyvo from the Home Screen'));
+    }));
     const np = box.querySelector('[data-npush]');
     if (np) np.onclick = async () => {
       const off = !pushOff();
@@ -208,24 +215,50 @@
 (function () {
   'use strict';
   let started = false;
+  let ready = null;            // v8.28: resolves true once OneSignal.init + optIn + addTags really finished (false on error)
+  const TAGS_V = '2', TVKEY = 'kyvo_push_tags_v', DIRTY = 'kyvo_push_tags_dirty';
+  const setDirty = (v) => { try { if (v) localStorage.setItem(DIRTY, '1'); else localStorage.removeItem(DIRTY); } catch (e) {} };
+  const isDirty = () => { try { return localStorage.getItem(DIRTY) === '1' || localStorage.getItem(TVKEY) !== TAGS_V; } catch (e) { return false; } };
+  function canPush() {
+    const C = window.KYVO_PUSH_CONFIG || {};
+    let off = false; try { off = localStorage.getItem('kyvo_push_off') === '1'; } catch (e) {}
+    return !!C.enabled && !off && typeof Notification !== 'undefined' && Notification.permission === 'granted';
+  }
+  const pushRelevant = () => { const C = window.KYVO_PUSH_CONFIG || {}; const ios = /iPhone|iPad|iPod/.test(navigator.userAgent); const sa = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; return !!C.enabled && (canPush() || (ios && !sa)); };
   function loadScript(src) { return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.async = true; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
   function tags() {
     const S = (window.KyvoNotify && window.KyvoNotify.settings()) || {};
-    return { good: S.good ? '1' : '0', tweets: S.tweets ? '1' : '0', runner: S.runner !== false ? '1' : '0', gold: S.gold !== false ? '1' : '0', vip: S.vip !== false ? '1' : '0', premium: curTier() !== 'free' ? '1' : '0', tier: curTier(), lang: window.KyvoI18n ? window.KyvoI18n.lang : 'pl' };
+    return { good: S.good ? '1' : '0', tweets: S.tweets ? '1' : '0', runner: S.runner !== false ? '1' : '0', gold: S.gold !== false ? '1' : '0', smart: S.smart !== false ? '1' : '0', vip: S.vip !== false ? '1' : '0', premium: curTier() !== 'free' ? '1' : '0', tier: curTier(), lang: window.KyvoI18n ? window.KyvoI18n.lang : 'pl', tv: TAGS_V };
   }
-  function withOS(fn) { if (!started || !window.OneSignalDeferred) return Promise.resolve(false); return new Promise((res) => window.OneSignalDeferred.push(async (OneSignal) => { try { await fn(OneSignal); res(true); } catch (e) { res(false); } })); }
+  function withOS(fn) {
+    if (!started || !window.OneSignalDeferred) return Promise.resolve(false);
+    const run = new Promise((res) => window.OneSignalDeferred.push(async (OneSignal) => { try { await fn(OneSignal); res(true); } catch (e) { res(false); } }));
+    const timeout = new Promise((res) => setTimeout(() => res(false), 15000));   // SDK never loaded -> report failure, not hang
+    return Promise.resolve(ready).then(() => Promise.race([run, timeout]));
+  }
+  function markSynced(ok, tg) {
+    if (ok) { try { localStorage.setItem(TIERKEY, tg.tier); localStorage.setItem(TVKEY, TAGS_V); } catch (e) {} setDirty(false); } else setDirty(true);
+    return ok;
+  }
   /* v8.22: the legacy premium=1 tag also follows paidTier() (free launch week never changes push tags). */
   /* v8.16: tier tag (free | premium | runners) routes server push per plan (tools/kyvo_push.py). Default 'free'.
      Re-synced when the tier changes: owner unlock / entitlement event, KyvoPremiumReady, and a cheap check on focus. */
   const TIERKEY = 'kyvo_push_tier';
   function curTier() { try { const P = window.KyvoPremium; const t = P && (P.paidTier ? P.paidTier() : P.tier && P.tier()); return t === 'premium' || t === 'runners' ? t : 'free'; } catch (e) { return 'free'; } }
-  function syncTags() {
+  /* v8.28: real result. Not started yet but allowed (permission granted, push on) -> init first (init writes all tags itself).
+     Push not possible here (Safari tab on iPhone, permission missing) -> false + dirty, retried on the next visible / init. */
+  async function syncTags(opt) {
+    if (!started) {
+      if (!canPush()) { setDirty(true); return opt && opt.fromToggle ? !pushRelevant() : false; }
+      await init();
+      return ready ? await ready : false;
+    }
     const tg = tags();
-    return withOS((OneSignal) => OneSignal.User.addTags(tg)).then((ok) => { if (ok) { try { localStorage.setItem(TIERKEY, tg.tier); } catch (e) {} } return ok; });
+    return markSynced(await withOS((OneSignal) => OneSignal.User.addTags(tg)), tg);
   }
   function syncTierIfChanged() { let last = null; try { last = localStorage.getItem(TIERKEY); } catch (e) {} return started && last !== curTier() ? syncTags() : Promise.resolve(false); }
   window.addEventListener('kyvo-premium-change', () => { syncTags(); });
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) syncTierIfChanged(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) return; if (isDirty() && canPush()) syncTags(); else syncTierIfChanged(); });
   if (window.KyvoPremiumReady && window.KyvoPremiumReady.then) window.KyvoPremiumReady.then(() => syncTierIfChanged(), () => {});
   function optOut() { return withOS((OneSignal) => OneSignal.User.PushSubscription.optOut()); }
   async function init(force) {
@@ -233,7 +266,7 @@
     if (!C.enabled) return false;
     let off = false; try { off = localStorage.getItem('kyvo_push_off') === '1'; } catch (e) {}
     if (off && !force) return false;
-    if (started) return force ? withOS(async (OneSignal) => { await OneSignal.User.PushSubscription.optIn(); await OneSignal.User.addTags(tags()); }) : false;
+    if (started) { if (!force) return false; const tg = tags(); return markSynced(await withOS(async (OneSignal) => { await OneSignal.User.PushSubscription.optIn(); await OneSignal.User.addTags(tg); }), tg); }
     if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return false; // permission is asked only on a button tap
     started = true;
     const S = (window.KyvoNotify && window.KyvoNotify.settings()) || {};
@@ -242,14 +275,16 @@
         // OneSignal Web SDK v16. sw.js must importScripts the OneSignal SW (see push_plan.md) so both share one service worker.
         window.OneSignalDeferred = window.OneSignalDeferred || [];
         await loadScript('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js');
-        window.OneSignalDeferred.push(async (OneSignal) => {
-          const base = location.pathname.replace(/[^/]*$/, ''); // '/' on kyvo-app.github.io (v8.25), '/<repo>/' on a project page
-          await OneSignal.init({ appId: C.onesignalAppId, serviceWorkerPath: C.swPath || base.replace(/^\//, '') + 'OneSignalSDKWorker.js', serviceWorkerParam: { scope: C.swScope || base }, autoResubscribe: true, notifyButton: { enable: false }, promptOptions: { autoPrompt: false } });
-          await OneSignal.User.PushSubscription.optIn();
-          const tg = tags();
-          await OneSignal.User.addTags(tg);
-          try { localStorage.setItem(TIERKEY, tg.tier); } catch (e) {}
-        });
+        ready = new Promise((res) => window.OneSignalDeferred.push(async (OneSignal) => {
+          try {
+            const base = location.pathname.replace(/[^/]*$/, ''); // '/' on kyvo-app.github.io (v8.25), '/<repo>/' on a project page
+            await OneSignal.init({ appId: C.onesignalAppId, serviceWorkerPath: C.swPath || base.replace(/^\//, '') + 'OneSignalSDKWorker.js', serviceWorkerParam: { scope: C.swScope || base }, autoResubscribe: true, notifyButton: { enable: false }, promptOptions: { autoPrompt: false } });
+            await OneSignal.User.PushSubscription.optIn();
+            const tg = tags();                          // v8.28: every launch re-sends ALL tags (incl. tv=2) -> heals old subscriptions
+            await OneSignal.User.addTags(tg);
+            res(markSynced(true, tg));
+          } catch (e) { setDirty(true); res(false); }
+        }));
         return true;
       }
       if (C.provider === 'fcm' && C.fcm && C.fcm.vapidPublicKey) {

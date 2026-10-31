@@ -46,6 +46,9 @@ is retried on the next runs and DROPPED after MAX_FAILS (3) tries (state "fail" 
 .kyvo_push/push_log.json (id, title, tiers, recipients, OneSignal notification id, errors — never the key).
 RUNNER_PUSH_SOURCE=worker: plain 🏃 Runner pushes come from the Cloudflare worker (kyvo_cf_worker) -> skipped here so a Runner is
 never pushed twice; KOL / Moon / Tweet / Big runners, Gold, Smart money, tweets and VIP stay here. Default github.
+v8.28: short FOMO-style texts — title = emoji + type · $SYM + one number, body = one short line (MC / key stat); no disclaimer,
+no contract address, no "· Kyvo" (tidy() in payload() strips them as a safety net; the app UI keeps the one-time disclaimer).
+👀 Smart money has its own opt-out tag "smart" (and still respects "gold"); every logged attempt carries its OneSignal filters.
 Secret: ONESIGNAL_REST_API_KEY (GitHub -> Settings -> Secrets -> Actions). Missing -> safe no-op. The key is never printed.
 """
 from __future__ import annotations
@@ -148,21 +151,21 @@ def vip_item(handle: str, ts: list[dict], now: float) -> dict:
     body = the tweet text (+ ↪ what it replies to, + measured coin move), Kyvo branding at the end; avatar as icon."""
     ts = sorted(ts, key=lambda t: -(t.get("ts") or 0)); t = ts[0]
     star = "⭐" if t.get("_star", True) else "📣"                       # 📣 = big crypto account (no ⭐ VIP chip)
-    head = f"{star} {author_line(t, handle)}"
+    head = f"{star} {short_name(t, handle)}"                           # v8.28: '⭐ Trump · tweet'
+    is_rep = bool(t.get("is_reply"))
     rt = t.get("reply_to") or {}
     coin = next((c for c in t.get("coins") or [] if c.get("symbol") and c.get("rel", "named") == "named"), None)
     mv_pl, mv_en = coin_move(coin) if coin else ("", "")
     n = len(ts); nr = sum(1 for x in ts if x.get("is_reply"))
     if n == 1:
-        title_pl = head + (f" ↪ @{rt.get('handle') or '?'}" if t.get("is_reply") else ""); title_en = title_pl
+        title_pl = f"{head} · {'odpowiedź' if is_rep else 'tweet'}"; title_en = f"{head} · {'reply' if is_rep else 'tweet'}"
     else:
         few = n % 10 in (2, 3, 4) and n % 100 not in (12, 13, 14)
-        title_pl = f"{head} · {n} {'nowe posty' if few else 'nowych postów'}"; title_en = f"{head} · {n} new posts"
-    txt = clip(re.sub(r"^(@\w{1,15}\s+)+", "", t.get("text") or "") or t.get("text") or "📷", 120)   # drop the leading @reply handles
-    rpl = f" ↪ „{clip(rt['text'], 60)}”" if t.get("is_reply") and rt.get("text") else ""
-    rpe = f" ↪ “{clip(rt['text'], 60)}”" if t.get("is_reply") and rt.get("text") else ""
-    body_pl = f"{txt}{rpl}" + (f" · {mv_pl}" if mv_pl else "") + " · Kyvo"
-    body_en = f"{txt}{rpe}" + (f" · {mv_en}" if mv_en else "") + " · Kyvo"
+        title_pl = f"{head} · {n} {'posty' if few else 'postów'}"; title_en = f"{head} · {n} posts"
+    txt = clip(re.sub(r"^(@\w{1,15}\s+)+", "", t.get("text") or "") or t.get("text") or "📷", 90)   # drop the leading @reply handles
+    rpl = f" ↪ @{rt.get('handle')}" if is_rep and rt.get("handle") else ""
+    body_pl = f"{txt}{rpl}" + (f" · {mv_pl}" if mv_pl else "")
+    body_en = f"{txt}{rpl}" + (f" · {mv_en}" if mv_en else "")
     return {"id": "vip:" + handle, "ids": ["vip:" + str(x["id"]) for x in ts], "kind": "vip", "vip_handle": handle, "topic": "vip-" + handle,
             "hash": "#tweets", "why": t.get("_why"), "title_pl": title_pl, "title_en": title_en, "body_pl": body_pl, "body_en": body_en,
             "icon": big_avatar(t.get("avatar")), "image": tweet_photo(t)}
@@ -179,6 +182,30 @@ def author_line(t: dict, handle: str = "") -> str:
     n = t.get("author_name")
     return f"{n} @{h}" if n and n.lower() != str(h).lower() else f"@{h}"
 
+SHORT_NAMES = {"realdonaldtrump": "Trump", "elonmusk": "Elon", "cz_binance": "CZ", "vitalikbuterin": "Vitalik", "saylor": "Saylor"}
+def short_name(t: dict, handle: str = "") -> str:
+    """v8.28: short author label for push titles: known VIPs by nickname, else the display name (≤ 18), else @handle."""
+    h = str(t.get("handle") or handle or "")
+    if h.lower() in SHORT_NAMES: return SHORT_NAMES[h.lower()]
+    n = (t.get("author_name") or "").strip()
+    return clip(n, 18) if n else f"@{h}"
+
+def move_pct(c: dict) -> str:
+    """v8.28: ' +42%' measured since the tweet (same source as coin_move), '' when not measured."""
+    ch = c.get("chg_since_tweet") if c and not c.get("pre_launch") else None
+    if not isinstance(ch, (int, float)) or abs(ch) > 100000: return ""
+    return f" {ch:+.1f}%" if abs(ch) < 10 else f" {ch:+.0f}%"
+
+_DISCLAIMER = re.compile(r"\s*[.·,]?\s*(?:to nie (?:jest )?porada finansowa|not financial advice|\bnfa\b|\bdyor\b)\s*\.?", re.I)
+def tidy(s: str, n: int) -> str:
+    """v8.28 safety net for every push text: no disclaimer, no contract address, no trailing '· Kyvo', one line, ≤ n chars."""
+    s = re.sub(r"(?:\bCA\s*:?\s*)?" + CA_RE.pattern, "", str(s or ""))   # the address and a leading "CA:" label
+    s = _DISCLAIMER.sub("", s)
+    s = re.sub(r"(\s*·\s*Kyvo)+\s*$", "", s)
+    s = re.sub(r"\s*·\s*(·\s*)+", " · ", " ".join(s.split()))
+    s = re.sub(r"^[\s·,.]+|[\s·,]+$", "", s)
+    return clip(s, n)
+
 def coin_move(c: dict) -> tuple[str, str]:
     """v8.24: '$SYM +42% od tweeta' only from the measured price (x_live.py apply_move: DexScreener price vs GeckoTerminal candle
        at tweet time). Not measured yet / absurd value -> just the ticker, never an invented number."""
@@ -189,8 +216,8 @@ def coin_move(c: dict) -> tuple[str, str]:
     return f"{sym} {v}% od tweeta", f"{sym} {v}% since the tweet"
 
 def runner_style(items: list[dict], flags: list[dict]) -> None:
-    """v8.24: every Runner-family push -> title '<emoji> $SYM · Name +X% 1h' (X = DexScreener priceChange.h1 at the flag, real data;
-       omitted when unknown), coin logo (DexScreener imageUrl) as icon + big image, tap opens the coin page in Kyvo, '· Kyvo' at the end."""
+    """v8.28: every Runner-family push -> title '<emoji> <Type> · $SYM +X%' (X = DexScreener priceChange.h1 at the flag, real data;
+       omitted when unknown), plain Runner body 'MC $X · Name', coin logo as icon + big image, tap opens the coin page in Kyvo."""
     fm = {str(f.get("k", "")).lower(): f for f in flags if f.get("kind") == "runner"}
     for it in items:
         if it.get("kind") != "runner" or it.get("smart"): continue
@@ -199,14 +226,11 @@ def runner_style(items: list[dict], flags: list[dict]) -> None:
         h1 = f.get("h1") if f.get("h1") is not None else (f.get("snap") or {}).get("h1")
         if it["id"].startswith("twr:") and (f.get("tweet") or {}).get("chg") is not None: h1 = None   # title already has the % after the tweet
         nm = clip(f.get("name") or "", 18)
-        tag = f" · {nm}" if nm and nm.lower() != str(f.get("sym", "")).lower() and f"${f.get('sym')}" in it["title_en"] else ""
-        mv = f" +{round(h1)}% 1h" if isinstance(h1, (int, float)) and 0 < h1 < 100000 else ""
-        if mv or tag:
-            sym = f"${f.get('sym')}"
-            for k in ("title_pl", "title_en"):
-                if sym in it[k] and "%" not in it[k]: it[k] = it[k].replace(sym, sym + tag + mv, 1)
-        for k in ("body_pl", "body_en"):
-            if not it[k].endswith("Kyvo"): it[k] = it[k].rstrip() + " · Kyvo"
+        mv = f" +{round(h1)}%" if isinstance(h1, (int, float)) and 0 < h1 < 100000 else ""
+        for k in ("title_pl", "title_en"):                             # v8.28: title '🏃 Runner · $SYM +86%' (1 h move, real data)
+            if mv and "%" not in it[k]: it[k] = it[k] + mv
+        if it.get("plain") and nm and nm.lower() != str(f.get("sym", "")).lower():   # coin name goes to the short body line
+            for k in ("body_pl", "body_en"): it[k] = f"{it[k]} · {nm}"
         if f.get("img"): it["icon"] = it["image"] = f["img"]
         it["hash"] = "#coin/" + urllib.parse.quote(f["k"], safe="")
 
@@ -241,8 +265,8 @@ def send(key: str, payload: dict) -> dict:
 
 def log_push(st: dict, it: dict, tiers: list[str], res: dict, status: str) -> None:
     """v8.25 push audit log (state dir, kept with actions/cache): one row per attempt, newest last, no secrets."""
-    st.setdefault("_log", []).append({"t": int(time.time()), "item": it["id"], "kind": it["kind"], "title": it["title_en"][:120], "tiers": tiers,
-                                      "status": status, "ok": res.get("ok"), "os_id": res.get("id"), "recipients": res.get("recipients"),
+    st.setdefault("_log", []).append({"t": int(time.time()), "item": it["id"], "kind": it["kind"], "title": tidy(it["title_en"], 120), "tiers": tiers,
+                                      "tags": kind_tags(it) if it.get("kind") else None, "filters": it.get("_filters"), "status": status, "ok": res.get("ok"), "os_id": res.get("id"), "recipients": res.get("recipients"),
                                       "http": res.get("http"), "errors": (str(res["errors"])[:300] if res.get("errors") else None)})
 
 TIERS = ("free", "premium", "runners")
@@ -267,26 +291,45 @@ def tiers_for(it: dict, st: dict) -> list[str]:
         return out + ["runners"]
     return (["free"] if free_left else []) + ["premium", "runners"]   # tweets + anything else = general
 
-def audience(kind_tag: str, tiers: list[str]) -> list[dict]:
-    """OneSignal filters: (kind not switched off) AND (tier in `tiers`), as OR branches so a missing tag is never ambiguous:
-       kind: tag = "1" OR tag missing (the app sets "0" when the user turns a type off);
-       free: tier = "free" OR tier missing (subscribers from before v8.14.1 / users who never got a tier tag)."""
-    kinds = [{"field": "tag", "key": kind_tag, "relation": "=", "value": "1"},
-             {"field": "tag", "key": kind_tag, "relation": "not_exists"}]
+def kind_tags(it: dict) -> list[str]:
+    """v8.28: opt-out tags an item must pass. 👀 Smart money has its own toggle ("smart") and still respects "gold"."""
+    return ["gold", "smart"] if it.get("smart") else [it["kind"]]
+
+def audience(kind_tag, tiers: list[str]) -> list[dict]:
+    """OneSignal filters: (every kind tag not switched off) AND (tier in `tiers`), as OR branches so a missing tag is never ambiguous:
+       kind: tag = "1" OR tag missing (the app sets "0" when the user turns a type off). Kept as '= 1 OR not_exists' on purpose:
+             OneSignal's docs do not say whether '!= 0' matches a MISSING tag, so v8.28 does not rely on it;
+       free: tier = "free" OR tier missing (subscribers from before v8.14.1 / users who never got a tier tag).
+       Several kind tags (Smart money: gold + smart) -> every combination (2 tags x 4 tier branches = 16 branches, < 200 entries)."""
+    keys = [kind_tag] if isinstance(kind_tag, str) else list(kind_tag)
+    combos: list[list[dict]] = [[]]
+    for k in keys:
+        opts = [{"field": "tag", "key": k, "relation": "=", "value": "1"}, {"field": "tag", "key": k, "relation": "not_exists"}]
+        combos = [c + [o] for c in combos for o in opts]
     tconds = []
     for t in tiers:
         tconds.append({"field": "tag", "key": "tier", "relation": "=", "value": t})
         if t == "free": tconds.append({"field": "tag", "key": "tier", "relation": "not_exists"})
     f: list[dict] = []
-    for kc in kinds:
+    for kc in combos:
         for tc in tconds:
             if f: f.append({"operator": "OR"})
-            f += [kc, {"operator": "AND"}, tc]
+            for c in kc: f += [c, {"operator": "AND"}]
+            f.append(tc)
     return f
+
+def filters_str(f: list[dict]) -> str:
+    """compact, secret-free text form of the OneSignal filters for push_log.json."""
+    out = []
+    for x in f:
+        if "operator" in x: out.append(" | " if x["operator"] == "OR" else "&")
+        else: out.append(f"{x['key']}{'=' + x['value'] if x['relation'] == '=' else '∅'}")
+    return "".join(out)[:600]
 
 def payload(item: dict, filters: list[dict]) -> dict:
     return {"app_id": APP_ID, "target_channel": "push", "filters": filters,
-            "headings": {"en": item["title_en"], "pl": item["title_pl"]}, "contents": {"en": item["body_en"], "pl": item["body_pl"]},
+            "headings": {"en": tidy(item["title_en"], 70), "pl": tidy(item["title_pl"], 70)},      # v8.28: short, no NFA / CA / '· Kyvo'
+            "contents": {"en": tidy(item["body_en"], 110) or "Kyvo", "pl": tidy(item["body_pl"], 110) or "Kyvo"},
             "url": APP_URL + item["hash"], "web_push_topic": item["topic"][:60], "ttl": 3 * 3600,
             # v8.24: author avatar / coin logo as the icon, tweet photo / coin logo as the big image (Chrome, Edge, Android, desktop).
             # iOS / iPadOS home-screen web push ignores both and always shows the Kyvo app icon -> "· Kyvo" is also in the text.
@@ -320,13 +363,13 @@ def main() -> int:
         if kid in sent or age > MAX_TWEET_AGE_S or not named: continue
         if seeding and age > 20 * 60: sent[kid] = now; continue
         c = named[0]
-        mv_pl, mv_en = coin_move(c)
-        txt = clip(re.sub(r"^(@\w{1,15}\s+)+", "", t.get("text") or ""), 110)
-        mc = f" · MC {fmt_usd(c.get('mcap'))}" if c.get("mcap") else ""
-        items.append({"id": kid, "kind": "tweets", "topic": kid, "hash": "#tweets",       # v8.24 FOMO-style: who + what + measured move
-                      "title_pl": f"🐦 {author_line(t)}", "title_en": f"🐦 {author_line(t)}",
-                      "body_pl": (f"„{txt}” · " if txt else "") + f"{mv_pl}{mc}" + (" · 🚀 pompuje" if c.get("pumping") else "") + " · Kyvo",
-                      "body_en": (f"“{txt}” · " if txt else "") + f"{mv_en}{mc}" + (" · 🚀 pumping" if c.get("pumping") else "") + " · Kyvo",
+        txt = clip(re.sub(r"^(@\w{1,15}\s+)+", "", t.get("text") or ""), 60)
+        mc = f"MC {fmt_usd(c.get('mcap'))}" if c.get("mcap") else ""
+        ttl = f"🐦 Tweet · @{t.get('handle') or '?'} · ${c.get('symbol') or '?'}{move_pct(c)}"   # v8.28 short FOMO style
+        items.append({"id": kid, "kind": "tweets", "topic": kid, "hash": "#tweets",
+                      "title_pl": ttl, "title_en": ttl,
+                      "body_pl": " · ".join(x for x in ((f"„{txt}”" if txt else ""), mc, ("🚀 pompuje" if c.get("pumping") else "")) if x),
+                      "body_en": " · ".join(x for x in ((f"“{txt}”" if txt else ""), mc, ("🚀 pumping" if c.get("pumping") else "")) if x),
                       "icon": big_avatar(t.get("avatar")), "image": c.get("image") or tweet_photo(t)})
     # v8.23 ⭐ VIP · v8.24: only IMPORTANT posts (important(); grouped per account, gap + per-account / total daily caps)
     vips = vip_handles()
@@ -367,19 +410,19 @@ def main() -> int:
             continue
         b = f.get("badge")
         if b == "kol":      # v8.8 👑 KOL coin (official coin of a known KOL) — high risk: supply sits in the KOL's wallet
-            conc_pl = f" · ⚠️ {round(f['top_pct'])}% podaży u KOL-a, wysokie ryzyko" if f.get("concentrated") and f.get("top_pct") else " · ⚠️ wysokie ryzyko"
-            conc_en = f" · ⚠️ {round(f['top_pct'])}% of supply with the KOL, high risk" if f.get("concentrated") and f.get("top_pct") else " · ⚠️ high risk"
+            conc_pl = f" · ⚠️ {round(f['top_pct'])}% u KOL-a" if f.get("concentrated") and f.get("top_pct") else " · ⚠️ wysokie ryzyko"
+            conc_en = f" · ⚠️ {round(f['top_pct'])}% held by the KOL" if f.get("concentrated") and f.get("top_pct") else " · ⚠️ high risk"
             who = f"@{f['kol']} · " if f.get("kol") else ""
             items.append({"id": kid, "kind": "runner", "topic": kid, "hash": "#runner",
-                          "title_pl": f"👑 KOL coin: ${f['sym']}", "title_en": f"👑 KOL coin: ${f['sym']}",
-                          "body_pl": f"{who}{f['chain']} · MC {fmt_usd(f.get('mc0'))}{conc_pl}. To nie porada finansowa.",
-                          "body_en": f"{who}{f['chain']} · MC {fmt_usd(f.get('mc0'))}{conc_en}. Not financial advice."})
+                          "title_pl": f"👑 KOL · ${f['sym']}", "title_en": f"👑 KOL · ${f['sym']}",
+                          "body_pl": f"{who}MC {fmt_usd(f.get('mc0'))}{conc_pl}",
+                          "body_en": f"{who}MC {fmt_usd(f.get('mc0'))}{conc_en}"})
             continue
         if b == "moon":     # v8.8 🚀 Moon run — extreme real momentum, safety score failed
             items.append({"id": kid, "kind": "runner", "topic": kid, "hash": "#runner",
-                          "title_pl": f"🚀 Moon run: ${f['sym']} · wysokie ryzyko", "title_en": f"🚀 Moon run: ${f['sym']} · high risk",
-                          "body_pl": f"{f['chain']} · MC {fmt_usd(f.get('mc0'))} · ogromny wolumen i tysiące kupujących, ale nie przeszedł testów bezpieczeństwa. To nie porada finansowa.",
-                          "body_en": f"{f['chain']} · MC {fmt_usd(f.get('mc0'))} · huge volume and thousands of buyers, but it failed the safety checks. Not financial advice."})
+                          "title_pl": f"🚀 Moon · ${f['sym']}", "title_en": f"🚀 Moon · ${f['sym']}",
+                          "body_pl": f"MC {fmt_usd(f.get('mc0'))} · ⚠️ nie przeszedł testów",
+                          "body_en": f"MC {fmt_usd(f.get('mc0'))} · ⚠️ failed safety checks"})
             continue
         if f.get("tweet"):  # v8.9 🐦 Tweet runner (own dedupe id: a coin can be a Runner AND later run after a tweet)
             tw = f["tweet"]; tkid = "twr:" + f["k"].lower()
@@ -387,23 +430,21 @@ def main() -> int:
                 if seeding: sent[tkid] = now
                 else:
                     items.append({"id": tkid, "kind": "runner", "topic": tkid, "hash": "#runner",
-                                  "title_pl": f"🐦 Tweet runner: ${f['sym']} +{round(tw.get('chg') or 0)}% po tweecie @{tw.get('handle')}",
-                                  "title_en": f"🐦 Tweet runner: ${f['sym']} +{round(tw.get('chg') or 0)}% after @{tw.get('handle')}'s tweet",
-                                  "body_pl": f"{f['chain']} · MC {fmt_usd(f.get('mc0'))} · wolumen i kupujący rosną od tweeta. Ruchy po tweecie często szybko się kończą. To nie porada finansowa.",
-                                  "body_en": f"{f['chain']} · MC {fmt_usd(f.get('mc0'))} · volume and buyers rising since the tweet. Post-tweet moves often fade fast. Not financial advice."})
+                                  "title_pl": f"🐦 Tweet runner · ${f['sym']} +{round(tw.get('chg') or 0)}%",
+                                  "title_en": f"🐦 Tweet runner · ${f['sym']} +{round(tw.get('chg') or 0)}%",
+                                  "body_pl": f"po tweecie @{tw.get('handle')} · MC {fmt_usd(f.get('mc0'))}",
+                                  "body_en": f"after @{tw.get('handle')}'s tweet · MC {fmt_usd(f.get('mc0'))}"})
             if b == "tweet": continue
         if b == "big":      # v8.9 📈 Big runner — established $1M–$100M coin running now (passed the safety floor)
             bg = f.get("big") or {}
-            mv = (f"+{round(bg['h1'])}% 1h · " if bg.get("h1") is not None and bg["h1"] >= 0 else "")
+            mv = (f" +{round(bg['h1'])}%" if bg.get("h1") is not None and bg["h1"] > 0 else "")
             items.append({"id": kid, "kind": "runner", "topic": kid, "hash": "#runner",
-                          "title_pl": f"📈 Duży runner: ${f['sym']} · MC {fmt_usd(f.get('mc0'))}", "title_en": f"📈 Big runner: ${f['sym']} · MC {fmt_usd(f.get('mc0'))}",
-                          "body_pl": f"{f['chain']} · {mv}wolumen dużo powyżej średniej, coraz więcej kupujących. To nie porada finansowa.",
-                          "body_en": f"{f['chain']} · {mv}volume far above its average, buyers rising. Not financial advice."})
+                          "title_pl": f"📈 Duży runner · ${f['sym']}{mv}", "title_en": f"📈 Big runner · ${f['sym']}{mv}",
+                          "body_pl": f"MC {fmt_usd(f.get('mc0'))} · wolumen ↑", "body_en": f"MC {fmt_usd(f.get('mc0'))} · volume ↑"})
             continue
         items.append({"id": kid, "kind": "runner", "plain": True, "topic": kid, "hash": "#coin/" + f["k"],
-                      "title_pl": f"🏃 Runner: ${f['sym']}", "title_en": f"🏃 Runner: ${f['sym']}",
-                      "body_pl": f"{f['chain']} · MC {fmt_usd(f.get('mc0'))} · mocny wolumen i dużo transakcji. To nie porada finansowa.",
-                      "body_en": f"{f['chain']} · MC {fmt_usd(f.get('mc0'))} · strong volume and lots of trades. Not financial advice."})
+                      "title_pl": f"🏃 Runner · ${f['sym']}", "title_en": f"🏃 Runner · ${f['sym']}",
+                      "body_pl": f"MC {fmt_usd(f.get('mc0'))}", "body_en": f"MC {fmt_usd(f.get('mc0'))}"})
     runner_style(items, load(a.flags, []))    # v8.24 FOMO-style Runner pushes: coin logo, real 1 h move, deep link, Kyvo branding
     n_gold = 0
     for g in sorted(load(a.gold, []), key=lambda x: -(x.get("at") or 0)):   # v8.12 🥇 Gold alerts
@@ -434,7 +475,8 @@ def main() -> int:
     for it in items[:MAX_PER_RUN]:
         print(f"- {it['id']}: {it['title_en']}" + (f"  [why: {it['why']}]" if it.get("why") else ""))
         tiers = tiers_for(it, st)            # v8.16: one notification per item, filtered to the tiers that get it
-        pl = payload(it, audience(it["kind"], tiers))
+        flt = audience(kind_tags(it), tiers); it["_filters"] = filters_str(flt)
+        pl = payload(it, flt)
         def count():                         # quota counters (Europe/Warsaw day)
             if "free" in tiers and it["kind"] != "vip" and not (PROMO_ALL and promo_on()):
                 st["free_n"] = st.get("free_n", 0) + 1

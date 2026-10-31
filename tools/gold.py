@@ -415,9 +415,10 @@ def main() -> int:
             if ac.get("enabled", True) and fresh and v["level"] in ac.get("levels", ["gold", "hazard"]) and now - h.get("alert_at", 0) >= float(ac.get("cooldown_h", 12)) * 3600:
                 fl = fl_by[fresh[0]]; LV = {"gold": ("🥇 Gold", "🥇 Gold"), "hazard": ("🟡 Hazard", "🟡 Gamble"), "avoid": ("🔴 Unikaj", "🔴 Avoid")}[v["level"]]
                 top = next((r for r in v["reasons"] if r["lvl"] in ("bad", "warn")), None) or next((r for r in v["reasons"] if r["lvl"] == "ok"), {})
-                al = alert(st, "filter", k, card, f"🔎 {fl.get('emoji', '')} ${c['symbol']} · {LV[0]}", f"🔎 {fl.get('emoji', '')} ${c['symbol']} · {LV[1]}",
-                           f"Filtr: {fl['pl']} · MC {fmt_usd(c['mcap'])}, {c['h1'] or 0:+.0f}% w 1 h. DD: {top.get('pl', '')[:110]}",
-                           f"Filter: {fl.get('en', fl['pl'])} · MC {fmt_usd(c['mcap'])}, {c['h1'] or 0:+.0f}% in 1 h. DD: {top.get('en', '')[:110]}",
+                mv = f" {c['h1']:+.0f}%" if c.get("h1") else ""          # v8.28 short FOMO style: '🥇 Gold · $SYM +12%' / 'MC $498K · 🎓 filter'
+                al = alert(st, "filter", k, card, f"{LV[0]} · ${c['symbol']}{mv}", f"{LV[1]} · ${c['symbol']}{mv}",
+                           f"MC {fmt_usd(c['mcap'])} · {fl.get('emoji', '🔎')} {fl['pl']}"[:110],
+                           f"MC {fmt_usd(c['mcap'])} · {fl.get('emoji', '🔎')} {fl.get('en', fl['pl'])}"[:110],
                            f"gfilt:{k}:{int(now // 3600)}")
                 if al: al["filter"] = fl["id"]; alerts.append(al); h["alert_at"] = now
         cards.append(card)
@@ -430,18 +431,17 @@ def main() -> int:
             chg = (c["price"] / b["base"] - 1) * 100
             if abs(chg) >= th and now - b.get("alert_at", 0) >= PX_COOLDOWN:
                 up = chg > 0; arrow = "📈" if up else "📉"
-                al = alert(st, "price", k, card, f"{arrow} ${c['symbol']} {chg:+.0f}% · 🥇 Gold", f"{arrow} ${c['symbol']} {chg:+.0f}% · 🥇 Gold",
-                           f"{c['chain']} · MC {fmt_usd(c['mcap'])} · od {fmt_usd(b['base'] * (c['mcap'] / c['price']))} ({round((now - b['at']) / 60)} min). To nie porada finansowa.",
-                           f"{c['chain']} · MC {fmt_usd(c['mcap'])} · from {fmt_usd(b['base'] * (c['mcap'] / c['price']))} ({round((now - b['at']) / 60)} min). Not financial advice.",
+                al = alert(st, "price", k, card, f"🥇 Gold · ${c['symbol']} {chg:+.0f}% {arrow}", f"🥇 Gold · ${c['symbol']} {chg:+.0f}% {arrow}",
+                           f"MC {fmt_usd(c['mcap'])} (z {fmt_usd(b['base'] * (c['mcap'] / c['price']))} w {round((now - b['at']) / 60)} min)",
+                           f"MC {fmt_usd(c['mcap'])} (from {fmt_usd(b['base'] * (c['mcap'] / c['price']))} in {round((now - b['at']) / 60)} min)",
                            f"gpx:{k}:{int(now // 600)}")
                 if al: alerts.append(al)
                 st["px"][k] = {"base": c["price"], "at": now, "alert_at": now}
             elif now - b["at"] > 6 * 3600: st["px"][k] = {"base": c["price"], "at": now, "alert_at": b.get("alert_at", 0)}
         # --- vamps over $500K MC (slow)
         for e in ((f.get("copies") or {}).get("over500k") or []) if slow else []:
-            al = alert(st, "vamp", k, card, f"🧛 Wampir ${e['symbol']} > $500K · kopia ${c['symbol']}", f"🧛 Vamp ${e['symbol']} > $500K · copy of ${c['symbol']}",
-                       f"Kopia z innym CA ma MC {fmt_usd(e['mcap'])} i wolumen {fmt_usd(e.get('vol24'))}. Oryginał: ${c['symbol']} MC {fmt_usd(c['mcap'])}.",
-                       f"A copy at another CA has {fmt_usd(e['mcap'])} MC and {fmt_usd(e.get('vol24'))} volume. Original: ${c['symbol']} MC {fmt_usd(c['mcap'])}.",
+            al = alert(st, "vamp", k, card, f"🧛 Wampir · ${e['symbol']} {fmt_usd(e['mcap'])}", f"🧛 Vamp · ${e['symbol']} {fmt_usd(e['mcap'])}",
+                       f"kopia ${c['symbol']} · MC oryginału {fmt_usd(c['mcap'])}", f"copy of ${c['symbol']} · original MC {fmt_usd(c['mcap'])}",
                        f"gvamp:{c['chain']}:{e['address']}")
             if al: alerts.append(al)
         # --- new catalyst article (slow)
@@ -452,8 +452,8 @@ def main() -> int:
             st["news"][k] = list(seen | {x["url"] for x in nw["items"]})[-40:]
             if fresh and seen and now - st.setdefault("news_at", {}).get(k, 0) >= 7200:
                 x = fresh[0]
-                al = alert(st, "news", k, card, f"📰 Nowy artykuł: ${c['symbol']}", f"📰 New article: ${c['symbol']}",
-                           f"{x['src']}: {x['t'][:110]} · {nw['n24']} artykułów w 24 h", f"{x['src']}: {x['t'][:110]} · {nw['n24']} articles in 24 h",
+                al = alert(st, "news", k, card, f"📰 News · ${c['symbol']}", f"📰 News · ${c['symbol']}",
+                           f"{x['src']}: {x['t'][:70]}", f"{x['src']}: {x['t'][:70]}",
                            "gnews:" + hashlib.sha1((k + x["url"]).encode()).hexdigest()[:16])
                 if al: alerts.append(al); st["news_at"][k] = now
     # ordering: Gold first, then Hazard, then the red-flag examples

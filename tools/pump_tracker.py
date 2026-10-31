@@ -152,9 +152,10 @@ def main() -> int:
             who = ", ".join(names.get(x, x[:4]) for x in c["wallets"][:3])
             mc = co.get("mc"); mcs = (f"${mc/1e6:.2f}M" if mc >= 1e6 else f"${mc/1e3:.1f}K") if mc else "?"
             alerts.append({"id": "smart:" + c["m"], "at": now * 1000, "hash": "#coin/solana:" + c["m"],
-                           "title_pl": f"👀 {len(c['wallets'])} top traderów kupiło ${sym}", "title_en": f"👀 {len(c['wallets'])} top traders bought ${sym}",
-                           "body_pl": f"{who} · w {max(1, round((c['last'] - c['first']) / 60))} min · MC {mcs}. To nie porada finansowa.",
-                           "body_en": f"{who} · within {max(1, round((c['last'] - c['first']) / 60))} min · MC {mcs}. Not financial advice."})
+                           "who": who,   # v8.28: names stay in the alert data (app), the push text is short FOMO style
+                           "title_pl": f"👀 Smart money · ${sym}", "title_en": f"👀 Smart money · ${sym}",
+                           "body_pl": f"{len(c['wallets'])} top traderów w {max(1, round((c['last'] - c['first']) / 60))} min · MC {mcs}",
+                           "body_en": f"{len(c['wallets'])} top traders in {max(1, round((c['last'] - c['first']) / 60))} min · MC {mcs}"})
     if not a.dry_run:
         OUT.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")))
         if alerts:
