@@ -16,6 +16,7 @@ Only public data. Not financial advice.
 from __future__ import annotations
 import argparse, json, re, sys, time, urllib.parse, urllib.request
 from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
 from difflib import SequenceMatcher
 from pathlib import Path
 
@@ -267,7 +268,7 @@ def validate(doc: dict) -> list[str]:
 def stamp(doc: dict) -> dict:
     now = datetime.now(timezone.utc)
     doc["updated_at"] = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-    doc["updated_at_warsaw"] = now.astimezone(timezone(timedelta(hours=2))).strftime("%Y-%m-%dT%H:%M:%S+02:00")  # CEST; use +01:00 in winter
+    doc["updated_at_warsaw"] = now.astimezone(ZoneInfo("Europe/Warsaw")).isoformat(timespec="seconds")
     return doc
 
 def main():

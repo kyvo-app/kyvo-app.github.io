@@ -60,7 +60,8 @@
         queue.sort((a, b) => b.pri - a.pri || a.seq - b.seq);
         // v8.9: while a chart is still loading, background GT calls (images, second-wave shapes, track record) wait (≤ 20 s)
         // — GeckoTerminal's free limit is shared, and the chart is what the user is looking at
-        if (!queue[0].pri && chartBusy() && Date.now() - (queue[0].since || (queue[0].since = Date.now())) < 20000) { await new Promise((r) => setTimeout(r, 400)); continue; }
+        // v8.29: and while a coin chart is on screen, background calls trickle (≤ 1 per 60 s) so its live updates are not rate-limited
+        if (!queue[0].pri && (chartBusy() || chartOpen()) && Date.now() - (queue[0].since || (queue[0].since = Date.now())) < (chartBusy() ? 30000 : 60000)) { await new Promise((r) => setTimeout(r, 400)); continue; }
         const job = queue.shift();
         if (job.alive && !job.alive()) { job.err(new Error('cancelled')); continue; } // chart already closed: skip the call
         if (job.stale && cooldownUntil > Date.now()) { job.ok(job.stale); continue; } // rate-limited: stale beats waiting
@@ -75,6 +76,7 @@
   }
   let seq = 0;
   const chartBusy = () => !!(cur && !cur.dead && !cur.data && !cur.fbAt && cur.root && cur.root.isConnected);
+  const chartOpen = () => !!(cur && !cur.dead && !cur.fbAt && cur.root && cur.root.isConnected && !document.hidden);
   function gtFetch(url, ttl, pri, alive) {
     const hit = cache.get(url);
     if (hit && Date.now() - hit.t < ttl) return Promise.resolve(hit.data);
@@ -253,7 +255,7 @@
     const memo = fbMemo.get(opts.key); // v8.9: this coin needed the DexScreener chart < 3 min ago -> show it at once on reopen
     if (memo && Date.now() - memo < 180000) { fallback(me, L('Wykres Kyvo był przed chwilą niedostępny', 'The Kyvo chart was unavailable a moment ago'), true); return; }
     // v8.9: never leave a blank box — no candles after 12 s (rate limit / slow pool) → DexScreener chart, Kyvo chart on reopen
-    me.watchT = setTimeout(() => { if (me === cur && !me.dead && !me.data && !me.fbAt) fallback(me, L('Wykres Kyvo ładuje się zbyt długo', 'The Kyvo chart is taking too long'), true); }, 12000);
+    me.watchT = setTimeout(() => { if (me === cur && !me.dead && !me.data && !me.fbAt) fallback(me, L('Wykres Kyvo ładuje się zbyt długo', 'The Kyvo chart is taking too long'), true); }, 20000); // v8.29: 20 s (12 s was too short on mobile data)
     // v8.9: the chart library can be missing on a slow first visit (service worker 5-s timeout) — load it on demand
     ensureLib().then((ok) => {
       if (me.dead || me !== cur) return;

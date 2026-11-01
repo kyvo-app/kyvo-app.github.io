@@ -29,6 +29,7 @@ from bisect import bisect_right
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -542,7 +543,7 @@ def main():
     now_ts = int(now.timestamp())
     since_ts = now_ts - args.days * 86400
     upd = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-    upd_w = now.astimezone(timezone(timedelta(hours=2))).strftime("%Y-%m-%dT%H:%M:%S+02:00")
+    upd_w = now.astimezone(ZoneInfo("Europe/Warsaw")).isoformat(timespec="seconds")
 
     cur = None
     try:

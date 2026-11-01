@@ -17,6 +17,7 @@ import sys
 import urllib.request
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "data" / "leaderboard.json"
@@ -225,7 +226,7 @@ def main():
         "version": 3,
         "sources": {"kolscan": {"url": SRC, "pnl": "realized"}, "pumpfun": {"url": "https://pump.fun/leaderboard", "pnl": "realized + unrealized", "rows": pf_n}},
         "updated_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "updated_at_warsaw": now.astimezone(timezone(timedelta(hours=2))).isoformat(timespec="seconds"),
+        "updated_at_warsaw": now.astimezone(ZoneInfo("Europe/Warsaw")).isoformat(timespec="seconds"),   # v8.29: real Warsaw offset (+01:00 in winter)
         "source": f"kolscan.io public leaderboard + pump.fun public PnL leaderboard (Solana); SOL/USD {px_src}. No keys.",
         "source_url": SRC,
         "chains": ["solana"],

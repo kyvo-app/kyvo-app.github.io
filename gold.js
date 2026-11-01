@@ -324,7 +324,7 @@
     if (!list || !list.length) return '';
     if (!prem && CFG.alertsPremium) return `<div class="card g-alerts rlock" role="button" tabindex="0" data-unlock><div class="g-sh">🔔 ${L2('Alerty Gold (24 h)', 'Gold alerts (24 h)')}: ${list.length}</div><div class="rlock-bars" aria-hidden="true"><i style="width:76%"></i><i style="width:48%"></i></div><small class="rlock-t">🔒 ${L2('Alerty cenowe ±15–20%, wampiry > $500K i nowe artykuły — Premium', 'Price ±15–20%, vamps > $500K and new articles — Premium')} · <span class="rlock-cta">${L2('Odblokuj', 'Unlock')}</span></small></div>`;
     const ic = { price: '📈', vamp: '🧛', news: '📰' };
-    return `<div class="card g-alerts"><div class="g-sh">🔔 ${L2('Alerty Gold (24 h)', 'Gold alerts (24 h)')}</div>${list.slice(0, 8).map((a) => `<a class="g-al" href="#gold/${encodeURIComponent(a.k)}"><span>${/^[^\w$]/.test(String(a.title_pl || '')) ? '' : ic[a.sub] || '🔔'}${esc(EN() ? a.title_en : a.title_pl)}</span><small>${esc(EN() ? a.body_en : a.body_pl)} · ${esc(ago(a.at))}</small></a>`).join('')}</div>`;
+    return `<div class="card g-alerts"><div class="g-sh">🔔 ${L2('Alerty Gold (24 h)', 'Gold alerts (24 h)')}</div>${list.slice(0, 8).map((a) => `<a class="g-al" href="#gold/${encodeURIComponent(a.k)}"><span>${/^[^\w$]/.test(String(a.title_pl || '')) ? '' : ic[a.sub] || '🔔'}${esc(EN() ? a.title_en : a.title_pl)}</span><small>${esc(String((EN() ? a.body_en : a.body_pl) || '').replace(/\s*(?:\.\s*)?(?:To nie (?:jest )?porada finansowa|Not financial advice)\.?\s*(?:·\s*Kyvo)?\s*$/i, ''))} · ${esc(ago(a.at))}</small></a>`).join('')}</div>`;
   }
   function render(root) {
     rootEl = root = root || rootEl; if (!root) return;
@@ -426,7 +426,7 @@
       if (!b) { st.px[k] = { base: px, at: now, al: 0 }; continue; }
       const ch = (px / b.base - 1) * 100;
       if (Math.abs(ch) >= th && now - (b.al || 0) >= 30 * 60e3) {
-        send(`${ch > 0 ? '📈' : '📉'} $${w.symbol} ${pct(ch)} · 🥇 Gold`, L2(`ruch od ${ago(b.at)} · watchlista · to nie porada finansowa`, `move since ${ago(b.at)} · watchlist · not financial advice`), '#coin/' + encodeURIComponent(k), 'kyvo-gold-' + k);
+        send(`${ch > 0 ? '📈' : '📉'} $${w.symbol} ${pct(ch)} · 🥇 Gold`, L2(`ruch od ${ago(b.at)} · watchlista`, `move since ${ago(b.at)} · watchlist`), '#coin/' + encodeURIComponent(k), 'kyvo-gold-' + k);
         st.px[k] = { base: px, at: now, al: now };
       } else if (now - b.at > 6 * 3.6e6) st.px[k] = { base: px, at: now, al: b.al || 0 };
     }

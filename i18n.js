@@ -425,6 +425,7 @@
 "Adresy zapisujemy tylko": "We save addresses only",
 "Dane bierzemy z darmowych publicznych źródeł: Solana RPC, publiczne RPC BSC, explorer Robinhood Chain, ceny z DexScreener. Darmowe źródła trzymają krótką historię, więc PnL liczymy z ostatnich transakcji (szczegóły pod profilem).": "We use free public sources: Solana RPC, public BSC RPC, the Robinhood Chain explorer, prices from DexScreener. Free sources keep a short history, so PnL is calculated from recent transactions (details below the profile).",
 "Portfel, Google, e-mail — albo bez logowania": "Wallet, Google, email — or without signing in",
+"Portfel lub Google — albo bez logowania": "Wallet or Google — or without signing in",
 "Zakładki, filtry, PnL, FAQ": "Tabs, filters, PnL, FAQ",
 "Obserwowane coiny, alerty MC i % (gdy Kyvo jest otwarte)": "Watched coins, MC and % alerts (while Kyvo is open)",
 "Discord — pogadaj, pomóż, współpracuj": "Discord — chat, help, collaborate",

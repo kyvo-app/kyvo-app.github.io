@@ -420,7 +420,7 @@
           const ch = (L.priceUsd / w.addedPrice - 1) * 100;
           if (Math.abs(ch) >= a.value) { hit = true; msg = `${D.fmtPct(ch)} od dodania`; }
         }
-        if (hit) { a.fired = Date.now(); dirty = true; notify(`$${w.symbol}: ${msg}`, 'Kyvo · alert z watchlisty (to nie porada finansowa)', k); }
+        if (hit) { a.fired = Date.now(); dirty = true; notify(`$${w.symbol}: ${msg}`, 'Kyvo · alert z watchlisty', k); }
       }
     }
     if (dirty) saveWatch();
@@ -483,7 +483,7 @@
     const isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone;
     const notifCard = `<div class="card" style="font-size:12.5px;line-height:1.5">
       <b>🔔 Jak działają alerty</b><br>
-      Alerty sprawdzamy co 30 s, <b>tylko gdy Kyvo jest otwarte</b> (także w tle na komputerze). Dostaniesz komunikat w apce${perm === 'granted' ? ' i powiadomienie systemowe' : ''}. ${L('Gdy apka jest zamknięta, alerty z watchlisty nie działają — push przy zamkniętej apce dostajesz dla Runnera, Good Coins i New Tweet (ustawienia poniżej).', 'When the app is closed, watchlist alerts do not run — with the app closed you get push for Runner, Good Coins and New Tweet (settings below).')}
+      Alerty sprawdzamy co 30 s, <b>tylko gdy Kyvo jest otwarte</b> (także w tle na komputerze). Dostaniesz komunikat w apce${perm === 'granted' ? ' i powiadomienie systemowe' : ''}. ${L('Gdy apka jest zamknięta, alerty z watchlisty nie działają — push przy zamkniętej apce dostajesz dla typów włączonych poniżej (Runner, Gold, Smart money, Good Coins, tweety).', 'When the app is closed, watchlist alerts do not run — with the app closed you get push for the types switched on below (Runner, Gold, Smart money, Good Coins, tweets).')}
       ${perm === 'default' ? `<div style="margin-top:8px"><button type="button" class="pf-btn" id="notifBtn">Włącz powiadomienia systemowe</button></div>` : ''}
       ${perm === 'denied' ? '<div class="mut" style="margin-top:6px">Powiadomienia są zablokowane w ustawieniach przeglądarki — zostają komunikaty w apce.</div>' : ''}
       ${perm === 'unsupported' ? `<div class="mut" style="margin-top:6px">Ta przeglądarka nie obsługuje powiadomień${/iPhone|iPad/.test(navigator.userAgent) && !isStandalone ? ' (na iPhonie działają tylko po dodaniu Kyvo do ekranu głównego, iOS 16.4+)' : ''} — zostają komunikaty w apce.</div>` : ''}

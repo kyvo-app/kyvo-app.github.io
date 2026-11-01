@@ -292,8 +292,13 @@ def tiers_for(it: dict, st: dict) -> list[str]:
     return (["free"] if free_left else []) + ["premium", "runners"]   # tweets + anything else = general
 
 def kind_tags(it: dict) -> list[str]:
-    """v8.28: opt-out tags an item must pass. 👀 Smart money has its own toggle ("smart") and still respects "gold"."""
-    return ["gold", "smart"] if it.get("smart") else [it["kind"]]
+    """v8.28: opt-out tags an item must pass. 👀 Smart money has its own toggle ("smart") and still respects "gold".
+       v8.29: 🔎 scanner alerts (gold:gfilt:… — '🟡 Gamble · $X +150%' / '🥇 Gold · $X' for a NEW coin the Gold scanner found) are
+       "a new good coin" to users: they now need BOTH "gold" and "good", so the 'Nowy coin w Good Coins' switch stops them too
+       (before, tag good was synced by the app but no server push read it). Same '= 1 OR not_exists' semantics as every tag."""
+    if it.get("smart"): return ["gold", "smart"]
+    if it.get("kind") == "gold" and str(it.get("id", "")).startswith("gold:gfilt:"): return ["gold", "good"]
+    return [it["kind"]]
 
 def audience(kind_tag, tiers: list[str]) -> list[dict]:
     """OneSignal filters: (every kind tag not switched off) AND (tier in `tiers`), as OR branches so a missing tag is never ambiguous:

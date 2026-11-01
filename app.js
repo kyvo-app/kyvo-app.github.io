@@ -1,4 +1,5 @@
-/* KYVO_LIVE_v8_28 — v8.28: 🔔 krótkie powiadomienia (typ + $SYM + jedna liczba, bez dopisków), wyłączenie typu (🥇 Gold, nowy 👀 Smart money…) naprawdę zatrzymuje push („Zapisano” dopiero po zapisie w OneSignal).
+/* KYVO_LIVE_v8_29 — v8.29: 📈 strona coina nie przeładowuje się co 45 s (wykres DexScreener nie kręci się w kółko, statystyki i Cena aktualizowane na miejscu, Cena zgodna z MC), mniej zapytań GeckoTerminal przy otwartym coinie, 🧠 smart money z serwera na żywo (stare >72 h ukryte), Viral → New Tweet gdy dane z X są stare.
+   KYVO_LIVE_v8_28 — v8.28: 🔔 krótkie powiadomienia (typ + $SYM + jedna liczba, bez dopisków), wyłączenie typu (🥇 Gold, nowy 👀 Smart money…) naprawdę zatrzymuje push („Zapisano” dopiero po zapisie w OneSignal).
    KYVO_LIVE_v8_27 — v8.26: 🔗 link do coina (push / udostępnienie) otwiera stronę coina od razu przy starcie apki — jeden coin pobierany bezpośrednio (DexScreener z ponowieniem, zapas GeckoTerminal), szkielet ładowania, „Nie znaleziono.” dopiero po nieudanych próbach + „Spróbuj ponownie” + 🏠 pierwszy start: ładowanie zamiast „Brak coinów dla tych filtrów”, dopóki nie przyjdą pierwsze dane.
    KYVO_LIVE_v8_25 — v8.25: 🏆 Wyniki — każdy Runner zapisany od razu po skanie (serwer co ~90 s, pierwsza cena i MC, historia oznaczeń do audytu) + 🏃 Runner: lepsza preselekcja (najgorętsze coiny najpierw, do 15 na sieć) + 🔁 Kolejna fala liczona też na serwerze (w apce znaczek „📱 tylko ten telefon” dla wykrytych lokalnie) + 🔔 tydzień promocji: wszyscy dostają pushe Premium/Runners do 7.11 23:59, nieudane pushe odrzucane po 3 próbach + 🔑 logowanie Google (Supabase, UE — włączy się po konfiguracji) + 👻 Phantom na telefonie: logowanie przez aplikację Phantom z powrotem do Kyvo (tylko podpis wiadomości) + kod Cloudflare Worker do szybkich pushy (wyłączony).
    KYVO_LIVE_v8_24 — v8.24: 🔔 powiadomienia tylko o super ważnych tweetach (Trump i Kimchi: każdy nowy post; Elon i duże konta krypto — CZ, Vitalik, Saylor, Armstrong, Toly, Ansem, Murad, Cobie, Hsaka, Hayes, ZachXBT, Pentoshi, top traderzy memecoinów — tylko coin / rynek / ogromny zasięg; max 5 dziennie na konto, 20 łącznie) + nowy wygląd pushy (autor + @handle, treść tweeta, zmiana ceny coina od tweeta z prawdziwych danych, avatar / logo coina, „· Kyvo”; Runner: $TICKER + % 1h, logo, otwiera stronę coina) + 🏃 Runner: ostrzejszy filtr dla pul < 30 min, test cienia reguły „wczesny Runner” (tylko log, bez pushy), Wyniki: max liczony tylko ze świec po sygnale + baner „🔔 Włącz powiadomienia” w zainstalowanej apce · v8.23: ⭐ New Tweet: Elon Musk + Donald Trump replies too (↪ Odpowiedź + the post they replied to) + VIP push for every new Elon / Trump post or reply (grouped, ≥10 min apart, ≤20/day per account; Premium + Runners, everyone during the free week) · v8.22: 🎁 free launch week (everyone gets the top tier Runners until 7.11 23:59 Warsaw, expires on its own; paid status + push tags unchanged) · v8.20: 🎴 Kreator P&L in Journal (9:16 card with your own photo / video background → PNG / MP4·WebM; v8.19 free hour removed) · v8.19: free hour (ended 19:00 Warsaw Oct 28) · v8.18: homepage "Największy znaleziony coin +X%" pill · v8.17: 📅 Kalendarz P&L in Journal (month grid in $, Record W-L-BE, month profit, on-chain badge, tap a day, share month card) · v8.16: v8.16: tier-aware push (OneSignal tag tier=free/premium/runners; server routes each push type per plan) · v8.15: 📓 Journal (Premium) + Obsidian design layer (theme.css, fx.js, self-hosted fonts) on top of
@@ -51,7 +52,7 @@
     if (a >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
     if (a >= 1e3) return '$' + (n / 1e3).toFixed(1) + 'K';
     if (a >= 1) return '$' + n.toFixed(2);
-    if (a >= 0.0001) return '$' + n.toFixed(6);
+    if (a >= 0.0001) return '$' + n.toFixed(6).replace(/0+$/, '').replace(/\.$/, ''); // v8.29: $0.62, not $0.620000
     if (a < 1e-10) return '—';
     return '$' + Number(n).toExponential(2);
   }
@@ -142,6 +143,10 @@
     const today = new Date().toDateString() === d.toDateString();
     return (today ? 'dziś ' : day + ', ') + hm + ' (' + agoLabel(iso) + ')';
   }
+  function viralStale() {   // v8.29: data/x_viral.json older than 48 h (or missing)
+    const t = viral && viral.updated_at ? new Date(viral.updated_at).getTime() : NaN;
+    return !isFinite(t) || Date.now() - t > 48 * 3600000;
+  }
   function staleHtml(iso, hours, what) {
     const t = iso ? new Date(iso).getTime() : NaN;
     if (!isFinite(t)) return `<div class="card" style="font-size:12.5px;color:var(--warn)">Brak informacji o aktualizacji ${esc(what)}.</div>`;
@@ -176,13 +181,44 @@
     if (b && b.sol_size != null && isFinite(b.sol_size) && b.sol_size > 0) return '~' + Number(b.sol_size).toFixed(2) + ' SOL';
     return '—';
   }
+  /* v8.29: data/smart_money.json is a manual snapshot (last one 20.10) — its buys showed as "🧠 SM" for 11 days. Now:
+     buys older than 72 h are dropped, and the live server feed data/tracker_feed.json (top ~60 Ranking wallets' pump.fun
+     trades, every ~4 min) is merged in, so the badges, Konsensus SM and the coin page's Smart money card are fresh. */
+  let smLoadedAt = 0;
   async function loadSmartMoney() {
-    try {
-      smartMoney = await fetchJson('data/smart_money.json?v=8.2');
-      consCache = null;
-    } catch (e) {
-      smartMoney = { by_mint: {}, activity: [], updated_at: null };
+    smLoadedAt = Date.now();
+    const cut = Date.now() / 1000 - 72 * 3600;
+    let sm = null, tf = null;
+    try { sm = await fetchJson('data/smart_money.json?v=8.2'); } catch (e) {}
+    try { tf = await fetchJson('data/tracker_feed.json?t=' + Math.floor(Date.now() / 60000)); } catch (e) {}
+    const by = {}, act = [], seen = new Set();
+    const add = (m, row, side) => {
+      if (!m || !row || !(row.block_time >= cut)) return;
+      const id = row.tx_url || (row.wallet + m + row.block_time + side);
+      if (seen.has(id)) return; seen.add(id);
+      if (side === 'buy') (by[m] = by[m] || []).push(row);
+      act.push(Object.assign({ mint: m, side }, row));
+    };
+    if (sm) {
+      for (const [m, arr] of Object.entries(sm.by_mint || {})) for (const r of arr || []) add(m, r, 'buy');
+      for (const a of sm.activity || []) if (a.side === 'sell') add(a.mint, a, 'sell');
     }
+    let fresh = sm && sm.updated_at;
+    if (tf && Array.isArray(tf.trades)) {
+      const names = {};
+      for (const w of tf.wallets || []) if (w && w.address) names[w.address] = w;
+      for (const t of tf.trades) {
+        if (!t || !t.m || !t.w) continue;
+        const w = names[t.w] || {};
+        add(t.m, { wallet_id: w.id || t.w, wallet_name: w.name || (t.w.slice(0, 4) + '…' + t.w.slice(-4)), handle: null, wallet: t.w,
+          usd_size: t.usd != null ? +t.usd : null, sol_size: t.sol != null ? +t.sol : null, block_time: +t.at, tx_url: t.tx ? 'https://solscan.io/tx/' + t.tx : '' }, t.buy ? 'buy' : 'sell');
+      }
+      if (tf.updated_at && (!fresh || tf.updated_at > fresh)) fresh = tf.updated_at;
+    }
+    for (const m of Object.keys(by)) by[m].sort((a, b) => b.block_time - a.block_time);
+    act.sort((a, b) => b.block_time - a.block_time);
+    smartMoney = { by_mint: by, activity: act, updated_at: fresh || null };
+    consCache = null;
   }
   async function loadLeaderboard() {
     try {
@@ -554,6 +590,7 @@
       }
       let changed = false;
       for (const [net, addrs] of Object.entries(byNet)) {
+        if (view === 'coin') break;   // v8.29: a coin was opened meanwhile — leave GeckoTerminal to its chart
         const chunk = [...new Set(addrs)].slice(0, 30);
         if (!GECKO_NET[net] || !chunk.length) continue;
         try {
@@ -718,7 +755,11 @@
     }
   }
 
+  const lastPoolAddrs = {};   // v8.29: net -> last new_pools answer
   async function loadNewPoolsNetwork(net, intoMap) {
+    // v8.29: with a coin page open, reuse the last list (DexScreener refresh only) — 3 GeckoTerminal calls every 45 s
+    // competed with the coin chart for GeckoTerminal's ~30/min free limit and pushed it into "ładuje się zbyt długo"
+    if (view === 'coin' && lastPoolAddrs[net] && lastPoolAddrs[net].length) { await fetchTokenBatch(lastPoolAddrs[net], null, intoMap); return; }
     const addrs = [];
     // page=1 only: some Gecko networks (e.g. robinhood) 400/fail on page>1 and spam console
     const pages = [1]; // one page per network keeps GeckoTerminal calls well under the public limit (chart shares it)
@@ -741,6 +782,7 @@
         /* network may not support pagination — skip quietly */
       }
     }
+    if (addrs.length) lastPoolAddrs[net] = addrs.slice();
     await fetchTokenBatch(addrs, null, intoMap);
   }
 
@@ -1944,6 +1986,29 @@
     }
   }
 
+  /* v8.29: a price that cannot be true (above the market cap = supply < 1 token, e.g. a reversed pair) is hidden, so the page
+     never shows "Cena $12.7K" next to "MC $6.7K" */
+  function coinPx(c) {
+    const p = c && c.priceUsd != null ? +c.priceUsd : NaN;
+    if (!isFinite(p) || p <= 0) return null;
+    const cap = c.mcap > 0 ? c.mcap : c.fdv > 0 ? c.fdv : 0;
+    return cap && p > cap ? null : p;
+  }
+  /* v8.29: the 45-s refresh used to re-render the WHOLE coin page (chart re-attached, the DexScreener chart restarted its
+     "Ładuję wykres…" spinner, Kyvo Check / holders / tabs reloaded, half-typed alert lost). Now only the numbers change in place. */
+  function updateCoinLive(c) {
+    if (!c || !document.getElementById('cpPx')) return false;
+    const set = (id, txt, cls) => { const e = document.getElementById(id); if (!e) return; e.textContent = txt; if (cls != null) e.className = cls; };
+    const ch = (window.KyvoChart && window.KyvoChart.current && window.KyvoChart.current()) || null;
+    const live = !!(ch && ch.data && !ch.fbAt);   // the Kyvo chart streams MC + price itself
+    if (!live) { set('cpPx', fmtUsd(coinPx(c))); if (c.mcap > 0) set('cpMc', fmtUsd(c.mcap)); }
+    set('cpLiq', fmtLiq(c)); set('cpFdv', fmtUsd(c.fdv));
+    set('cpV5', fmtUsd(c.volume.m5)); set('cpV1', fmtUsd(c.volume.h1)); set('cpV24', fmtUsd(c.volume.h24));
+    set('cpD5', fmtPct(c.change.m5), pctClass(c.change.m5)); set('cpD1', fmtPct(c.change.h1), pctClass(c.change.h1));
+    set('cpBuy', c.buyRatioH1 != null ? Math.round(c.buyRatioH1 * 100) + '%' : '—');
+    return true;
+  }
+
   function renderCoin(c) {
 
     const smBuys = (c.chainId === 'solana' || !c.chainId) ? smartBuysForMint(c.address) : [];
@@ -1991,15 +2056,15 @@
       ${CP ? CP.headerHtml(c) : `<span class="back" id="coinBack">‹</span> <b>${esc(c.name)}</b>`}
       <div id="chartSlot" class="chartslot"></div>
       <div class="statg cp-statg">
-        <div class="st"><small>Cena</small><b>${fmtUsd(c.priceUsd)}</b></div>
-        <div class="st"><small>Płynność</small><b>${fmtLiq(c)}</b></div>
-        <div class="st"><small>FDV</small><b>${fmtUsd(c.fdv)}</b></div>
-        <div class="st"><small>Vol 5m</small><b>${fmtUsd(c.volume.m5)}</b></div>
-        <div class="st"><small>Vol 1h</small><b>${fmtUsd(c.volume.h1)}</b></div>
-        <div class="st"><small>Vol 24h</small><b>${fmtUsd(c.volume.h24)}</b></div>
-        <div class="st"><small>Δ 5m</small><b class="${pctClass(c.change.m5)}">${fmtPct(c.change.m5)}</b></div>
-        <div class="st"><small>Δ 1h</small><b class="${pctClass(c.change.h1)}">${fmtPct(c.change.h1)}</b></div>
-        <div class="st"><small>Buy 1h</small><b>${c.buyRatioH1 != null ? Math.round(c.buyRatioH1 * 100) + '%' : '—'}</b></div>
+        <div class="st"><small>Cena</small><b id="cpPx">${fmtUsd(coinPx(c))}</b></div>
+        <div class="st"><small>Płynność</small><b id="cpLiq">${fmtLiq(c)}</b></div>
+        <div class="st"><small>FDV</small><b id="cpFdv">${fmtUsd(c.fdv)}</b></div>
+        <div class="st"><small>Vol 5m</small><b id="cpV5">${fmtUsd(c.volume.m5)}</b></div>
+        <div class="st"><small>Vol 1h</small><b id="cpV1">${fmtUsd(c.volume.h1)}</b></div>
+        <div class="st"><small>Vol 24h</small><b id="cpV24">${fmtUsd(c.volume.h24)}</b></div>
+        <div class="st"><small>Δ 5m</small><b id="cpD5" class="${pctClass(c.change.m5)}">${fmtPct(c.change.m5)}</b></div>
+        <div class="st"><small>Δ 1h</small><b id="cpD1" class="${pctClass(c.change.h1)}">${fmtPct(c.change.h1)}</b></div>
+        <div class="st"><small>Buy 1h</small><b id="cpBuy">${c.buyRatioH1 != null ? Math.round(c.buyRatioH1 * 100) + '%' : '—'}</b></div>
       </div>
       ${CP ? CP.tabsHtml() : ''}
       <div id="kcheckSlot" class="card" style="margin-top:14px"></div>
@@ -2022,7 +2087,7 @@
         dsChain: c.chainId || 'solana', pair: c.pairAddress || '', smBuys, price: c.priceUsd, change: c.change, // v8.9: last-resort line chart
         mcap: c.mcap, createdAt: c.pairCreatedAt || null, // v8.14: MC axis + "All" timeframe
         wallets: CP ? CP.knownWallets(c) : {}, pfTrades: (pc && pc.trades) || [],
-        onAlert: CP ? () => CP.openAlert(c) : null, onLive: CP ? (mc) => CP.onLive(mc) : null,
+        onAlert: CP ? () => CP.openAlert(c) : null, onLive: (mc, px) => { if (CP) CP.onLive(mc); const pe = document.getElementById('cpPx'); if (pe && isFinite(px) && px > 0) pe.textContent = fmtUsd(px); }, // v8.29: Cena follows the live chart like MC
       });
     };
     mountChart();
@@ -2527,7 +2592,7 @@
       <div class="h">Więcej</div>
       <div class="more-grid">
         ${mtile('#premium', 'gem', 'Kyvo Premium', 'Premium i Runners · cena startowa -50%', true)}
-        ${mtile('#login', S ? 'users' : 'lock', S ? 'Konto' : 'Zaloguj się', S ? 'Jesteś zalogowany' : 'Portfel, Google, e-mail — albo bez logowania')}
+        ${mtile('#login', S ? 'users' : 'lock', S ? 'Konto' : 'Zaloguj się', S ? 'Jesteś zalogowany' : 'Portfel lub Google — albo bez logowania')}
         ${mtile('#help', 'book', 'Jak korzystać', 'Zakładki, filtry, PnL, FAQ')}
         ${mtile('#watch', 'star', 'Watchlista i alerty', 'Obserwowane coiny, alerty MC i % (gdy Kyvo jest otwarte)')}
         ${mtile('#journal', 'j_log', 'Journal', 'Dziennik transakcji, wyniki, analiza i coach — Premium')}
@@ -2829,12 +2894,13 @@
     // v8.3: Runner notifications (all chains) + tab badge + track-record log
     if (ok && window.KyvoNotify && window.KyvoInsights) { try { window.KyvoNotify.onRunner(window.KyvoInsights.runnerList()); } catch (e) {} }
     if (ok) { try { updateRunnerBadge(); } catch (e) {} trackUpdate(); }
+    if (ok && Date.now() - smLoadedAt > 300000) loadSmartMoney().catch(() => {});   // v8.29: live smart money every ~5 min
     if (['pulse', 'hot', 'good', 'new', 'stretch', 'migrated', 'boosted', 'runner'].includes(view)) {
       if (!document.hidden) keepUi(() => setView(view));
-    } else if (view === 'coin' && selectedKey && byKey[selectedKey] && !document.hidden) keepUi(() => renderCoin(byKey[selectedKey]));
+    } else if (view === 'coin' && selectedKey && byKey[selectedKey] && !document.hidden) { if (!updateCoinLive(byKey[selectedKey])) keepUi(() => renderCoin(byKey[selectedKey])); }
     updateClock();
     // v8.3: GeckoTerminal logo lookup for coins still without an image — at most every 2 min (shared GT rate limit)
-    if (ok && Date.now() - lastImgFill > 120000) {
+    if (ok && view !== 'coin' && Date.now() - lastImgFill > 120000) {   // v8.29: not while a coin is open (its chart needs GeckoTerminal's free limit)
       lastImgFill = Date.now();
       try {
         const vc = [];
@@ -2875,6 +2941,7 @@
         return;
       }
       if (t === 'hot') setView('pulse');
+      else if (t === 'viral' && viralStale()) setView('tweets');   // v8.29: old X snapshot -> the live New Tweet feed first
       else setView(t);
     })
   );
