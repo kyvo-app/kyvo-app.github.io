@@ -43,7 +43,7 @@
   const matchText = (t) => strong(t);
 
   let ctx = null;
-  const S = { coins: {}, at: 0, busy: false, err: '', pf: null, pfAt: 0, sec: 'all', timer: null, first: true };
+  const S = { coins: {}, at: 0, busy: false, err: '', pf: null, pfAt: 0, added: null, addedAt: 0, sec: 'all', timer: null, first: true };
   const L2 = (pl, en) => (ctx && ctx.isEn() ? en : pl);
 
   async function loadPf() {
@@ -52,6 +52,22 @@
     S.pfAt = Date.now();
     return S.pf;
   }
+  /* v8.32 '📈 od dodania': data/gta_added.json (written by tools/gta_push.py every ~240 s) = first time Kyvo saw each GTA coin
+     (or its 🎮 GTA push): px0 = price then, max = highest price seen since. Missing file -> no badge. */
+  async function loadAdded() {
+    if (S.added && Date.now() - S.addedAt < 4 * 60e3) return S.added;
+    try { const r = await fetch('data/gta_added.json?t=' + Math.floor(Date.now() / 240000)); const j = r.ok ? await r.json() : null; S.added = (j && j.coins) || S.added || {}; } catch (e) { S.added = S.added || {}; }
+    S.addedAt = Date.now();
+    return S.added;
+  }
+  function sinceAdded(c) {
+    const e = S.added && S.added[String(ctx.keyOf(c) || '').toLowerCase()];
+    const px = Number(c.priceUsd);
+    if (!e || !(e.px0 > 0) || !(px > 0)) return null;
+    const pct = (px / e.px0 - 1) * 100, max = (Math.max(e.max || 0, px) / e.px0 - 1) * 100;
+    return { pct, max, h: Math.max(0, (Date.now() / 1000 - e.t) / 3600), push: e.src === 'push' };
+  }
+  const fmtPct = (v) => (v >= 0 ? '+' : '−') + (Math.abs(v) >= 1000 ? ctx.fmtInt(Math.round(Math.abs(v))) : Math.abs(v) >= 10 ? Math.round(Math.abs(v)) : Math.abs(v).toFixed(1)) + '%';
   /* pump.fun callouts about GTA: mint -> { n, text } (only the text of the first matching callout, for the "why" line) */
   function pfGta() {
     const out = {};
@@ -108,7 +124,8 @@
     const up = all.filter((c) => (vol(c, 'h1') >= 1500 || vol(c, 'h24') >= 15000) && ((c.liquidity || 0) >= 5000 || c.onCurve) && ((chg(c, 'h1') || 0) >= 8 || (chg(c, 'h6') || 0) >= 25))
       .sort((a, b) => upScore(b) - upScore(a));
     const top = all.filter((c) => (c.mcap || 0) >= 50000 && vol(c, 'h24') >= 10000).sort((a, b) => (b.mcap || 0) - (a.mcap || 0));
-    return { all, fresh: fresh.slice(0, 30), freshH, up: up.slice(0, 20), top: top.slice(0, 15) };
+    const added = all.filter((c) => (c._sa = sinceAdded(c))).sort((a, b) => b._sa.pct - a._sa.pct);
+    return { all, fresh: fresh.slice(0, 30), freshH, up: up.slice(0, 20), top: top.slice(0, 15), added: added.slice(0, 40) };
   }
 
   function gtaTweets() {
@@ -129,6 +146,12 @@
 
   function extraLine(c, runnerOf) {
     const bits = [];
+    const sa = c._sa;
+    if (sa) {
+      bits.push(`<span class="gta-chip sa ${sa.pct >= 0 ? 'up' : 'dn'}">${sa.pct >= 0 ? '📈' : '📉'} ${fmtPct(sa.pct)} ${L2(sa.push ? 'od pusha' : 'od dodania', sa.push ? 'since push' : 'since added')}</span>`);
+      if (sa.max >= 1 && sa.max - sa.pct >= 1) bits.push(`<span class="gta-chip up">max ${fmtPct(sa.max)}</span>`);
+      bits.push(`<span class="gta-chip">🕒 ${L2(sa.push ? 'push' : 'dodany', sa.push ? 'pushed' : 'added')} ${sa.h < 1 / 60 ? L2('teraz', 'now') : ctx.esc(ctx.ageLabelH(sa.h)) + ' ' + L2('temu', 'ago')}</span>`);
+    }
     const a = ageH(c);
     if (a != null && a < 24) bits.push(`<span class="gta-chip new">🆕 ${L2('nowy', 'new')}</span>`);   // the row already shows the exact age
     const r = runnerOf[ctx.keyOf(c)];
@@ -176,18 +199,22 @@
       ${rows(L.top, nT) || (loading ? '' : empty(L2('Brak danych.', 'No data.')))}${more('top', L.top, nT)}`;
     const secTw = `${head('🐦', L2('GTA tweety', 'GTA tweets'), tw.length, L2('Rockstar Games, GTA 6 Countdown, Rockstar INTEL + każdy śledzony tweet o GTA · ostatnie 72 h', 'Rockstar Games, GTA 6 Countdown, Rockstar INTEL + every tracked tweet about GTA · last 72 h'))}
       ${tw.length ? tw.slice(0, nW).map(tweetCard).join('') : empty(L2('W ostatnich 72 h nie było tweetów o GTA ze śledzonych kont.', 'No GTA tweets from tracked accounts in the last 72 h.'))}${more('tw', tw, nW)}`;
+    const nA = isAll ? 5 : 40;
+    const secAdded = L.added.length ? `${head('📈', L2('Od dodania w Kyvo', 'Since added to Kyvo'), L.added.length, L2('Ile poszły od kiedy Kyvo je wykryło (albo od pusha 🎮 GTA) · max = najwyżej od tego czasu', 'How far they moved since Kyvo detected them (or since the 🎮 GTA push) · max = highest since then'))}
+      ${rows(L.added, nA)}${more('added', L.added, nA)}` : (sec === 'added' ? empty(L2('Kyvo jeszcze zbiera ceny z momentu dodania — wróć za kilka minut.', 'Kyvo is still collecting the prices at detection — check back in a few minutes.')) : '');
     const chip = (id, lb, n) => `<button type="button" class="twf${sec === id ? ' on' : ''}" data-gsec="${id}">${lb}${n != null ? ` <span class="vcount">${n}</span>` : ''}</button>`;
     const upd = S.at ? Math.max(0, Math.round((Date.now() - S.at) / 1000)) : null;
     body.innerHTML = `<div class="gta-hero" translate="no"><div class="gta-k">🎮 GTA 6 <span class="gta-free">FREE</span></div>
         <div class="gta-t">${L2('Wszystkie coiny i tweety o GTA 6 w jednym miejscu', 'Every GTA 6 coin and tweet in one place')}</div>
         <div class="gta-s">${L2('Nowe coiny, te co rosną, runnery GTA i tweety Rockstar. Za darmo dla wszystkich.', 'New coins, the ones going up, GTA runners and Rockstar tweets. Free for everyone.')}</div></div>
-      <div class="twfs" translate="no">${chip('all', L2('Wszystko', 'All'))}${chip('new', '🆕 ' + L2('Nowe', 'New'), L.fresh.length)}${chip('up', '🚀 ' + L2('Rosną', 'Going up'), L.up.length)}${chip('top', '💰 Top', L.top.length)}${chip('tw', '🐦 ' + L2('Tweety', 'Tweets'), tw.length)}</div>
+      <div class="twfs" translate="no">${chip('all', L2('Wszystko', 'All'))}${chip('new', '🆕 ' + L2('Nowe', 'New'), L.fresh.length)}${chip('up', '🚀 ' + L2('Rosną', 'Going up'), L.up.length)}${chip('top', '💰 Top', L.top.length)}${L.added.length || sec === 'added' ? chip('added', '📈 ' + L2('Od dodania', 'Since added'), L.added.length) : ''}${chip('tw', '🐦 ' + L2('Tweety', 'Tweets'), tw.length)}</div>
       ${loading ? `<div class="loading"><div class="spin"></div>${L2('Szukam GTA coinów…', 'Looking for GTA coins…')}</div>` : ''}
       ${S.err && !L.all.length ? `<div class="card" style="font-size:12.5px;color:var(--warn)">${L2('DexScreener chwilowo nie odpowiada — spróbujemy za chwilę.', 'DexScreener is not answering right now — retrying shortly.')}</div>` : ''}
       ${isAll || sec === 'up' ? secUp : ''}
       ${isAll || sec === 'new' ? secFresh : ''}
       ${isAll || sec === 'tw' ? secTw : ''}
       ${isAll || sec === 'top' ? secTop : ''}
+      ${isAll || sec === 'added' ? secAdded : ''}
       <div class="mut" style="font-size:11px;margin-top:10px;line-height:1.45" translate="no">${L2('GTA coin = nazwa albo ticker wprost o GTA (GTA 6, GTA VI, Grand Theft Auto, Vice City, Leonida, Los Santos, pełne imiona postaci) albo ≥ 3 calle o GTA na pump.fun. Uważaj na kopie — sprawdź adres (CA) na stronie coina.', 'GTA coin = name or ticker clearly about GTA (GTA 6, GTA VI, Grand Theft Auto, Vice City, Leonida, Los Santos, full character names) or ≥ 3 GTA callouts on pump.fun. Watch out for copies — check the contract (CA) on the coin page.')}</div>
       <div class="foot">${L2('Dane: DexScreener · pump.fun (calle) · tweety: FxTwitter (lustro X)', 'Data: DexScreener · pump.fun (callouts) · tweets: FxTwitter (X mirror)')}${upd != null ? ` · ${L2('odświeżone', 'updated')} ${upd < 5 ? L2('teraz', 'now') : upd + ' s ' + L2('temu', 'ago')}` : ''}</div>`;
     ctx.wireRows(body);
@@ -197,12 +224,13 @@
   async function show() {
     render();
     const live = ctx.loadLive().catch(() => null);
+    const ad = loadAdded().then(() => { if (ctx.isView()) ctx.keep(render); });
     const p = refresh(false);
     await live; if (ctx.isView()) ctx.keep(render);
     await p; S.first = false; if (ctx.isView()) ctx.keep(render);
     if (!S.timer) S.timer = setInterval(() => {
       if (!ctx.isView() || document.hidden) return;
-      ctx.loadLive().catch(() => null).then(() => refresh(false)).then(() => { if (ctx.isView()) ctx.keep(render); });
+      Promise.all([ctx.loadLive().catch(() => null), loadAdded()]).then(() => refresh(false)).then(() => { if (ctx.isView()) ctx.keep(render); });
     }, 30000);
   }
 

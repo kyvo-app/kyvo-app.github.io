@@ -30,7 +30,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 FEEDS = ["data/x_live.json", "data/kol_live.json", "data/gold.json", "data/pf_social.json", "data/tracker_feed.json",
          "data/early_shadow.json",   # v8.24 early-rule shadow log (rides along with the normal feed commits, never its own commit)
-         "data/track_record.json", "data/flag_history.json"]   # v8.25: every flag saved right after the scan (git_sync merges races)
+         "data/track_record.json", "data/flag_history.json",
+         "data/gta_added.json"]   # v8.32 🎮 GTA '📈 od dodania' reference (runtime file, rides along with the feed commits)   # v8.25: every flag saved right after the scan (git_sync merges races)
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import git_sync  # noqa: E402  v8.25 conflict-safe commits (JSON merge for track_record / flag_history)
 
@@ -127,7 +128,8 @@ def main() -> int:
             gt.result(); gt = None; did = True
         if a.gta_every > 0 and gt is None and time.time() >= next_gt and time.time() < end - 60:
             next_gt = time.time() + a.gta_every; n_gt += 1
-            gt = Bg([py, "tools/gta_push.py", "--out", f"{a.state_dir}/gta_alerts.json"])
+            gt = Bg([py, "tools/gta_push.py", "--out", f"{a.state_dir}/gta_alerts.json", "--state", f"{a.state_dir}/sent.json"]
+                    + ([] if a.dry_run else ["--added", "data/gta_added.json"]))   # v8.32 first-seen reference (not in dry runs)
         if tk is not None and tk.done():
             o = tk.result(); tk = None
             if o.get("tracker_commit") == "true" and not pending and time.time() - last_commit > 900: pending.append("tracker feed")

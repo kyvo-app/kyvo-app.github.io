@@ -12,7 +12,11 @@ minute. Writes .kyvo_push/gta_alerts.json = every GTA coin that RUNS NOW (coin_r
 tools/kyvo_push.py (--gta) turns those into '🎮 GTA' pushes (one per coin, one more at ≥ 3x the alerted MC and ≥ $250K) and
 reads the GTA tweets itself from data/x_live.json (tweet_reason(): every original @RockstarGames post about GTA VI, fan / news
 accounts only for big news — trailer, release date, delay, pre-orders, price …). Rate limits + tag 'gta' live in kyvo_push.py.
-Local test:  python3 tools/gta_push.py --out /tmp/gta_alerts.json --print
+v8.32 '📈 od dodania': every strong-matched GTA coin (name / symbol / ≥ 3 callouts) gets a first-seen record in --added
+(data/gta_added.json, runtime file the loop commits with the feeds): first-seen time + price + MC, max price seen since then
+(sampled on every read, ~240 s — wicks between two reads are missed). A coin pushed as '🎮 GTA' uses the PUSH price/time as its
+reference (kyvo_push.py state "gta_coins", --state). Entries older than ADDED_KEEP_D (7) days are pruned, at most ADDED_MAX (500).
+Local test:  python3 tools/gta_push.py --out /tmp/gta_alerts.json --added /tmp/gta_added.json --print
 """
 from __future__ import annotations
 import argparse, json, re, sys, time, urllib.parse, urllib.request
@@ -46,6 +50,8 @@ BIG_RE = re.compile(r"(?<![a-z0-9])(trailer|release date|releases? on|launch(es)
 NOT_BIG_RE = re.compile(r"(?<![a-z0-9])(soundtrack|original score|vinyl|merch|gta online|survey|poll|intend to)(?![a-z0-9])", re.I)
 GTA_HANDLES_OFFICIAL = {"rockstargames"}
 TWEET_MAX_AGE_S = 45 * 60
+
+ADDED_KEEP_D, ADDED_MAX = 7, 500
 
 UA = {"User-Agent": "Mozilla/5.0 (kyvo-gta/8.31)", "Accept": "application/json"}
 
@@ -93,7 +99,7 @@ def coin_from_pair(p: dict) -> dict:
     ch, addr = p.get("chainId") or "", b.get("address") or ""
     tx = ((p.get("txns") or {}).get("h1") or {})
     liq = _num((p.get("liquidity") or {}).get("usd"))
-    return {"k": f"{ch}:{addr}", "chain": ch, "addr": addr, "pair": p.get("pairAddress"), "sym": b.get("symbol") or "", "name": b.get("name") or "",
+    return {"k": f"{ch}:{addr}", "chain": ch, "addr": addr, "pair": p.get("pairAddress"), "px": _num(p.get("priceUsd")), "sym": b.get("symbol") or "", "name": b.get("name") or "",
             "dex": p.get("dexId") or "", "img": (p.get("info") or {}).get("imageUrl"),
             "mc": _num(p.get("marketCap")) or _num(p.get("fdv")), "liq": liq,
             "vol1h": _num((p.get("volume") or {}).get("h1")) or 0, "vol24": _num((p.get("volume") or {}).get("h24")) or 0,
@@ -124,7 +130,32 @@ def coin_runs(c: dict) -> str | None:
     if h6 is not None and h6 >= H6_MIN and (h1 or 0) >= 0: return f"+{h6:.0f}% 6h"
     return None
 
-def scan(root: Path, out: Path, verbose: bool = False) -> dict:
+def update_added(path: Path, matched: list[dict], state: Path | None, now: float) -> dict:
+    """v8.32: first-seen reference per GTA coin (+ max since then); a 🎮 GTA push re-bases it to the push price/time."""
+    try: d = json.loads(path.read_text())
+    except Exception: d = {}
+    coins = d.get("coins") if isinstance(d.get("coins"), dict) else {}
+    try: pushed = (json.loads(state.read_text()).get("gta_coins") or {}) if state else {}
+    except Exception: pushed = {}
+    for c in matched:
+        px, k = c.get("px"), c["k"].lower()
+        if not px or px <= 0: continue
+        e = coins.get(k)
+        if e is None:
+            e = coins[k] = {"t": int(now), "px0": px, "mc0": c.get("mc"), "src": "seen", "max": px, "maxT": int(now)}
+        pu = pushed.get(k)
+        if pu and e.get("src") != "push" and pu.get("t"):                  # pushed coin -> push price (state px, else MC ratio)
+            ppx = pu.get("px") or (px * pu["mc"] / c["mc"] if pu.get("mc") and c.get("mc") else None)
+            if ppx and ppx > 0: e.update({"t": int(pu["t"]), "px0": ppx, "mc0": pu.get("mc"), "src": "push", "max": max(ppx, px), "maxT": int(now)})
+        if px > (e.get("max") or 0): e["max"], e["maxT"] = px, int(now)
+        e["sym"] = c.get("sym") or e.get("sym")
+    coins = {k: v for k, v in coins.items() if now - (v.get("t") or 0) < ADDED_KEEP_D * 86400}
+    if len(coins) > ADDED_MAX: coins = dict(sorted(coins.items(), key=lambda kv: -(kv[1].get("t") or 0))[:ADDED_MAX])
+    res = {"v": 832, "updated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now)), "note": "🎮 GTA 6 tab '📈 od dodania': first time Kyvo saw each GTA coin (or its 🎮 GTA push), price then (px0, USD), max price seen since (max). tools/gta_push.py", "coins": coins}
+    path.parent.mkdir(parents=True, exist_ok=True); path.write_text(json.dumps(res, ensure_ascii=False, separators=(",", ":")))
+    return res
+
+def scan(root: Path, out: Path, verbose: bool = False, added: Path | None = None, state: Path | None = None) -> dict:
     t0 = time.time(); errs = []; pool: dict = {}
     for q in QUERIES:
         try: pool.update({k: v for k, v in best_pairs(_get("https://api.dexscreener.com/latest/dex/search?q=" + urllib.parse.quote(q)).get("pairs")).items() if k not in pool})
@@ -162,6 +193,9 @@ def scan(root: Path, out: Path, verbose: bool = False) -> dict:
     for c in [c for c in running if not c.get("img") and c["chain"] == "solana"][:5]:   # new coin: DexScreener has no logo yet -> pump.fun's
         try: c["img"] = (_get("https://frontend-api-v3.pump.fun/coins-v2/" + c["addr"], 10) or {}).get("image_uri") or None
         except Exception: pass
+    if added:
+        try: update_added(added, matched, state, time.time())
+        except Exception as e: errs.append(f"added: {str(e)[:80]}")
     seen_p = out.parent / "gta_seen.json"
     try: seen = json.loads(seen_p.read_text())
     except Exception: seen = {}
@@ -173,7 +207,7 @@ def scan(root: Path, out: Path, verbose: bool = False) -> dict:
     for k in [k for k in seen if k not in {c["k"].lower() for c in running}]: seen.pop(k)   # must run on consecutive reads
     seen_p.parent.mkdir(parents=True, exist_ok=True); seen_p.write_text(json.dumps(seen))
     running.sort(key=lambda c: -((max(0, c.get("h1") or 0) + 0.3 * max(0, c.get("h6") or 0)) * (1 + (c.get("vol1h") or 0) / 1e5)))
-    res = {"at": int(time.time()), "v": 831, "matched": len(matched), "pool": len(pool), "errors": errs, "coins": running[:20],
+    res = {"at": int(time.time()), "v": 832, "matched": len(matched), "pool": len(pool), "errors": errs, "coins": running[:20],
            "secs": round(time.time() - t0, 1)}
     out.parent.mkdir(parents=True, exist_ok=True); out.write_text(json.dumps(res, ensure_ascii=False))
     if verbose:
@@ -186,9 +220,11 @@ def main() -> int:
     ap.add_argument("--out", type=Path, default=Path(".kyvo_push/gta_alerts.json"))
     ap.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
     ap.add_argument("--print", action="store_true")
+    ap.add_argument("--added", type=Path, default=None, help="v8.32 first-seen reference file (loop: data/gta_added.json)")
+    ap.add_argument("--state", type=Path, default=None, help="v8.32 kyvo_push state (gta_coins = push price/time)")
     ap.add_argument("--dry-run", action="store_true", help="same as a normal run (the detector never sends anything itself)")
     a = ap.parse_args()
-    scan(a.root, a.out, a.print)
+    scan(a.root, a.out, a.print, a.added, a.state)
     return 0
 
 if __name__ == "__main__":

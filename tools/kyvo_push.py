@@ -395,7 +395,7 @@ def gta_items(a, st: dict, sent: dict, now: float, day: str, seeding: bool) -> l
             mv = f" +{h1:.0f}%" if isinstance(h1, (int, float)) and h1 >= G.H1_MIN else (f" +{h6:.0f}% 6h" if isinstance(h6, (int, float)) and h6 > 0 else "")
             new_pl, new_en = ("🆕 nowy · ", "🆕 new · ") if c.get("new") else ("", "")
             cand.append({"id": "gta:coin:" + k, "kind": "gta", "topic": "gta-" + k[-40:], "hash": hsh, "why": c.get("run"),
-                         "gta_coin": k, "gta_mc": mc, "gta_level": 1,
+                         "gta_coin": k, "gta_mc": mc, "gta_level": 1, "gta_px": c.get("px"),
                          "title_pl": f"🎮 GTA · ${c['sym']}{mv}", "title_en": f"🎮 GTA · ${c['sym']}{mv}",
                          "body_pl": f"{new_pl}MC {fmt_usd(mc)}{name_part}", "body_en": f"{new_en}MC {fmt_usd(mc)}{name_part}",
                          "icon": c.get("img"), "image": c.get("img"), "_p": 1, "_s": -(c.get("vol1h") or 0)})
@@ -578,7 +578,10 @@ def main() -> int:
                 st.setdefault("vip_n", {})[it["vip_handle"]] = st.get("vip_n", {}).get(it["vip_handle"], 0) + 1
             if it["kind"] == "gta":                                    # v8.31: gap / day counters + once-per-coin memory
                 st["gta_last"] = now; st["gta_n"] = st.get("gta_n", 0) + 1
-                if it.get("gta_coin"): st.setdefault("gta_coins", {})[it["gta_coin"]] = {"t": int(now), "mc": it.get("gta_mc"), "n": it.get("gta_level", 1)}
+                if it.get("gta_coin"):
+                    gc = st.setdefault("gta_coins", {}); prev = gc.get(it["gta_coin"]) or {}
+                    gc[it["gta_coin"]] = {"t": int(now), "mc": it.get("gta_mc"), "n": it.get("gta_level", 1),
+                                          "px": prev.get("px") if it.get("gta_level", 1) > 1 else it.get("gta_px")}   # v8.32: push price for '📈 od dodania'
                 if it.get("gta_official"): st["gta_rs_last"] = now
         if a.dry_run:
             print(json.dumps(pl, ensure_ascii=False, indent=1) if a.full else json.dumps(pl, ensure_ascii=False)[:600])

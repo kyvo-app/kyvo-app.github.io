@@ -6,7 +6,7 @@
   if (typeof globalThis === 'undefined') window.globalThis = window;
   if (window.Promise && !Promise.allSettled) Promise.allSettled = function (ps) { return Promise.all(Array.from(ps).map(function (p) { return Promise.resolve(p).then(function (v) { return { status: 'fulfilled', value: v }; }, function (r) { return { status: 'rejected', reason: r }; }); })); };
 
-  var APP_VERSION = '8.31';   // v8.30: kept in sync with version.json (was stuck at 8.15)
+  var APP_VERSION = '8.32';   // v8.30: kept in sync with version.json (was stuck at 8.15)
   window.KYVO_VERSION = APP_VERSION;
   // drop logo caches written by older versions (could hold the Kyvo mascot or pump.fun placeholder URLs)
   try { ['kyvo_img_v1'].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {}
