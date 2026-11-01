@@ -49,6 +49,14 @@ never pushed twice; KOL / Moon / Tweet / Big runners, Gold, Smart money, tweets 
 v8.28: short FOMO-style texts — title = emoji + type · $SYM + one number, body = one short line (MC / key stat); no disclaimer,
 no contract address, no "· Kyvo" (tidy() in payload() strips them as a safety net; the app UI keeps the one-time disclaimer).
 👀 Smart money has its own opt-out tag "smart" (and still respects "gold"); every logged attempt carries its OneSignal filters.
+v8.31 🎮 GTA 6 (free for everyone, tag "gta", own toggle '🎮 GTA 6' in notify.js; missing tag = ON, "0" = off):
+  * coin: tools/gta_push.py (kyvo_loop background step, DexScreener search) -> --gta .kyvo_push/gta_alerts.json = GTA coins that
+    run now; ONE push per coin ever (st["gta_coins"], 30 days), one more when MC ≥ 3x the alerted MC and ≥ $250K
+    ('🎮 GTA · $SYM 3x od alertu'); a coin pushed as 🏃 Runner in the last hour is not pushed again as 🎮 GTA.
+  * tweet: data/x_live.json role "gta" accounts — every original @RockstarGames post about GTA VI, fan / news accounts only big news
+    (gta_push.tweet_reason: trailer, release date, delay, pre-orders, price …), ≤ 45 min old, fan echo ≤ 1 h after a Rockstar push dropped.
+  * limits: ≥ GTA_GAP_S (600 s) between two GTA pushes, ≤ GTA_DAY_CAP (15) per Warsaw day, GTA_PER_RUN (1); never counts against
+    the free 2/day cap; tiers free + premium + runners. First v8.31 run seeds (no blast of what is already running / posted).
 Secret: ONESIGNAL_REST_API_KEY (GitHub -> Settings -> Secrets -> Actions). Missing -> safe no-op. The key is never printed.
 """
 from __future__ import annotations
@@ -70,6 +78,11 @@ GOLD_FREE_PUSH = int(os.environ.get("KYVO_GOLD_FREE_PUSH", "0"))   # v8.12: 0 = 
 GOLD_PER_RUN = 2
 MAX_GOLD_AGE_S = 3600
 SMART_PER_RUN = 1          # v8.14
+GTA_GAP_S = int(os.environ.get("KYVO_GTA_GAP_S", "600"))       # v8.31 🎮 GTA: ≥ 10 min between two GTA pushes
+GTA_DAY_CAP = int(os.environ.get("KYVO_GTA_DAY_CAP", "15"))    # per Warsaw day
+GTA_PER_RUN = 1
+GTA_SEED_V = 831                                                # bump -> next run re-seeds the GTA block
+GTA_MAX_DET_AGE_S = 15 * 60                                     # ignore a stale detector file
 WARSAW = ZoneInfo("Europe/Warsaw")
 # v8.23 ⭐ VIP posts / replies · v8.24 important-tweet filter (config: x_accounts.json "vip_push")
 ACCOUNTS = Path(__file__).resolve().parent / "x_accounts.json"
@@ -280,6 +293,7 @@ def tiers_for(it: dict, st: dict) -> list[str]:
        Smart money     -> runners only (plan card: "👀 Smart money push" is a 🏃 Runners feature; tracker.js gates it the same way)"""
     free_left = st.get("free_n", 0) < FREE_CAP
     k = it["kind"]
+    if k == "gta": return ["free", "premium", "runners"]              # v8.31 🎮 GTA 6: free for everyone, outside FREE_CAP
     if k == "vip":                                                     # v8.23: never counts against the free 2/day plan
         return list(dict.fromkeys(VIP_TIERS + (["free"] if promo_on() else []))) or ["premium", "runners"]
     if PROMO_ALL and promo_on(): return ["free", "premium", "runners"]   # v8.23 opt-in: whole push = top tier for everyone
@@ -341,6 +355,74 @@ def payload(item: dict, filters: list[dict]) -> dict:
             "chrome_web_icon": item.get("icon") or APP_URL + "icons/icon-192.png", "firefox_icon": item.get("icon") or APP_URL + "icons/icon-192.png",
             **({"chrome_web_image": item["image"]} if item.get("image") else {})}
 
+def gta_items(a, st: dict, sent: dict, now: float, day: str, seeding: bool) -> list[dict]:
+    """v8.31 🎮 GTA 6 pushes (see the docstring). Returns at most GTA_PER_RUN items; counters move only when a push really went out."""
+    import gta_push as G
+    if st.get("gta_day") != day: st["gta_day"], st["gta_n"] = day, 0
+    gcoins = {k: v for k, v in (st.get("gta_coins") or {}).items() if now - v.get("t", 0) < 30 * 86400}
+    st["gta_coins"] = gcoins
+    gseed = seeding or st.get("gta_seeded_v") != GTA_SEED_V
+    det = load(a.gta, {}) if a.gta else {}
+    coins = det.get("coins") or [] if now - (det.get("at") or 0) <= GTA_MAX_DET_AGE_S else []
+    cand: list[dict] = []
+    for t in load(a.live, {}).get("tweets", []):                       # tweets first: official news beats a coin
+        kid = "gta:tw:" + str(t.get("id"))
+        if kid in sent or t.get("role") != "gta": continue
+        age = now - (t.get("ts") or 0)
+        if age < -120: continue
+        why = G.tweet_reason(t)
+        if not why: continue
+        if gseed or age > G.TWEET_MAX_AGE_S: sent[kid] = now; continue
+        official = str(t.get("handle") or "").lower() in G.GTA_HANDLES_OFFICIAL
+        if not official and now - st.get("gta_rs_last", 0) < 3600: sent[kid] = now; print(f"GTA: @{t.get('handle')} echo of a Rockstar push -> skipped"); continue
+        txt = clip(re.sub(r"^(@\w{1,15}\s+)+", "", t.get("text") or "") or "📷", 100)
+        who = "Rockstar Games" if official else short_name(t)
+        cand.append({"id": kid, "kind": "gta", "topic": "gta-tw", "hash": "#gta", "why": why, "gta_official": official,
+                     "title_pl": f"🎮 GTA · {who}", "title_en": f"🎮 GTA · {who}", "body_pl": txt, "body_en": txt,
+                     "icon": big_avatar(t.get("avatar")), "image": tweet_photo(t), "_p": 0 if official else 2})
+    for c in coins:
+        k = str(c.get("k") or "").lower()
+        if not k or not c.get("sym") or c.get("confirmed") is False: continue   # < 1 h old coin not confirmed by a 2nd read yet
+        mc = c.get("mc") or 0; prev = gcoins.get(k)
+        if gseed: gcoins.setdefault(k, {"t": int(now), "mc": mc, "n": 1}); continue
+        if f"run:{k}" in sent and now - sent[f"run:{k}"] < 3600 and not prev:   # just pushed as 🏃 Runner -> remember, no 2nd push
+            gcoins[k] = {"t": int(now), "mc": mc, "n": 1}; print(f"GTA: ${c['sym']} already pushed as Runner -> skipped"); continue
+        nm = clip(c.get("name") or "", 18)
+        name_part = f" · {nm}" if nm and nm.lower() != str(c["sym"]).lower() else ""
+        hsh = "#coin/" + urllib.parse.quote(c.get("k") or k, safe="")
+        if prev is None:
+            h1, h6 = c.get("h1"), c.get("h6")
+            mv = f" +{h1:.0f}%" if isinstance(h1, (int, float)) and h1 >= G.H1_MIN else (f" +{h6:.0f}% 6h" if isinstance(h6, (int, float)) and h6 > 0 else "")
+            new_pl, new_en = ("🆕 nowy · ", "🆕 new · ") if c.get("new") else ("", "")
+            cand.append({"id": "gta:coin:" + k, "kind": "gta", "topic": "gta-" + k[-40:], "hash": hsh, "why": c.get("run"),
+                         "gta_coin": k, "gta_mc": mc, "gta_level": 1,
+                         "title_pl": f"🎮 GTA · ${c['sym']}{mv}", "title_en": f"🎮 GTA · ${c['sym']}{mv}",
+                         "body_pl": f"{new_pl}MC {fmt_usd(mc)}{name_part}", "body_en": f"{new_en}MC {fmt_usd(mc)}{name_part}",
+                         "icon": c.get("img"), "image": c.get("img"), "_p": 1, "_s": -(c.get("vol1h") or 0)})
+        elif prev.get("n", 1) < 2 and prev.get("mc") and mc >= G.MILESTONE_X * prev["mc"] and mc >= G.MILESTONE_MC and (c.get("h1") or 0) > 0:
+            x = mc / prev["mc"]
+            cand.append({"id": "gta:coin2:" + k, "kind": "gta", "topic": "gta-" + k[-40:], "hash": hsh, "why": f"{x:.1f}x since the GTA alert",
+                         "gta_coin": k, "gta_mc": prev["mc"], "gta_level": 2,
+                         "title_pl": f"🎮 GTA · ${c['sym']} {x:.0f}x od alertu", "title_en": f"🎮 GTA · ${c['sym']} {x:.0f}x since the alert",
+                         "body_pl": f"MC {fmt_usd(mc)} (było {fmt_usd(prev['mc'])}){name_part}", "body_en": f"MC {fmt_usd(mc)} (was {fmt_usd(prev['mc'])}){name_part}",
+                         "icon": c.get("img"), "image": c.get("img"), "_p": 2, "_s": -x})
+    if gseed:
+        st["gta_seeded_v"] = GTA_SEED_V
+        print(f"GTA: first v{GTA_SEED_V} run -> seeded {len(gcoins)} running coin(s) + current GTA posts, nothing sent")
+        return []
+    if not cand: return []
+    cand.sort(key=lambda x: (x["_p"], x.get("_s", 0)))
+    if now - st.get("gta_last", 0) < GTA_GAP_S:
+        print(f"GTA: {len(cand)} waiting (gap {int(now - st.get('gta_last', 0))}s < {GTA_GAP_S}s)"); return []
+    if st.get("gta_n", 0) >= GTA_DAY_CAP:
+        print(f"GTA: daily cap {GTA_DAY_CAP} reached -> {len(cand)} skipped")
+        for x in cand:
+            sent[x["id"]] = now
+            if x.get("gta_coin"): gcoins[x["gta_coin"]] = {"t": int(now), "mc": x.get("gta_mc"), "n": x.get("gta_level", 1)}
+        return []
+    for x in cand[GTA_PER_RUN:]: print(f"GTA: {x['id']} -> next run")
+    return cand[:GTA_PER_RUN]
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--live", type=Path, default=Path("data/x_live.json"))
@@ -348,6 +430,7 @@ def main() -> int:
     ap.add_argument("--state", type=Path, default=Path(".kyvo_push/sent.json"))
     ap.add_argument("--gold", type=Path, default=Path(".kyvo_push/gold_alerts.json"), help="v8.12 Gold alerts written by tools/gold.py")
     ap.add_argument("--smart", type=Path, default=Path(".kyvo_push/smart_alerts.json"), help="v8.14 Tracker cluster-buy alerts (tools/pump_tracker.py)")
+    ap.add_argument("--gta", type=Path, default=Path(".kyvo_push/gta_alerts.json"), help="v8.31 🎮 GTA coins running now (tools/gta_push.py)")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--full", action="store_true", help="dry run: print the whole payload (pretty)")
     a = ap.parse_args()
@@ -469,8 +552,9 @@ def main() -> int:
         n_smart += 1
         items.append({"id": kid, "kind": "gold", "smart": True, "topic": kid, "hash": g.get("hash") or "#tracker",
                       "title_pl": g["title_pl"], "title_en": g["title_en"], "body_pl": g["body_pl"], "body_en": g["body_en"]})
+    items += gta_items(a, st, sent, now, day, seeding)                    # v8.31 🎮 GTA 6
     if seeding: print(f"first run: seeded {len(sent)} existing items, nothing sent")
-    items.sort(key=lambda it: 0 if it["title_en"].startswith(("👑", "🚀", "🐦", "⭐", "📣")) else 1)
+    items.sort(key=lambda it: 0 if it["title_en"].startswith(("👑", "🚀", "🐦", "⭐", "📣", "🎮")) else 1)
     if RUNNER_PUSH_SOURCE == "worker":   # v8.25: the Cloudflare worker pushes plain Runners -> never twice
         for it in [x for x in items if x.get("plain")]:
             sent[it["id"]] = now; log_push(st, it, [], {}, "skipped_worker_source")
@@ -483,7 +567,7 @@ def main() -> int:
         flt = audience(kind_tags(it), tiers); it["_filters"] = filters_str(flt)
         pl = payload(it, flt)
         def count():                         # quota counters (Europe/Warsaw day)
-            if "free" in tiers and it["kind"] != "vip" and not (PROMO_ALL and promo_on()):
+            if "free" in tiers and it["kind"] not in ("vip", "gta") and not (PROMO_ALL and promo_on()):
                 st["free_n"] = st.get("free_n", 0) + 1
                 if it["kind"] == "runner": st["free_runner_n"] = st.get("free_runner_n", 0) + 1; st["free_runner_id"] = it["id"]
             if "premium" in tiers and it["kind"] == "runner" and not it.get("smart"):
@@ -492,6 +576,10 @@ def main() -> int:
                 for x in it["ids"]: sent[x] = now
                 st.setdefault("vip_last", {})[it["vip_handle"]] = now
                 st.setdefault("vip_n", {})[it["vip_handle"]] = st.get("vip_n", {}).get(it["vip_handle"], 0) + 1
+            if it["kind"] == "gta":                                    # v8.31: gap / day counters + once-per-coin memory
+                st["gta_last"] = now; st["gta_n"] = st.get("gta_n", 0) + 1
+                if it.get("gta_coin"): st.setdefault("gta_coins", {})[it["gta_coin"]] = {"t": int(now), "mc": it.get("gta_mc"), "n": it.get("gta_level", 1)}
+                if it.get("gta_official"): st["gta_rs_last"] = now
         if a.dry_run:
             print(json.dumps(pl, ensure_ascii=False, indent=1) if a.full else json.dumps(pl, ensure_ascii=False)[:600])
             print(f"  tiers: {', '.join(tiers)}")

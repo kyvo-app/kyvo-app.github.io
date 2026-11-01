@@ -11,6 +11,8 @@ GitHub fires "*/5" schedules only every ~30–40 min in practice, so one workflo
     feed commits; on its own it only marks a commit when nothing else changed for a while (low priority).
   * every TK_EVERY (~4 min, v8.14): 👀 Tracker — top Ranking wallets' public pump.fun trades -> data/tracker_feed.json
     (tools/pump_tracker.py; ≥3 top traders buying one coin in 30 min -> Premium push via smart_alerts.json + kyvo_push.py).
+  * every GTA_EVERY (~4 min, v8.31): 🎮 GTA 6 detector -> .kyvo_push/gta_alerts.json (tools/gta_push.py: 8 DexScreener
+    searches + 1 batch, GTA coins that run now) -> '🎮 GTA' pushes in kyvo_push.py (free, tag "gta", rate-limited there)
   * v8.25: right after every scan the scan's flags are merged into data/track_record.json (tools/track_record.py --merge-only;
     the loop is the only writer of NEW flags, kyvo-calls only updates performance) + data/flag_history.json (audit log);
     commits go through tools/git_sync.py, which JSON-merges the shared files on a push race instead of overwriting them
@@ -95,6 +97,7 @@ def main() -> int:
     ap.add_argument("--gold-every", type=float, default=300, help="v8.12 🥇 Gold feed refresh (s); 0 = off")
     ap.add_argument("--pf-every", type=float, default=360, help="v8.14 pump.fun callouts/traders refresh (s); 0 = off")
     ap.add_argument("--tk-every", type=float, default=240, help="v8.14 Tracker feed refresh (s); 0 = off")
+    ap.add_argument("--gta-every", type=float, default=240, help="v8.31 🎮 GTA 6 detector refresh (s); 0 = off")
     ap.add_argument("--commit-gap", type=float, default=180)
     ap.add_argument("--commit-max-h", type=int, default=7)
     ap.add_argument("--heartbeat", type=float, default=1800, help="commit refreshed metrics at least this often (s) even without new items")
@@ -112,12 +115,19 @@ def main() -> int:
     next_scan = next_tw = time.time(); pending = []; n_scan = n_tw = n_gold = 0
     next_gold = time.time() + 40                # v8.12: let the first Runner scan / tweet read start first (GeckoTerminal ~30 req/min)
     use_git = not (a.dry_run or a.no_git) and shutil.which("git")
-    push_cmd = [py, "tools/kyvo_push.py", "--flags", f"{a.state_dir}/flags.json", "--state", f"{a.state_dir}/sent.json", "--smart", f"{a.state_dir}/smart_alerts.json"] + (["--dry-run"] if a.dry_run else [])
+    push_cmd = [py, "tools/kyvo_push.py", "--flags", f"{a.state_dir}/flags.json", "--state", f"{a.state_dir}/sent.json", "--smart", f"{a.state_dir}/smart_alerts.json",
+                "--gta", f"{a.state_dir}/gta_alerts.json"] + (["--dry-run"] if a.dry_run else [])
     tw = None; gd = None; pf = None; n_pf = 0; tk = None; n_tk = 0
     next_tk = time.time() + 40
+    gt = None; n_gt = 0; next_gt = time.time() + 20      # v8.31 🎮 GTA detector (~5 s, DexScreener only)
     next_pf = time.time() + 75                  # v8.14: after the first scan + gold start
-    while time.time() < end - 20 or tw is not None or gd is not None or pf is not None or tk is not None:
+    while time.time() < end - 20 or tw is not None or gd is not None or pf is not None or tk is not None or gt is not None:
         did = False
+        if gt is not None and gt.done():
+            gt.result(); gt = None; did = True
+        if a.gta_every > 0 and gt is None and time.time() >= next_gt and time.time() < end - 60:
+            next_gt = time.time() + a.gta_every; n_gt += 1
+            gt = Bg([py, "tools/gta_push.py", "--out", f"{a.state_dir}/gta_alerts.json"])
         if tk is not None and tk.done():
             o = tk.result(); tk = None
             if o.get("tracker_commit") == "true" and not pending and time.time() - last_commit > 900: pending.append("tracker feed")
@@ -166,10 +176,11 @@ def main() -> int:
         wait = min(next_scan, next_tw, next_gold if a.gold_every > 0 else next_scan) - time.time()
         if a.pf_every > 0: wait = min(wait, next_pf - time.time())
         if a.tk_every > 0: wait = min(wait, next_tk - time.time())
-        if tw is not None or gd is not None or pf is not None or tk is not None: wait = min(wait, 3)
+        if a.gta_every > 0: wait = min(wait, next_gt - time.time())
+        if tw is not None or gd is not None or pf is not None or tk is not None or gt is not None: wait = min(wait, 3)
         if wait > 0: time.sleep(min(wait, max(1, end - time.time())))
-        if time.time() >= end - 20 and tw is None and gd is None and pf is None and tk is None: break
-    log(f"loop done: {n_scan} scans, {n_tw} tweet reads, {n_gold} gold runs, {n_pf} pump.fun reads, {n_tk} tracker reads, {len(commits)} commits in the last hour, pending={pending}")
+        if time.time() >= end - 20 and tw is None and gd is None and pf is None and tk is None and gt is None: break
+    log(f"loop done: {n_scan} scans, {n_tw} tweet reads, {n_gold} gold runs, {n_pf} pump.fun reads, {n_tk} tracker reads, {n_gt} gta reads, {len(commits)} commits in the last hour, pending={pending}")
     if use_git and pending and len(commits) < a.commit_max_h + 1:   # leave nothing important uncommitted for the next run
         if commit_feeds("feeds: " + ", ".join(dict.fromkeys(pending)) + " [kyvo-loop]"): commits.append(time.time()); last_commit = time.time()
     lt.write_text(json.dumps({"commits": commits, "last_commit": last_commit}))

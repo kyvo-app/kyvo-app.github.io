@@ -12,7 +12,7 @@
    full character names ("Jason Duval", "Lucia Caminos" …). A bare "Jason" / "Lucia" / "Trevor" or a "$GTA" ticker with an
    unrelated name ("Giga Titty Ass") does NOT count on its own.
    Kyvo Runner badges stay behind the normal Runner gate (RunnerGate.unlocked) — the tab itself is free, a locked Runner is
-   never revealed here. No push notifications from this tab (possible later as an opt-in "gta" tag). */
+   never revealed here. v8.31: server push '🎮 GTA' (tools/gta_push.py + kyvo_push.py, opt-out tag "gta" = the 🎮 GTA 6 switch in notify.js); this tab itself never notifies. */
 (function () {
   'use strict';
   const STRONG = [
