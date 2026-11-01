@@ -1,4 +1,5 @@
-/* KYVO_LIVE_v8_29 — v8.29: 📈 strona coina nie przeładowuje się co 45 s (wykres DexScreener nie kręci się w kółko, statystyki i Cena aktualizowane na miejscu, Cena zgodna z MC), mniej zapytań GeckoTerminal przy otwartym coinie, 🧠 smart money z serwera na żywo (stare >72 h ukryte), Viral → New Tweet gdy dane z X są stare.
+/* KYVO_LIVE_v8_30 — v8.30: 🎮 nowa zakładka GTA 6 (za darmo dla wszystkich): nowe GTA coiny, GTA coiny co rosną (runnery GTA), największe GTA coiny i tweety o GTA (Rockstar Games, GTA 6 Countdown, Rockstar INTEL + każdy śledzony tweet o GTA, 72 h). Strona coina jak wszędzie.
+   KYVO_LIVE_v8_29 — v8.29: 📈 strona coina nie przeładowuje się co 45 s (wykres DexScreener nie kręci się w kółko, statystyki i Cena aktualizowane na miejscu, Cena zgodna z MC), mniej zapytań GeckoTerminal przy otwartym coinie, 🧠 smart money z serwera na żywo (stare >72 h ukryte), Viral → New Tweet gdy dane z X są stare.
    KYVO_LIVE_v8_28 — v8.28: 🔔 krótkie powiadomienia (typ + $SYM + jedna liczba, bez dopisków), wyłączenie typu (🥇 Gold, nowy 👀 Smart money…) naprawdę zatrzymuje push („Zapisano” dopiero po zapisie w OneSignal).
    KYVO_LIVE_v8_27 — v8.26: 🔗 link do coina (push / udostępnienie) otwiera stronę coina od razu przy starcie apki — jeden coin pobierany bezpośrednio (DexScreener z ponowieniem, zapas GeckoTerminal), szkielet ładowania, „Nie znaleziono.” dopiero po nieudanych próbach + „Spróbuj ponownie” + 🏠 pierwszy start: ładowanie zamiast „Brak coinów dla tych filtrów”, dopóki nie przyjdą pierwsze dane.
    KYVO_LIVE_v8_25 — v8.25: 🏆 Wyniki — każdy Runner zapisany od razu po skanie (serwer co ~90 s, pierwsza cena i MC, historia oznaczeń do audytu) + 🏃 Runner: lepsza preselekcja (najgorętsze coiny najpierw, do 15 na sieć) + 🔁 Kolejna fala liczona też na serwerze (w apce znaczek „📱 tylko ten telefon” dla wykrytych lokalnie) + 🔔 tydzień promocji: wszyscy dostają pushe Premium/Runners do 7.11 23:59, nieudane pushe odrzucane po 3 próbach + 🔑 logowanie Google (Supabase, UE — włączy się po konfiguracji) + 👻 Phantom na telefonie: logowanie przez aplikację Phantom z powrotem do Kyvo (tylko podpis wiadomości) + kod Cloudflare Worker do szybkich pushy (wyłączony).
@@ -1616,7 +1617,7 @@
       ${imgTag(c)}
       <div class="nm"><b>${star}${badge} ${esc(c.name)} <span class="mut" style="font-weight:600">$${esc(c.symbol)}</span></b>
         <small>MC ${fmtUsd(c.mcap)} · ${fmtLiq(c) === 'krzywa' ? 'Liq: krzywa' : 'Liq ' + fmtLiq(c)}${extra ? ' · ' + extra : ''}</small>
-        ${rowTimeHtml(c, opts.listId)}${opts.upside && window.KyvoInsights ? (opts.good ? window.KyvoInsights.goodRowHtml(c) : window.KyvoInsights.upsideRowHtml(c)) : ''}</div>
+        ${rowTimeHtml(c, opts.listId)}${opts.extraHtml || ''}${opts.upside && window.KyvoInsights ? (opts.good ? window.KyvoInsights.goodRowHtml(c) : window.KyvoInsights.upsideRowHtml(c)) : ''}</div>
       <div class="rt">${sparkSvg(c)}<b class="${pctClass(ch)}">${fmtPct(ch)}</b>
         <small class="mut">Vol ${fmtUsd(c.volume.h24)}</small></div>
     </div>`;
@@ -2227,7 +2228,7 @@
     const now = Date.now();
     const seen = new Set();
     // v8.10: EVERY fresh tweet of the tracked accounts (≤ 12 h), newest first — with its coin when there is one
-    const all = ((xLive && xLive.tweets) || []).filter((t) => { const k = String(t.id); if (seen.has(k)) return false; seen.add(k); return now - new Date(t.created_at).getTime() <= 12 * 3.6e6; })
+    const all = ((xLive && xLive.tweets) || []).filter((t) => { const k = String(t.id); if (seen.has(k)) return false; seen.add(k); if (t.role === 'gta' && !/^rockstargames$/i.test(t.handle || '')) return false; /* v8.30: GTA news accounts -> 🎮 GTA 6 tab only */ return now - new Date(t.created_at).getTime() <= 12 * 3.6e6; })
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     const hasCoin = (t) => (t.coins || []).length > 0;
     const pumps = (t) => (t.coins || []).some((c) => c.pumping);
@@ -2279,7 +2280,7 @@
       const q = t.quote, m = (t.media || [])[0];
       return `<div class="card post vtweet${h < 2 ? ' fresh' : ''}${tr ? ' twrun' : ''}${isNew(t) ? ' newin' : ''}${hasCoin(t) ? '' : ' nocoin'}">${tr ? `<div class="twrunb" translate="no">🐦 Tweet runner · <b>$${esc(tr.sym)}</b> <b class="up">+${Math.round(tr.tweet.chg || 0)}%</b> ${L2('po tweecie', 'after the tweet')} · <a href="#runner">${L2('w Runnerach', 'in Runner')} →</a></div>` : ''}
         <div class="meta">${imgTag(t.avatar, 'av', 36)}
-          <div style="flex:1;min-width:0"><b style="font-size:13.5px">${esc(t.author_name || t.handle)} <span class="mut">@${esc(t.handle)}</span> ${t.role === 'celebrity' ? '<span class="badge demo">VIP</span>' : t.role === 'news' ? '<span class="badge demo">NEWS</span>' : t.role === 'project' ? '<span class="badge demo">' + L2('projekt', 'project') + '</span>' : roleBadge(t.role)}</b>
+          <div style="flex:1;min-width:0"><b style="font-size:13.5px">${esc(t.author_name || t.handle)} <span class="mut">@${esc(t.handle)}</span> ${t.role === 'celebrity' ? '<span class="badge demo">VIP</span>' : t.role === 'news' ? '<span class="badge demo">NEWS</span>' : t.role === 'project' ? '<span class="badge demo">' + L2('projekt', 'project') + '</span>' : t.role === 'gta' ? '<span class="badge demo">🎮 GTA</span>' : roleBadge(t.role)}</b>
           <div class="mut" style="font-size:11.5px">${t.author_followers != null ? `👥 ${fmtInt(t.author_followers)} ${L2('obserwujących', 'followers')} · ` : ''}🕒 ${esc(exactTime(t.created_at))} · <b class="${h < 2 ? 'up' : ''}">${esc(ageLabelH(h))} ${L2('temu', 'ago')}</b>${t.is_reply ? ` · <span class="badge twrb">↪ ${L2('Odpowiedź', 'Reply')}</span>` : ''}</div></div>
           <a href="${esc(t.url)}" target="_blank" rel="noopener noreferrer" class="vx" aria-label="${L2('Otwórz na X', 'Open on X')}">𝕏</a></div>
         ${t.is_reply ? replyBox(t) : ''}<div class="txt vq${String(t.text || '').length > 190 ? ' long' : ''}">${tweetText(t.is_reply ? String(t.text || '').replace(/^(@\w{1,15}\s+)+/, '') || t.text : t.text)}</div>
@@ -2592,6 +2593,7 @@
       <div class="h">Więcej</div>
       <div class="more-grid">
         ${mtile('#premium', 'gem', 'Kyvo Premium', 'Premium i Runners · cena startowa -50%', true)}
+        <a class="more-tile hl" href="#gta"><i class="mti" style="font-size:16px;font-style:normal">🎮</i><b>GTA 6</b><small>Nowe GTA coiny, te co rosną, runnery i tweety Rockstar — za darmo</small></a>
         ${mtile('#login', S ? 'users' : 'lock', S ? 'Konto' : 'Zaloguj się', S ? 'Jesteś zalogowany' : 'Portfel lub Google — albo bez logowania')}
         ${mtile('#help', 'book', 'Jak korzystać', 'Zakładki, filtry, PnL, FAQ')}
         ${mtile('#watch', 'star', 'Watchlista i alerty', 'Obserwowane coiny, alerty MC i % (gdy Kyvo jest otwarte)')}
@@ -2646,13 +2648,14 @@
     const map = {
       pulse: 's-list', hot: 's-list', good: 's-list', new: 's-list', stretch: 's-list',
       migrated: 's-list', boosted: 's-list', search: 's-list', runner: 's-list', track: 's-list', viral: 's-viral', tweets: 's-tweets', more: 's-more', coin: 's-coin',
-      rank: 's-rank', trader: 's-trader', tracker: 's-tracker', journal: 's-journal', profil: 's-profil', watch: 's-watch', gold: 's-gold',
+      rank: 's-rank', trader: 's-trader', tracker: 's-tracker', journal: 's-journal', profil: 's-profil', watch: 's-watch', gold: 's-gold', gta: 's-gta',
       help: 's-help', legal: 's-legal', login: 's-login', premium: 's-premium', kontakt: 's-kontakt',
     };
     if (which !== 'login') document.body.classList.remove('chrome-off');
     $('#' + (map[which] || 's-list')).classList.add('on');
     $$('#seg button').forEach((b) => b.classList.toggle('on', b.dataset.view === (which === 'coin' ? view : which === 'trader' || which === 'tracker' ? 'rank' : which === 'search' ? 'hot' : which)));
-    const tabMap = { gold: 'gold', runner: 'runner', track: 'hot', pulse: 'hot', hot: 'hot', good: 'hot', new: 'hot', stretch: 'hot', migrated: 'hot', boosted: 'hot', search: 'search', viral: 'viral', tweets: 'viral', watch: 'hot', more: 'profil', rank: 'rank', trader: 'rank', tracker: 'rank', journal: 'profil', profil: 'profil', help: 'profil', legal: 'profil', login: 'profil', premium: 'profil', kontakt: 'profil' };
+    if (which === 'gta') { const gb = document.querySelector('#seg button[data-view="gta"]'); try { if (gb) gb.scrollIntoView({ inline: 'center', block: 'nearest' }); } catch (e) {} }   // v8.30: the 🎮 GTA 6 button sits off-screen on a phone
+    const tabMap = { gold: 'gold', runner: 'runner', gta: 'hot', track: 'hot', pulse: 'hot', hot: 'hot', good: 'hot', new: 'hot', stretch: 'hot', migrated: 'hot', boosted: 'hot', search: 'search', viral: 'viral', tweets: 'viral', watch: 'hot', more: 'profil', rank: 'rank', trader: 'rank', tracker: 'rank', journal: 'profil', profil: 'profil', help: 'profil', legal: 'profil', login: 'profil', premium: 'profil', kontakt: 'profil' };
     $$('.tb button').forEach((b) => b.classList.toggle('on', b.dataset.tab === (tabMap[which] || 'hot')));
   }
 
@@ -2688,6 +2691,15 @@
       loadLive().catch(() => {}); loadKolLive().catch(() => {});
       if (window.KyvoGold) window.KyvoGold.show($('#goldBody'), arg);
       if (location.hash !== '#gold') { if (arg) history.replaceState(null, '', '#gold'); else location.hash = 'gold'; }
+      return;
+    }
+    if (v === 'gta') {   // v8.30 🎮 GTA 6 (gta.js) — free for everyone
+      show('gta');
+      renderFilterPanel('more');
+      document.body.classList.remove('pulse-on');
+      if (window.KyvoGta) window.KyvoGta.show();
+      else $('#gtaBody').innerHTML = '<div class="empty">GTA 6 niedostępne.</div>';
+      location.hash = 'gta';
       return;
     }
     if (v === 'profil') {
@@ -2854,7 +2866,7 @@
       runSearch(decodeURIComponent(b));
       return;
     }
-    if (['pulse', 'hot', 'good', 'new', 'stretch', 'migrated', 'boosted', 'viral', 'tweets', 'more', 'rank', 'tracker', 'profil', 'watch', 'runner', 'track'].includes(a)) {
+    if (['pulse', 'hot', 'good', 'new', 'stretch', 'migrated', 'boosted', 'viral', 'tweets', 'more', 'rank', 'tracker', 'profil', 'watch', 'runner', 'track', 'gta'].includes(a)) {
       setView(a);
       return;
     }
@@ -2996,6 +3008,19 @@
     try { if (view === 'runner') keepUi(() => renderRunner()); else if (view === 'track') renderTrack(); else if (view === 'tweets') keepUi(() => renderTweets()); } catch (e) {}
   });
   if (window.KyvoInsights) window.KyvoInsights.init({ vl, esc, fmtUsd, fmtPct, pctClass, toast, keyOf, getUniverse: allUniverse, consensus: consensusOf, tabsFor, tweetsFor, topicFor, imgTag, getViral: () => viral, boostRank, onShape: () => { clearTimeout(shapeT); shapeT = setTimeout(() => { if (view === 'runner') renderRunner(); }, 1500); } });
+  /* v8.30 🎮 GTA 6 tab (gta.js): DexScreener search for GTA queries (only while the tab is open) + coins already loaded */
+  async function gtaFetchCoins(queries, addrs) {
+    const map = {};
+    for (const q of queries || []) { try { const d = await fetchJson(DS + '/latest/dex/search?q=' + encodeURIComponent(q)); ingestPairs(d.pairs || [], null, map); } catch (e) {} }
+    if (addrs && addrs.length) await fetchTokenBatch(addrs, null, map);
+    return map;
+  }
+  if (window.KyvoGta) window.KyvoGta.init({
+    isEn: () => !!(window.KyvoI18n && window.KyvoI18n.isEn()), esc, fmtInt, imgTag, tweetText, exactTime, ageLabelH, vCoinHtml, coinRow, wireRows, keyOf,
+    fetchCoins: gtaFetchCoins, universe: allUniverse, chain: () => activeChain, getLive: () => xLive, loadLive: () => loadLive(), getViral: () => viral,
+    runners: () => { try { return runnerItems().coins; } catch (e) { return []; } }, unlocked: (k) => { try { return RunnerGate.unlocked(k); } catch (e) { return false; } },
+    remember: (c) => { const k = keyOf(c); if (!byKey[k]) byKey[k] = c; }, isView: () => view === 'gta', keep: (fn) => keepUi(fn),
+  });
   if (window.KyvoProfile) window.KyvoProfile.init({ esc, fmtUsd, agoLabel, shortCa, toast });
   if (window.KyvoCoinPage) window.KyvoCoinPage.init({ esc, fmtUsd, fmtPct, toast, keyOf, shortCa, ageFrom, imgTag, chainBadge, tweetsFor, consensus: consensusOf, smartBuys: (c) => ((c.chainId === 'solana' || !c.chainId) ? smartBuysForMint(c.address) : []), getLeaderboard: () => leaderboard, getSmartMoney: () => smartMoney, onPf: (c) => coinRemount && coinRemount(c) });
   if (window.KyvoJournal) window.KyvoJournal.init({ fmtUsd, toast, openPremium, getLeaderboard: () => leaderboard });   // 📓 Journal

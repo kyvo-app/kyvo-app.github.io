@@ -291,8 +291,27 @@
    "role": "kol",
    "note": "v8.24: Pentoshi, trader (~944k); verified via x get_users_by_usernames 2026-10-31",
    "vip_rule": "crypto"
+  },
+  {
+   "handle": "RockstarGames",
+   "id": "29758446",
+   "role": "gta",
+   "note": "v8.30 🎮 GTA 6 tab: Rockstar Games, official (~23.7M, verified); verified on api.fxtwitter.com/2/profile 2026-11-01. role gta = no named-coin extraction, no push, kept 72 h"
+  },
+  {
+   "handle": "GTAVI_Countdown",
+   "id": "1490392275062566916",
+   "role": "gta",
+   "note": "v8.30 🎮 GTA 6 tab: GTA 6 news / countdown fan account, NOT affiliated with Rockstar (~524k, verified); verified on api.fxtwitter.com/2/profile 2026-11-01"
+  },
+  {
+   "handle": "RockstarIntel",
+   "id": "862758478724702209",
+   "role": "gta",
+   "note": "v8.30 🎮 GTA 6 tab: Rockstar INTEL, Rockstar/GTA news site (~17k); verified on api.fxtwitter.com/2/profile 2026-11-01"
   }
  ],
+ "live_gta_note": "v8.30: role \"gta\" accounts feed only the 🎮 GTA 6 tab (New Tweet shows only @RockstarGames from them). x_live.py keeps their tweets (and any tracked tweet that mentions GTA) 72 h instead of 12 h and does not extract named coins from them, so they never trigger 🐦 / VIP pushes or feed 👑 KOL / 🥇 Gold.",
  "live_more_note": "v8.10 New Tweet only (tools/x_live.py; NOT used for 👑 KOL coin): big accounts whose tweets often spawn memecoins (Elon circle, politics, exchanges, news). Each verified to answer on api.fxtwitter.com/2/profile/<handle>/statuses on 2026-10-22.",
  "note_replies": "v8.23: replies=true -> x_live.py reads the timeline WITH replies (FxTwitter ?with_replies=1) and keeps every reply, not only ones naming a coin; vip=true -> server push for every new post / reply (tools/kyvo_push.py VIP block). v8.24: push is no longer for every post — see vip_push (important-tweet filter).",
  "vip_push": {

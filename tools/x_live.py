@@ -38,6 +38,8 @@ GT = "https://api.geckoterminal.com/api/v2"
 GT_NET = {"solana": "solana", "bsc": "bsc", "robinhood": "robinhood"}
 KEEP_H = 12          # v8.10: the tab shows the last 12 h (was 24 h + coin-only)
 MAX_ITEMS = 160
+GTA_KEEP_H = 72      # v8.30 🎮 GTA 6 tab: role "gta" accounts + any tracked tweet that mentions GTA stay 72 h (the tab shows 72 h)
+GTA_RE = re.compile(r"(?<![a-z0-9])(gta ?(6|vi|v|online)?|grand theft auto|vice city|leonida|rockstar ?games|jason duval|lucia caminos)(?![a-z0-9])", re.I)
 REL_FROM, REL_TO = -120, 3600      # a 'powiązany coin' must launch between 2 min before and 60 min after the tweet
 REL_SEARCH_H = 1.5                 # keep looking for a related coin while the tweet is this young
 REL_CHAINS = ("solana", "bsc")
@@ -99,6 +101,13 @@ nation national official officially announce announced announcing today tonight 
 ceo cto founder report reports reportedly according http https www com amp rt via gm gn ser fren frens lfg wagmi ngmi imo tbh ok okay oh yeah yep nope please must vote""".split())
 WORD = re.compile(r"#?[A-Za-z][A-Za-z0-9']{2,24}")
 URL = re.compile(r"https?://\S+|@\w+|\$[A-Za-z]\w*")
+
+def is_gta(role, *texts) -> bool:
+    """v8.30: a tweet for the 🎮 GTA 6 tab (kept 72 h instead of KEEP_H)."""
+    return role == "gta" or any(GTA_RE.search(x or "") for x in texts)
+
+def keep_h(p: dict) -> int:
+    return GTA_KEEP_H if is_gta(p.get("role"), p.get("text"), (p.get("quote") or {}).get("text")) else KEEP_H
 
 def norm(s: str) -> str: return re.sub(r"[^a-z0-9]", "", (s or "").lower())
 
@@ -303,7 +312,8 @@ def main() -> int:
             au = t.get("author") or {}
             if (au.get("screen_name") or "").lower() != acc["handle"].lower(): continue
             ts = int(t.get("created_timestamp") or 0)
-            if not ts or now - ts > KEEP_H * 3600: continue
+            if not ts or now - ts > GTA_KEEP_H * 3600: continue
+            if now - ts > KEEP_H * 3600 and not is_gta(acc.get("role"), t.get("text"), (t.get("quote") or {}).get("text")): continue   # v8.30: GTA tweets 72 h
             tid = str(t["id"])
             metrics = {"likes": t.get("likes"), "reposts": t.get("reposts"), "replies": t.get("replies"), "quotes": t.get("quotes"), "bookmarks": t.get("bookmarks"), "views": t.get("views")}
             if tid in prev:
@@ -312,7 +322,7 @@ def main() -> int:
                 p["metrics_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds"); items[tid] = p; continue
             full = tweet_text(t)
             coins = []
-            for kind, val in extract_mentions(full)[:4]:
+            for kind, val in ([] if acc.get("role") == "gta" else extract_mentions(full)[:4]):   # v8.30: GTA news accounts never name a coin (no 🐦 / VIP push, no KOL / Gold)
                 c = resolve_address(val) if kind == "addr" else resolve_ticker(val)
                 if c and c.get("chain") in KYVO_CHAINS and not any(x["address"] == c["address"] for x in coins):
                     c["rel"] = "named"; c["mention"] = val if kind == "addr" else "$" + val; coins.append(c)
@@ -335,7 +345,7 @@ def main() -> int:
             }
     # keep still-fresh items from the last file (an account read failed this run, or a tweet slid out of its newest-20)
     for tid, p in prev.items():
-        if tid not in items and now - (p.get("ts") or 0) <= KEEP_H * 3600: items[tid] = p
+        if tid not in items and now - (p.get("ts") or 0) <= keep_h(p) * 3600: items[tid] = p   # v8.30: GTA tweets 72 h
     tweets = sorted(items.values(), key=lambda x: -x["ts"])[:MAX_ITEMS]
     # 'powiązany coin': tweets ≤ 90 min old without a named coin, newest first, ≤ 60 DexScreener searches per run (DS allows ~300/min)
     budget = [int(os.environ.get("KYVO_LIVE_DS_BUDGET", "60"))]; n_rel = 0
