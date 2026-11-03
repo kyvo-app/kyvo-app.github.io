@@ -1,4 +1,5 @@
-/* KYVO_LIVE_v8_36 — v8.36 (pomysły od Orangie): 🛡️ Pilnuj moich coinów (watchlista: ruch ±20 %, 🐋 wieloryb / 🧑‍💻 dev sprzedał, 📰 nowy artykuł,
+/* KYVO_LIVE_v8_37 — v8.37: FIX Runner 2.0 freeze (endless render loop while data/runner2.json was loading) + timeout / try-catch fallback.
+   KYVO_LIVE_v8_36 — v8.36 (pomysły od Orangie): 🛡️ Pilnuj moich coinów (watchlista: ruch ±20 %, 🐋 wieloryb / 🧑‍💻 dev sprzedał, 📰 nowy artykuł,
    🧛 kopia > $500K MC — w przeglądarce, gdy Kyvo jest otwarte), ⚠️ bundle (tools/coin_checks.py: kto zasilił top 20 holderów, publiczne RPC Solany)
    i ⚠️ fejkowy wolumen (śr. trade < $30 przy ≥ 300 tx) na listach i w Kyvo Check, 👀 Moi traderzy (do 60 portfeli z Rankingu + alert przy zakupie),
    📝 podsumowanie po polsku na stronie coina; zakładki Hot / Good / New / Boosted usunięte z UI (stare linki -> Pulse, dane i pushe bez zmian).
@@ -1336,7 +1337,7 @@
      card carries a high-risk line. No thresholds are shown. */
   let kolLive = null, kolLiveAt = 0, kolBusy = false;
   async function loadKolLive() {
-    if (kolBusy) return kolLive;
+    if (kolBusy) return kolLive;   // (callers re-render only when !kolBusy — no loop)
     kolBusy = true;
     try { kolLive = await fetchJson('data/kol_live.json?t=' + Math.floor(Date.now() / 60000)); } catch (e) { kolLive = kolLive || { items: [] }; }
     kolLiveAt = Date.now(); kolBusy = false;
@@ -1492,23 +1493,49 @@
      coins that passed the v8.34 filters (age ≥ 1 h — young ones re-checked 30–60 min later and kept only at ≥ 0.9× the flag price;
      ≤ +100% in 1 h; vol 1 h ≤ 1.5× MC). % since it entered Runner 2.0 through the shared entry rule (pctE / pairs.js entryCheck).
      Gate = the Runner tab's: 🏃 Runners plan (incl. promo / free hour) sees all; others see the Runners they have open + anything > 24 h. */
-  let r2Doc = null, r2At = 0, r2Busy = false;
-  async function loadRunner2() {
-    if (r2Busy || (r2Doc && Date.now() - r2At < 60e3)) return r2Doc;
-    r2Busy = true;
-    try { const r = await fetch('data/runner2.json?t=' + Math.floor(Date.now() / 60000), { cache: 'no-store' }); r2Doc = r.ok ? await r.json() : r2Doc || { coins: [] }; } catch (e) { r2Doc = r2Doc || { coins: [] }; }
-    r2At = Date.now(); r2Busy = false;
-    return r2Doc;
+  /* v8.37 FIX: while a fetch was in flight loadRunner2() returned the still-null r2Doc at once, renderRunner2() saw !r2Doc and
+     called it again -> an endless microtask loop (render -> resolved promise -> render …) that never yielded, so the fetch never
+     finished and the whole app froze on "Ładuję Runner 2.0…" (iPhone: tab tap = setView render + hashchange render while loading).
+     Now: one shared in-flight promise, a 12 s timeout, a doc is ALWAYS set afterwards, and one pending re-render at most. */
+  let r2Doc = null, r2At = 0, r2P = null, r2Wait = false;
+  function loadRunner2() {
+    if (r2P) return r2P;
+    if (r2Doc && Date.now() - r2At < 60e3) return Promise.resolve(r2Doc);
+    r2P = (async () => {
+      const ac = typeof AbortController === 'function' ? new AbortController() : null;
+      const to = setTimeout(() => { try { ac && ac.abort(); } catch (e) {} }, 12e3);
+      try {
+        const r = await fetch('data/runner2.json?t=' + Math.floor(Date.now() / 60000), { cache: 'no-store', signal: ac ? ac.signal : undefined });
+        const d = r.ok ? await r.json() : null;
+        r2Doc = d && Array.isArray(d.coins) ? d : r2Doc || { coins: [], err: true };
+      } catch (e) { r2Doc = r2Doc || { coins: [], err: true }; }
+      finally { clearTimeout(to); r2At = Date.now(); r2P = null; }
+      return r2Doc;
+    })();
+    return r2P;
   }
   function renderRunner2() {
+    try { renderRunner2Inner(); }
+    catch (e) {   // v8.37: never leave the tab stuck on a spinner
+      try { console.warn('Runner 2.0 render', e); } catch (x) {}
+      const box = $('#listBody'); const en = window.KyvoI18n && window.KyvoI18n.isEn();
+      if (box) box.innerHTML = `<div class="h">🚀 Runner 2.0</div><div class="empty" translate="no">${en ? 'Runner 2.0 could not load right now.' : 'Nie udało się teraz wczytać Runner 2.0.'} <a href="#runner2" data-r2retry>${en ? 'Try again' : 'Spróbuj ponownie'}</a> · <a href="#runner">🏃 Runner →</a></div>`;
+      const rb = box && box.querySelector('[data-r2retry]'); if (rb) rb.onclick = (ev) => { ev.preventDefault(); r2At = 0; renderRunner2(); };
+    }
+  }
+  function r2Later() {   // at most one pending re-render, always after a real (macro) task
+    if (r2Wait) return; r2Wait = true;
+    loadRunner2().catch(() => {}).then(() => setTimeout(() => { r2Wait = false; if (view === 'runner2') renderRunner2(); }, 0));
+  }
+  function renderRunner2Inner() {
     document.body.classList.remove('pulse-on');
     $('#pulseDesk').innerHTML = '';
     const en = window.KyvoI18n && window.KyvoI18n.isEn();
     const L2 = (pl, e) => (en ? e : pl);
     const box = $('#listBody');
-    if (!r2Doc) { box.innerHTML = `<div class="loading"><div class="spin"></div>${L2('Ładuję Runner 2.0…', 'Loading Runner 2.0…')}</div>`; loadRunner2().then(() => { if (view === 'runner2') renderRunner2(); }); return; }
-    if (Date.now() - r2At > 60e3) loadRunner2().then(() => { if (view === 'runner2') renderRunner2(); });
-    const all = ((r2Doc && r2Doc.coins) || []).filter((e) => e && e.k && Date.now() - e.at < 72 * 3.6e6 && (activeChain === 'all' || !activeChain || e.chain === activeChain)).sort((a, b) => b.at - a.at);
+    if (!r2Doc) { if (!box.querySelector('.r2-load')) box.innerHTML = `<div class="loading r2-load"><div class="spin"></div>${L2('Ładuję Runner 2.0…', 'Loading Runner 2.0…')}</div>`; r2Later(); return; }
+    if (Date.now() - r2At > 60e3) r2Later();
+    const all = (Array.isArray(r2Doc.coins) ? r2Doc.coins : []).filter((e) => e && e.k && isFinite(e.at) && Date.now() - e.at < 72 * 3.6e6 && (activeChain === 'all' || !activeChain || e.chain === activeChain)).sort((a, b) => b.at - a.at);
     const prem = isRunnersUser(), paid = isPremiumUser();
     let openK = null; if (!prem) { try { openK = (RunnerGate.openKeys() || []).map((k) => String(k).replace(/^leg2:/, '')); } catch (e) { openK = []; } }
     const isOpen = (e) => prem || Date.now() - e.at > 24 * 3.6e6 || (openK || []).includes(e.k);
@@ -1536,7 +1563,7 @@
         <div class="r2-s">🎯 ${L2('Wyjście: sprzedaj ½ na x2, resztę trailing −30% (stop −40% przed x2). W teście 72 h tylko to wyjście dawało zysk po opłatach.', 'Exit: sell ½ at 2x, trail the rest −30% (stop −40% before 2x). In the 72 h test it was the only exit in profit after fees.')}</div>
         ${res.length ? `<div class="r2-s mut">${L2('72 h', '72 h')}: ${res.length} ${L2('coinów', 'coins')} · ${L2('mediana teraz', 'median now')} ${done.length ? fmtPct(med(done.map((r) => r.nowP))) : '—'} · ${L2('doszło do x2', 'reached 2x')}: ${hit2x}</div>` : ''}</div>
       ${prem ? '' : `<div class="rplan" translate="no"><div class="rplan-t"><b>${paid ? L2('Premium: Twoje odblokowane Runnery', 'Premium: your unlocked Runners') : L2('Plan darmowy', 'Free plan')}</b><small>${L2('Runner 2.0 odblokowuje się tak samo jak Runner: coiny odblokowane w 🏃 Runner i wszystkie starsze niż 24 h. Wszystkie od razu — plan 🏃 Runners.', 'Runner 2.0 unlocks like Runner: coins unlocked in 🏃 Runner and everything older than 24 h. All of them right away — 🏃 Runners plan.')}</small></div><button type="button" class="rplan-cta" data-unlock>🏃 ${L2('Zobacz plany', 'See plans')}</button></div>`}
-      ${res.length ? `<div class="card td-card" style="padding:4px 10px">${res.map(row).join('')}</div>` : `<div class="empty" translate="no">${L2('Jeszcze żaden coin nie przeszedł filtrów Runner 2.0. Lista odświeża się po każdym skanie (~90 s).', 'No coin has passed the Runner 2.0 filters yet. The list refreshes after every scan (~90 s).')} <a href="#runner">🏃 Runner →</a></div>`}
+      ${res.length ? `<div class="card td-card" style="padding:4px 10px">${res.map(row).join('')}</div>` : r2Doc.err ? `<div class="empty" translate="no">${L2('Nie udało się teraz wczytać Runner 2.0 (słaba sieć?). Spróbuję ponownie za chwilę.', 'Could not load Runner 2.0 right now (weak network?). Retrying shortly.')} <a href="#runner">🏃 Runner →</a></div>` : `<div class="empty" translate="no">${L2('Jeszcze żaden coin nie przeszedł filtrów Runner 2.0. Lista odświeża się po każdym skanie (~90 s).', 'No coin has passed the Runner 2.0 filters yet. The list refreshes after every scan (~90 s).')} <a href="#runner">🏃 Runner →</a></div>`}
       <div class="foot" translate="no">${L2('Runner 2.0 to spekulacja, nie porada finansowa — memecoiny mogą spaść do zera. % liczone od ceny w chwili wejścia do Runner 2.0.', 'Runner 2.0 is speculation, not financial advice — memecoins can go to zero. % is measured from the price when the coin entered Runner 2.0.')}</div>`;
     wireRows(box);
     $$('#listBody [data-unlock]').forEach((el) => { el.onclick = (ev) => { ev.stopPropagation(); openPremium(); }; el.onkeydown = (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openPremium(); } }; });
