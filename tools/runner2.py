@@ -7,6 +7,8 @@ A coin enters Runner 2.0 only if it passes ALL v8.34 filters (72 h backtest, kyv
                             re-checked 30–60 min after its first flag with live DexScreener data, kept only if price >= 0.9× flag price
   * not +100 % in the last 1 h (late — the move already happened)
   * 1 h volume <= 1.5× MC  (churn / bots)
+  * v8.35 👥 holders (data/holders.json, tools/holders.py — RugCheck, pools/LP/curve excluded): a coin flagged ⚠️ (holders < 300,
+    top 10 > 30 %, top 1 > 10 %, dev rugged before, rugged) is NOT added; a Solana coin without holder data yet waits ≤ 15 min
 The plain 🏃 Runner list, its pushes and ⚡ Early pushes are NOT changed by this (v8.33 behaviour).
 Entry = price / MC at the moment the coin passed (validated like pairs.js entryCheck: MC < $1K or price vs MC off > 5× -> not added).
 Output data/runner2.json (the app's 🚀 Runner 2.0 tab, ~72 h) — tools/kyvo_push.py pushes new entries (type 'runner2', tag runner2).
@@ -28,6 +30,7 @@ F = {
 KEEP_S = 72 * 3600
 MAX_COINS = 120
 KINDS = ("runner", "leg2", "early")
+HOLD_WAIT_S = int(os.environ.get("KYVO_R2_HOLD_WAIT_S", "900"))   # v8.35: max wait for the holder check before a Solana coin is let in
 EXIT_HINT = {"pl": "Sprzedaj ½ na x2, resztę trailing −30%", "en": "Sell ½ at 2x, trail the rest −30%"}
 
 def nf(v):
@@ -83,6 +86,7 @@ def main() -> int:
     ap.add_argument("--flags", type=Path, required=True)
     ap.add_argument("--out", type=Path, default=Path("data/runner2.json"))
     ap.add_argument("--state", type=Path, default=Path(".kyvo_push/runner2_state.json"))
+    ap.add_argument("--holders", type=Path, default=Path("data/holders.json"), help="v8.35 holder check (tools/holders.py)")
     ap.add_argument("--no-net", action="store_true", help="no DexScreener (tests): no re-check, no live price update")
     ap.add_argument("--dry-run", action="store_true", help="print only, write nothing")
     a = ap.parse_args()
@@ -91,13 +95,29 @@ def main() -> int:
     doc = load(a.out, {}); coins = {c["k"].lower(): c for c in doc.get("coins") or [] if c.get("k") and now - (c.get("at") or 0) / 1000 < KEEP_S}
     flags = [f for f in load(a.flags, []) if f.get("kind") in KINDS and f.get("k")]
     added, queued, skipped = [], 0, {}
+    H = (load(a.holders, {}) or {}).get("coins") or {}; hp: dict = {k: t for k, t in (st.get("hold_wait") or {}).items() if now - t < 3 * 3600}
+    def hold_ok(k) -> bool:
+        """v8.35: flagged ⚠️ -> never; Solana without holder data yet -> wait (≤ HOLD_WAIT_S since first seen), then let it in."""
+        h = H.get(k)
+        if h is not None:
+            if h.get("w"): skipped["holders"] = skipped.get("holders", 0) + 1; return False
+            return True
+        if not k.startswith("solana:"): return True
+        t0 = hp.setdefault(k, now)
+        if now - t0 < HOLD_WAIT_S: skipped["holders_wait"] = skipped.get("holders_wait", 0) + 1; return False
+        return True
     def add(k, f, px, mc, h1, age_h, vol1h, how):
         if not entry_ok(px, mc): skipped["entry"] = skipped.get("entry", 0) + 1; return
+        if not hold_ok(k):
+            if k in hp and k not in q:   # v8.35: waiting for holder data -> queue it (due on the next scan, re-checked live like a young coin)
+                q[k] = {"t": int(now - F["recheckMinS"]), "px0": px, "mc0": mc, "f": {x: f.get(x) for x in ("k", "sym", "name", "chain", "addr", "pair", "img", "at", "px0")}, "src": f.get("src") or src_of(f), "hw": 1}
+            return
         coins[k] = {"k": f["k"], "sym": f.get("sym"), "name": f.get("name"), "chain": f.get("chain"), "addr": f.get("addr"), "pair": f.get("pair") or "",
                     "img": f.get("img"), "src": f.get("src") or src_of(f), "at": nowms, "px0": px, "mc0": mc, "flagAt": f.get("at"), "flagPx": f.get("px0"),
                     "how": how, "why": why_txt(age_h, h1, vol1h, mc), "h1": h1, "ageH": round(age_h, 2) if age_h is not None else None,
-                    "last": px, "lastAt": nowms, "mcNow": mc, "max": px, "maxAt": nowms}
-        q.pop(k, None); added.append(coins[k])
+                    "last": px, "lastAt": nowms, "mcNow": mc, "max": px, "maxAt": nowms,
+                    "hold": {x: H[k].get(x) for x in ("h", "t10", "t1")} if k in H else None}
+        q.pop(k, None); hp.pop(k, None); added.append(coins[k])
     # 1) this scan's flags
     for f in sorted(flags, key=lambda f: 0 if f.get("kind") != "early" else 1):
         k = f["k"].lower()
@@ -129,6 +149,8 @@ def main() -> int:
         why = check(m["mc"], m["h1"], m["age_h"], m["vol1h"])
         if why is None and v.get("px0") and m.get("px") and m["px"] < F["recheckMinPx"] * v["px0"]: why = "dumped"
         if why == "young" and now - v["t"] < F["recheckMaxS"]: continue
+        if why is None and k in H and H[k].get("w"): why = "holders"
+        if why is None and not hold_ok(k): continue          # v8.35 waits for holder data (stays queued)
         if why: q.pop(k, None); skipped["recheck_" + why] = skipped.get("recheck_" + why, 0) + 1; continue
         add(k, dict(v["f"], src=v.get("src")), m["px"], m["mc"], m["h1"], m["age_h"], m["vol1h"], f"recheck {round((now - v['t']) / 60)} min")
     # 3) live price for the list ('% since it entered Runner 2.0' in the app)
@@ -137,15 +159,17 @@ def main() -> int:
         if not m or not (m.get("px") and m["px"] > 0): continue
         c["last"], c["lastAt"], c["mcNow"] = m["px"], nowms, m.get("mc") or c.get("mcNow")
         if m["px"] > (c.get("max") or 0): c["max"], c["maxAt"] = m["px"], nowms
+    for k, c in coins.items():                             # v8.35: holder facts that arrive / change after entry -> shown in the app
+        if k in H: c["hold"] = {x: H[k].get(x) for x in ("h", "t10", "t1", "w")}
     lst = sorted(coins.values(), key=lambda c: -c["at"])[:MAX_COINS]
-    out = {"v": 834, "updated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now)), "filter": F, "exit": EXIT_HINT,
-           "note": "🚀 Runner 2.0: Runner / Early coins that passed the v8.34 filters (age ≥ 1 h, ≤ +100% 1 h, vol 1h ≤ 1.5× MC); px0 / mc0 = when it entered. tools/runner2.py",
+    out = {"v": 835, "updated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now)), "filter": F, "exit": EXIT_HINT,
+           "note": "🚀 Runner 2.0: Runner / Early coins that passed the v8.34 filters (age ≥ 1 h, ≤ +100% 1 h, vol 1h ≤ 1.5× MC, v8.35: no ⚠️ few-holders / concentration flag); px0 / mc0 = when it entered. tools/runner2.py",
            "coins": lst}
     for c in added: print(f"🚀 Runner 2.0 + ${c['sym']} MC {round(c['mc0'] or 0)} ({c['src']}, {c['how']}; {c['why']})")
     print(f"runner2: {len(flags)} candidates, +{len(added)} added, {queued} queued young, queue {len(q)}, skipped {skipped}, list {len(lst)}")
     if a.dry_run: return 0
     a.out.parent.mkdir(parents=True, exist_ok=True); a.out.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")))
-    a.state.parent.mkdir(parents=True, exist_ok=True); st["queue"] = q; a.state.write_text(json.dumps(st))
+    a.state.parent.mkdir(parents=True, exist_ok=True); st["queue"] = q; st["hold_wait"] = hp; a.state.write_text(json.dumps(st))
     go = os.environ.get("GITHUB_OUTPUT")
     if go and added:
         with open(go, "a") as fh: fh.write("runner2_new=true\n")

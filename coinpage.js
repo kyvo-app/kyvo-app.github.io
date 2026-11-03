@@ -178,6 +178,33 @@
     for (const n of cons.buyers || []) if (!(cons.sellers || []).includes(n) && ![...names.values()].some((x) => x.name === n)) names.set('sm:' + n, { name: n, src: 'kyvo' });
     return [...names.values()];
   }
+  /* v8.35 👥 holder facts from the live RugCheck report (pools / LP / curve / lockers / burn excluded — same rule as tools/holders.py),
+     falling back to the server check (data/holders.json via window.KyvoHold). Flag: holders < 300 · top 10 > 30% · top 1 > 10%. */
+  function rcHold(r) {
+    if (!r || r.failed || !(r.topHolders || r.totalHolders != null)) return null;
+    const pools = new Set(['FhVo3mqL8PW5pH5U2CN4XE33DokiyZnUwuGpH2hmHLuM', '1nc1nerator11111111111111111111111111111111']), known = r.knownAccounts || {};
+    for (const m of r.markets || []) {
+      if (m.pubkey) pools.add(m.pubkey);
+      if (m.lp && m.lp.owner) pools.add(m.lp.owner);
+      for (const f of ['liquidityA', 'liquidityB']) if (typeof m[f] === 'string') pools.add(m[f]);
+      for (const f of ['liquidityAAccount', 'liquidityBAccount']) if (m[f] && m[f].owner) pools.add(m[f].owner);
+    }
+    const isPool = (h) => [h.owner, h.address].some((a) => pools.has(a) || /AMM|LOCKER|CURVE|pump/i.test(String((known[a] || {}).type || '') + String((known[a] || {}).name || '')));
+    const hs = (r.topHolders || []).filter((h) => !isPool(h));
+    const h = { h: r.totalHolders != null ? r.totalHolders : null, t10: r.topHolders ? Math.round(hs.slice(0, 10).reduce((a, x) => a + (+x.pct || 0), 0) * 10) / 10 : null, t1: hs[0] ? Math.round((+hs[0].pct || 0) * 10) / 10 : null };
+    const risks = (r.risks || []).map((x) => x.name);
+    h.w = [h.h != null && h.h < 300 ? 'few' : '', h.t10 != null && h.t10 > 30 ? 'top10' : '', h.t1 != null && h.t1 > 10 ? 'top1' : '', risks.includes('Creator history of rugged tokens') ? 'devrug' : '', r.rugged ? 'rugged' : ''].filter(Boolean);
+    return h;
+  }
+  function holdWarnHtml(c) {
+    const h = rcHold(curRc) || (window.KyvoHold && window.KyvoHold.get(keyOfC(c)));
+    if (!h || (h.t10 == null && h.h == null)) return '';
+    const facts = [h.t10 != null ? L(`top 10 ma <b>${E(h.t10)}%</b>`, `top 10 hold <b>${E(h.t10)}%</b>`) : '', h.t1 != null ? L(`największy portfel <b>${E(h.t1)}%</b>`, `biggest wallet <b>${E(h.t1)}%</b>`) : ''].filter(Boolean).join(' · ');
+    const t = window.KyvoHold && window.KyvoHold.text(h, !!(window.KyvoI18n && window.KyvoI18n.isEn()));
+    return t ? `<div class="cp-holdwarn" translate="no">⚠️ <b>${E(t)}</b> — ${facts} ${L('(bez puli / LP). Kilka portfeli może zrzucić cenę — mniejsza pozycja, szybkie wyjście.', '(pools / LP excluded). A few wallets can dump the price — smaller size, quick exit.')}</div>`
+      : `<div class="cp-holdok mut" translate="no">👥 ${facts} ${L('(bez puli / LP)', '(pools / LP excluded)')}</div>`;
+  }
+  function keyOfC(c) { return (c.chainId || 'solana') + ':' + (c.address || ''); }
   function holdLine(c, root) {
     const el = root.querySelector('#cpHoldLine'), hd = root.querySelector('#cpHolders');
     if (!el) return;
@@ -186,7 +213,7 @@
     const kh = kolHolders(c);
     const who = kh.slice(0, 4).map((k) => av(k.img, k.name, 'xs')).join('');
     const hs = n ? `<b>${kfmt(n)}</b> holders` : L('holderzy: —', 'holders: —');
-    el.innerHTML = `${hs}, ${kh.length ? `<span class="cp-kav">${who}</span><b>${kh.length}</b> ${kh.length === 1 ? L('śledzony KOL trzyma', 'tracked KOL holds') : L('KOL-i trzyma', 'KOLs hold')} <span class="mut">(${E(kh.slice(0, 3).map((k) => k.name).join(', '))}${kh.length > 3 ? '…' : ''})</span>` : `<span class="mut">${L('żaden śledzony KOL nie trzyma', 'no tracked KOL holds it')}</span>`}`;
+    el.innerHTML = holdWarnHtml(c) + `${hs}, ${kh.length ? `<span class="cp-kav">${who}</span><b>${kh.length}</b> ${kh.length === 1 ? L('śledzony KOL trzyma', 'tracked KOL holds') : L('KOL-i trzyma', 'KOLs hold')} <span class="mut">(${E(kh.slice(0, 3).map((k) => k.name).join(', '))}${kh.length > 3 ? '…' : ''})</span>` : `<span class="mut">${L('żaden śledzony KOL nie trzyma', 'no tracked KOL holds it')}</span>`}`;
   }
 
   /* ---------- tabs ---------- */

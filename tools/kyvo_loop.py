@@ -13,6 +13,8 @@ GitHub fires "*/5" schedules only every ~30–40 min in practice, so one workflo
     (tools/pump_tracker.py; ≥3 top traders buying one coin in 30 min -> Premium push via smart_alerts.json + kyvo_push.py).
   * every GTA_EVERY (~4 min, v8.31): 🎮 GTA 6 detector -> .kyvo_push/gta_alerts.json (tools/gta_push.py: 8 DexScreener
     searches + 1 batch, GTA coins that run now) -> '🎮 GTA' pushes in kyvo_push.py (free, tag "gta", rate-limited there)
+  * v8.35: right after every scan tools/holders.py refreshes data/holders.json (👥 RugCheck holders / top-10 % without pools, ≤ 12
+    calls per run, cached) -> runner2.py drops ⚠️ flagged coins, kyvo_push.py tags Runner / Early pushes, the app shows ⚠️ 'mało holderów'
   * v8.34: right after every scan tools/runner2.py builds data/runner2.json (🚀 Runner 2.0 = Runner / Early coins that pass the
     v8.34 filters; young coins re-checked 30–60 min later) -> '🚀 Runner 2.0' pushes in kyvo_push.py (type runner2, tag runner2)
   * v8.25: right after every scan the scan's flags are merged into data/track_record.json (tools/track_record.py --merge-only;
@@ -34,7 +36,7 @@ FEEDS = ["data/x_live.json", "data/kol_live.json", "data/gold.json", "data/pf_so
          "data/early_shadow.json",   # v8.24 early-rule shadow log (rides along with the normal feed commits, never its own commit)
          "data/track_record.json", "data/flag_history.json",
          "data/gta_added.json",
-         "data/runner2.json"]   # v8.34 🚀 Runner 2.0 list (tools/runner2.py after every scan; runtime file, rides along with the feed commits)   # v8.32 🎮 GTA '📈 od dodania' reference (runtime file, rides along with the feed commits)   # v8.25: every flag saved right after the scan (git_sync merges races)
+         "data/runner2.json", "data/holders.json"]   # v8.34 🚀 Runner 2.0 list (tools/runner2.py after every scan; runtime file, rides along with the feed commits)   # v8.32 🎮 GTA '📈 od dodania' reference (runtime file, rides along with the feed commits)   # v8.25: every flag saved right after the scan (git_sync merges races)
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import git_sync  # noqa: E402  v8.25 conflict-safe commits (JSON merge for track_record / flag_history)
 
@@ -120,8 +122,9 @@ def main() -> int:
     next_gold = time.time() + 40                # v8.12: let the first Runner scan / tweet read start first (GeckoTerminal ~30 req/min)
     use_git = not (a.dry_run or a.no_git) and shutil.which("git")
     r2_out = f"{a.state_dir}/runner2.json" if a.dry_run else "data/runner2.json"   # v8.34 🚀 Runner 2.0 (dry run: never touches data/)
+    hold_out = f"{a.state_dir}/holders.json" if a.dry_run else "data/holders.json"  # v8.35 👥 holder check
     push_cmd = [py, "tools/kyvo_push.py", "--flags", f"{a.state_dir}/flags.json", "--state", f"{a.state_dir}/sent.json", "--smart", f"{a.state_dir}/smart_alerts.json",
-                "--gta", f"{a.state_dir}/gta_alerts.json", "--runner2", r2_out] + (["--dry-run"] if a.dry_run else [])
+                "--gta", f"{a.state_dir}/gta_alerts.json", "--runner2", r2_out, "--holders", hold_out] + (["--dry-run"] if a.dry_run else [])
     tw = None; gd = None; pf = None; n_pf = 0; tk = None; n_tk = 0
     next_tk = time.time() + 40
     gt = None; n_gt = 0; next_gt = time.time() + 20      # v8.31 🎮 GTA detector (~5 s, DexScreener only)
@@ -170,7 +173,11 @@ def main() -> int:
             t = run([py, "tools/track_record.py", "--merge-only", "--flags", f"{a.state_dir}/flags.json", "--out", "data/track_record.json",
                      "--history", "data/flag_history.json", "--audit", f"{a.state_dir}/audit.json"], timeout=60)
             if (t.get("track_new") or "0") not in ("", "0"): pending.append("new flags")
-            r2 = run([py, "tools/runner2.py", "--flags", f"{a.state_dir}/flags.json", "--out", r2_out, "--state", f"{a.state_dir}/runner2_state.json"], timeout=60)
+            hd = run([py, "tools/holders.py", "--flags", f"{a.state_dir}/flags.json", "--out", hold_out],
+                     env_extra={"KYVO_FACT_CACHE": f"{a.state_dir}/facts"}, timeout=60)   # v8.35 👥 before Runner 2.0 (it drops ⚠️ coins)
+            if hd.get("holders_new") == "true" and not pending and time.time() - last_commit > 900: pending.append("holders")
+            r2 = run([py, "tools/runner2.py", "--flags", f"{a.state_dir}/flags.json", "--out", r2_out, "--state", f"{a.state_dir}/runner2_state.json",
+                      "--holders", hold_out], timeout=60)
             if r2.get("runner2_new") == "true": pending.append("runner 2.0")
             did = True
         if did: run(push_cmd, timeout=120)

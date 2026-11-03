@@ -1,4 +1,7 @@
-/* KYVO_LIVE_v8_34 — v8.34: 🚀 nowa zakładka Runner 2.0 (obok Runnera i w Więcej): tylko coiny z Runnera / ⚡ Wczesnego, które przeszły filtry v8.34 (coin ≥ 1 h — młody sprawdzany ponownie po 30–60 min i tylko gdy cena ≥ 0,9× ceny z oznaczenia; bez +100% w 1 h; wolumen 1 h ≤ 1,5× MC), % od wejścia do Runner 2.0, podpowiedź „Sprzedaj ½ na x2, resztę trailing −30%” · osobne powiadomienia 🚀 Runner 2.0 (przełącznik w Powiadomieniach, domyślnie włączone) · 🏃 Runner, jego pushe, ⚡ Wczesny i Gold bez zmian · realniejsze przewidywania (niższy scenariusz bazowy, bez 6–8 h dla coinów < 6 h, „Większość takich coinów oddaje wzrost w 1–3 h”) · przewidywanie zapisywane w Wynikach · v8.33: ⚡ Wczesny Runner (push na starcie pompy, tools/early_runner.py) · jedna reguła wiarygodnej ceny wejścia (pairs.js entryCheck: watchlista z samonaprawą, GTA „od dodania”, Wyniki, statystyki) — koniec „>+99 999%” · nagłówek „2 h 47 min temu” + odświeżanie po powrocie z tła (timeout 20 s) · v8.32: v8.32: 🎮 GTA 6 „📈 od dodania” (ile % poszedł każdy GTA coin od kiedy Kyvo go wykryło / od pusha 🎮 GTA, max od tego czasu, kiedy dodany; plik data/gta_added.json z tools/gta_push.py) · v8.31: 🔔 nowe powiadomienia 🎮 GTA 6 (za darmo, przełącznik „🎮 GTA 6” w Powiadomieniach, domyślnie włączone): nowy GTA coin, który naprawdę rośnie (MC ≥ $25K, prawdziwy wolumen i płynność), i ważne newsy GTA 6 (każdy post Rockstar Games o GTA VI, konta fanowskie tylko trailer / data premiery / opóźnienie); max 1 na 10 min, 15 dziennie.
+/* KYVO_LIVE_v8_35 — v8.35: 👥 sprawdzanie holderów (data/holders.json, tools/holders.py: RugCheck, bez puli/LP/krzywej/burn): ⚠️ 'mało holderów'
+   (holderów < 300, top 10 > 30%, 1 portfel > 10%, dev rugował, rug) na każdym wierszu listy (Runner bez zmian — tylko odznaka), 🚀 Runner 2.0
+   nie pokazuje i nie pushuje takich coinów, push Runner / Wczesny dostaje '⚠️ …' w treści, strona coina pokazuje top 10 / top 1 bez puli.
+   KYVO_LIVE_v8_34 — v8.34: 🚀 nowa zakładka Runner 2.0 (obok Runnera i w Więcej): tylko coiny z Runnera / ⚡ Wczesnego, które przeszły filtry v8.34 (coin ≥ 1 h — młody sprawdzany ponownie po 30–60 min i tylko gdy cena ≥ 0,9× ceny z oznaczenia; bez +100% w 1 h; wolumen 1 h ≤ 1,5× MC), % od wejścia do Runner 2.0, podpowiedź „Sprzedaj ½ na x2, resztę trailing −30%” · osobne powiadomienia 🚀 Runner 2.0 (przełącznik w Powiadomieniach, domyślnie włączone) · 🏃 Runner, jego pushe, ⚡ Wczesny i Gold bez zmian · realniejsze przewidywania (niższy scenariusz bazowy, bez 6–8 h dla coinów < 6 h, „Większość takich coinów oddaje wzrost w 1–3 h”) · przewidywanie zapisywane w Wynikach · v8.33: ⚡ Wczesny Runner (push na starcie pompy, tools/early_runner.py) · jedna reguła wiarygodnej ceny wejścia (pairs.js entryCheck: watchlista z samonaprawą, GTA „od dodania”, Wyniki, statystyki) — koniec „>+99 999%” · nagłówek „2 h 47 min temu” + odświeżanie po powrocie z tła (timeout 20 s) · v8.32: v8.32: 🎮 GTA 6 „📈 od dodania” (ile % poszedł każdy GTA coin od kiedy Kyvo go wykryło / od pusha 🎮 GTA, max od tego czasu, kiedy dodany; plik data/gta_added.json z tools/gta_push.py) · v8.31: 🔔 nowe powiadomienia 🎮 GTA 6 (za darmo, przełącznik „🎮 GTA 6” w Powiadomieniach, domyślnie włączone): nowy GTA coin, który naprawdę rośnie (MC ≥ $25K, prawdziwy wolumen i płynność), i ważne newsy GTA 6 (każdy post Rockstar Games o GTA VI, konta fanowskie tylko trailer / data premiery / opóźnienie); max 1 na 10 min, 15 dziennie.
    KYVO_LIVE_v8_30 — v8.30: 🎮 nowa zakładka GTA 6 (za darmo dla wszystkich): nowe GTA coiny, GTA coiny co rosną (runnery GTA), największe GTA coiny i tweety o GTA (Rockstar Games, GTA 6 Countdown, Rockstar INTEL + każdy śledzony tweet o GTA, 72 h). Strona coina jak wszędzie.
    KYVO_LIVE_v8_29 — v8.29: 📈 strona coina nie przeładowuje się co 45 s (wykres DexScreener nie kręci się w kółko, statystyki i Cena aktualizowane na miejscu, Cena zgodna z MC), mniej zapytań GeckoTerminal przy otwartym coinie, 🧠 smart money z serwera na żywo (stare >72 h ukryte), Viral → New Tweet gdy dane z X są stare.
    KYVO_LIVE_v8_28 — v8.28: 🔔 krótkie powiadomienia (typ + $SYM + jedna liczba, bez dopisków), wyłączenie typu (🥇 Gold, nowy 👀 Smart money…) naprawdę zatrzymuje push („Zapisano” dopiero po zapisie w OneSignal).
@@ -119,6 +122,36 @@
   function keyOf(c) {
     return coinKey(c.chainId, c.address);
   }
+  /* v8.35 👥 holder check — data/holders.json (tools/holders.py, server loop after every scan; RugCheck, pools / LP / curve / burn
+     excluded). w = few (holders < 300) / top10 (> 30 %) / top1 (> 10 %) / devrug / rugged -> ⚠️ 'mało holderów' badge on every list row
+     (Runner stays as-is, only the badge), 🚀 Runner 2.0 never lists flagged coins, coin page shows the facts. Missing file = no badges. */
+  let holdDoc = null, holdAt = 0, holdBusy = false;
+  async function loadHolders() {
+    if (holdBusy || (holdDoc && Date.now() - holdAt < 120e3)) return holdDoc;
+    holdBusy = true;
+    try { const r = await fetch('data/holders.json?t=' + Math.floor(Date.now() / 120000), { cache: 'no-store' }); holdDoc = r.ok ? await r.json() : holdDoc || { coins: {} }; } catch (e) { holdDoc = holdDoc || { coins: {} }; }
+    holdAt = Date.now(); holdBusy = false;
+    return holdDoc;
+  }
+  function holdOf(k) { const m = holdDoc && holdDoc.coins; return (m && k && m[String(k).toLowerCase()]) || null; }
+  function holdText(h, en) {
+    const w = (h && h.w) || [];
+    if (!w.length) return '';
+    const L2 = (pl, e) => (en ? e : pl);
+    if (w.includes('rugged')) return L2('RugCheck: rug', 'RugCheck: rugged');
+    if (w.includes('devrug')) return L2('dev rugował wcześniej', 'dev rugged before');
+    if (w.includes('few') && h.h != null) return L2(`mało holderów (${h.h})`, `few holders (${h.h})`);
+    if (w.includes('top10')) return L2(`top 10 ma ${Math.round(h.t10)}%`, `top 10 hold ${Math.round(h.t10)}%`);
+    if (w.includes('top1')) return L2(`1 portfel ma ${Math.round(h.t1)}%`, `1 wallet holds ${Math.round(h.t1)}%`);
+    return L2('mało holderów', 'few holders');
+  }
+  function holdBadge(k, hh) {
+    const h = hh || holdOf(k), en = window.KyvoI18n && window.KyvoI18n.isEn(), t = holdText(h, en);
+    if (!t) return '';
+    const tip = (en ? 'Holder check (RugCheck, pools excluded): ' : 'Sprawdzenie holderów (RugCheck, bez puli): ') + [h.h != null ? h.h + ' holders' : '', h.t10 != null ? 'top 10 ' + h.t10 + '%' : '', h.t1 != null ? 'top 1 ' + h.t1 + '%' : ''].filter(Boolean).join(' · ');
+    return ` <span class="holdbadge" translate="no" title="${esc(tip)}">⚠️ ${esc(t)}</span>`;
+  }
+  window.KyvoHold = { get: holdOf, badge: holdBadge, text: holdText, load: loadHolders };
   function chainBadge(c) {
     const id = c.chainId || 'solana';
     return CHAIN_BADGE[id] || id.slice(0, 3).toUpperCase();
@@ -1220,7 +1253,7 @@
       const pend = (h) => (Date.now() - e.at < h * 3.6e6 ? `<span class="mut">${L2('za', 'in')} ${ageLabelH(h - (Date.now() - e.at) / 3.6e6)}</span>` : '<span class="mut">—</span>');
       return `<div class="row trk" data-key="${esc(e.k)}" role="button" tabindex="0">${imgTag({ image: e.img, chainId: e.chain, address: e.addr, symbol: e.sym, dexId: '' })}
         <div class="nm"><b><span class="cbadge c-${esc(e.chain)}">${esc(CHAIN_BADGE[e.chain] || e.chain)}</span> $${esc(e.sym)} <span class="mut" style="font-weight:600;font-size:11px">${kinds}${e.kinds && (e.kinds.runner || e.kinds.leg2) && st ? ' · ' + L2('etap', 'stage') + ' ' + st.n : ''}${e.src === 'local' ? ` · <span title="${esc(L2('Zapisane tylko na tym telefonie (wykryte w apce, nie przez serwer Kyvo).', 'Saved only on this phone (detected in the app, not by the Kyvo server).'))}">📱 ${L2('tylko ten telefon', 'this phone only')}</span>` : ''}</span></b>
-          <small>${L2('Oznaczony', 'Flagged')} ${esc(tm(e.at))} · MC ${fmtUsd(e.mc0)} → ${fmtUsd(e.mcNow || (e.mc0 * (e.last || e.px0) / e.px0))}${e.src === 'server' ? ' · <span class="mut">Kyvo</span>' : ''}</small>
+          <small>${holdBadge(e.k).trim()}${holdBadge(e.k) ? ' ' : ''}${L2('Oznaczony', 'Flagged')} ${esc(tm(e.at))} · MC ${fmtUsd(e.mc0)} → ${fmtUsd(e.mcNow || (e.mc0 * (e.last || e.px0) / e.px0))}${e.src === 'server' ? ' · <span class="mut">Kyvo</span>' : ''}</small>
           <div class="trk-g" translate="no"><span>${L2('Teraz', 'Now')} ${pc(nowP(e))}</span><span>Max ${pc(maxP(e))}</span><span>1h ${p1 != null ? pc(p1) : pend(1)}</span><span>8h ${p8 != null ? pc(p8) : pend(8)}</span></div></div></div>`;
     };
     $('#listBody').innerHTML = `<div class="h">📊 ${L2('Wyniki', 'Track record')}</div>
@@ -1440,13 +1473,13 @@
       if (!isOpen(e)) return `<div class="row td-row rlock" role="button" tabindex="0" data-unlock translate="no"><div class="rlock-ic" aria-hidden="true">🔒</div><div class="nm"><b>🚀 Runner 2.0 <span class="mut" style="font-weight:600">· ${esc(ago(e.at))}</span></b><div class="rlock-bars" aria-hidden="true"><i style="width:58%"></i><i style="width:40%"></i></div><small class="rlock-t">🔒 ${paid ? L2('Wszystkie — plan 🏃 Runners', 'All — 🏃 Runners plan') : L2('Premium (3/dzień) lub 🏃 Runners (wszystkie)', 'Premium (3/day) or 🏃 Runners (all)')}</small></div>${rt}</div>`;
       const c = r.c;
       return `<div class="row td-row r2-row" data-key="${esc(e.k)}" role="button" tabindex="0" translate="no">${imgTag(c)}<div class="nm"><b><span class="cbadge c-${esc(e.chain || 'solana')}">${esc(chainBadge(c))}</span> ${esc(e.name || e.sym || '')} <span class="mut" style="font-weight:600">$${esc(e.sym || '')}</span></b>
-        <small class="td-sub">${esc(ago(e.at))} · ${esc(srcL(e))} · MC ${fmtUsd(e.mc0)} → ${fmtUsd((c && c.mcap) || e.mcNow || e.mc0)}</small>
+        <small class="td-sub">${holdBadge(e.k, holdOf(e.k) || e.hold).trim()}${holdBadge(e.k, holdOf(e.k) || e.hold) ? ' ' : ''}${esc(ago(e.at))} · ${esc(srcL(e))} · MC ${fmtUsd(e.mc0)} → ${fmtUsd((c && c.mcap) || e.mcNow || e.mc0)}</small>
         <small class="r2-why mut">${esc(e.why || '')}${e.how && /^recheck/.test(e.how) ? ' · ' + L2('sprawdzony ponownie', 're-checked') : ''}</small>
         <small class="r2-exit">🎯 ${L2('Sprzedaj ½ na x2, resztę trailing −30%', 'Sell ½ at 2x, trail the rest −30%')}</small></div>${rt}</div>`;
     };
     box.innerHTML = `<div class="h">🚀 <span class="chrome">Runner 2.0</span> <span class="badge live">LIVE</span></div>
       <div class="r2-hero" translate="no"><div class="r2-t">${L2('Ostrzejszy Runner — tylko coiny, które przeszły dodatkowe filtry', 'A stricter Runner — only coins that passed extra filters')}</div>
-        <div class="r2-chips"><span class="gta-chip">⏱ ${L2('coin ≥ 1 h', 'coin ≥ 1 h old')}</span><span class="gta-chip">🔥 ${L2('≤ +100% w 1 h', '≤ +100% in 1 h')}</span><span class="gta-chip">📊 ${L2('wolumen 1 h ≤ 1,5× MC', '1 h volume ≤ 1.5× MC')}</span><span class="gta-chip">🔁 ${L2('młody: ponownie po 30–60 min', 'young: re-checked after 30–60 min')}</span></div>
+        <div class="r2-chips"><span class="gta-chip">⏱ ${L2('coin ≥ 1 h', 'coin ≥ 1 h old')}</span><span class="gta-chip">🔥 ${L2('≤ +100% w 1 h', '≤ +100% in 1 h')}</span><span class="gta-chip">📊 ${L2('wolumen 1 h ≤ 1,5× MC', '1 h volume ≤ 1.5× MC')}</span><span class="gta-chip">🔁 ${L2('młody: ponownie po 30–60 min', 'young: re-checked after 30–60 min')}</span><span class="gta-chip">👥 ${L2('bez ⚠️ mało holderów / top 10 > 30%', 'no ⚠️ few holders / top 10 > 30%')}</span></div>
         <div class="r2-s">🎯 ${L2('Wyjście: sprzedaj ½ na x2, resztę trailing −30% (stop −40% przed x2). W teście 72 h tylko to wyjście dawało zysk po opłatach.', 'Exit: sell ½ at 2x, trail the rest −30% (stop −40% before 2x). In the 72 h test it was the only exit in profit after fees.')}</div>
         ${res.length ? `<div class="r2-s mut">${L2('72 h', '72 h')}: ${res.length} ${L2('coinów', 'coins')} · ${L2('mediana teraz', 'median now')} ${done.length ? fmtPct(med(done.map((r) => r.nowP))) : '—'} · ${L2('doszło do x2', 'reached 2x')}: ${hit2x}</div>` : ''}</div>
       ${prem ? '' : `<div class="rplan" translate="no"><div class="rplan-t"><b>${paid ? L2('Premium: Twoje odblokowane Runnery', 'Premium: your unlocked Runners') : L2('Plan darmowy', 'Free plan')}</b><small>${L2('Runner 2.0 odblokowuje się tak samo jak Runner: coiny odblokowane w 🏃 Runner i wszystkie starsze niż 24 h. Wszystkie od razu — plan 🏃 Runners.', 'Runner 2.0 unlocks like Runner: coins unlocked in 🏃 Runner and everything older than 24 h. All of them right away — 🏃 Runners plan.')}</small></div><button type="button" class="rplan-cta" data-unlock>🏃 ${L2('Zobacz plany', 'See plans')}</button></div>`}
@@ -1495,7 +1528,7 @@
           ${sv && sv.tweet && sv.tweet.url ? `<div class="twlink" translate="no"><a href="${esc(sv.tweet.url)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">🐦 ${L2('Tweet', 'Tweet')} @${esc(sv.tweet.handle || '')} · +${Math.round(sv.tweet.chg || 0)}% ${L2('od tweeta', 'since')} ↗</a></div>` : ''}
           ${st ? `<div class="rstage st${st.n}" translate="no"><b>${L2('Etap', 'Stage')} ${st.n}</b> ${stageBarHtml(st)} <span class="mut">${esc(st.range)} · ${esc(L2(st.pl, st.en))}</span></div>` : ''}
           <div class="rmc" translate="no">${tr && tr.mc0 ? `${L2('MC przy oznaczeniu', 'MC at flag')} <b>${fmtUsd(tr.mc0)}</b> → ${L2('teraz', 'now')} <b>${fmtUsd(c.mcap)}</b> <span class="${pctClass(climb)}">${climb >= 0.5 ? '↑' : climb <= -0.5 ? '↓' : '→'} ${fmtPct(climb)}</span> <span class="mut">· ${esc(flagAgo(tr.kinds.runner || tr.kinds.leg2 || tr.at))}</span>` : `MC <b>${fmtUsd(c.mcap)}</b>`}</div>
-          <small>Liq ${fmtLiq(c)} · ⏱ ${esc(ageFrom(c.pairCreatedAt))}</small>
+          <small>${holdBadge(keyOf(c)).trim()}${holdBadge(keyOf(c)) ? ' ' : ''}Liq ${fmtLiq(c)} · ⏱ ${esc(ageFrom(c.pairCreatedAt))}</small>
           <div class="rwhy" translate="no">${sv && sv.badge === 'kol' ? '👑 ' + L2('Dlaczego KOL coin', 'Why KOL coin') : sv && sv.badge === 'moon' ? '🚀 ' + L2('Dlaczego moon run', 'Why moon run') : sv && sv.badge === 'tweet' ? '🐦 ' + L2('Dlaczego tweet runner', 'Why tweet runner') : (sv && sv.badge === 'big') || x.big ? '📈 ' + L2('Dlaczego duży runner', 'Why big runner') : x.leg2 ? '🔁 ' + L2('Dlaczego kolejna fala', 'Why second leg') : '🏃 ' + L2('Dlaczego runner', 'Why runner')}: ${x.why.join(' · ')}</div>
           ${c._snap ? '' : window.KyvoInsights.upsideRowHtml(c)}</div>
         <div class="rt">${sparkSvg(c)}<b class="${pctClass(c.change.h1)}">${fmtPct(c.change.h1)}</b><small class="mut">1h</small><small class="rtmc" translate="no">MC ${fmtUsd(c.mcap)}</small></div></div>`;
@@ -1523,7 +1556,7 @@
       const res = `<div class="rt td-rt">${ok(maxP) ? `<b class="chrome td-max">+${Math.round(Math.max(0, maxP))}%</b><small class="mut">${L2('max po oznacz.', 'max after flag')}</small>` : ''}${ok(nowP) ? `<small class="${pctClass(nowP)}">${L2('teraz', 'now')} ${fmtPct(nowP)}</small>` : ''}</div>`;
       if (todayOpen && !todayOpen.includes(e.k)) return `<div class="row td-row rlock" role="button" tabindex="0" data-unlock translate="no"><div class="rlock-ic" aria-hidden="true">🔒</div><div class="nm"><b>🏃 Runner <span class="mut" style="font-weight:600">· ${esc(flagAgo(e.kinds.runner))}</span></b><div class="rlock-bars" aria-hidden="true"><i style="width:58%"></i><i style="width:40%"></i></div></div>${res}</div>`;
       const c = kolCoinOf(e);
-      return `<div class="row td-row" data-key="${esc(e.k)}" role="button" tabindex="0" translate="no">${imgTag(c)}<div class="nm"><b><span class="cbadge c-${esc(e.chain || 'solana')}">${esc(chainBadge(c))}</span> ${esc(e.name || e.sym || '')} <span class="mut" style="font-weight:600">$${esc(e.sym || '')}</span></b><small class="td-sub">${esc(flagAgo(e.kinds.runner))} · MC ${fmtUsd(e.mc0)} → ${fmtUsd(e.mcNow || e.mc0)}</small></div>${res}</div>`;
+      return `<div class="row td-row" data-key="${esc(e.k)}" role="button" tabindex="0" translate="no">${imgTag(c)}<div class="nm"><b><span class="cbadge c-${esc(e.chain || 'solana')}">${esc(chainBadge(c))}</span> ${esc(e.name || e.sym || '')} <span class="mut" style="font-weight:600">$${esc(e.sym || '')}</span></b><small class="td-sub">${holdBadge(e.k).trim()}${holdBadge(e.k) ? ' ' : ''}${esc(flagAgo(e.kinds.runner))} · MC ${fmtUsd(e.mc0)} → ${fmtUsd(e.mcNow || e.mc0)}</small></div>${res}</div>`;
     };
     const todayHtml = todayN ? `<div class="h" style="font-size:14px;margin-top:12px">${HS.today ? L2('Oznaczone dziś', 'Flagged today') : L2('Oznaczone w 24 h', 'Flagged in 24 h')} <span class="mut" style="font-size:12px">${todayN}</span> <span class="mut rh-note">${L2('log serwera · wynik od oznaczenia', 'server log · result since flag')}</span></div><div class="card td-card" style="padding:4px 10px">${todayList.map(todayRow).join('')}</div>` : '';
     $('#listBody').innerHTML = `<div class="h">🏃 <span class="chrome">Runner</span> <span class="badge live">LIVE</span></div>
@@ -1669,12 +1702,13 @@
     }
     const cl = window.KyvoInsights ? window.KyvoInsights.cloneCheck(c) : null;
     if (cl && cl.bigger) extra += (extra ? ' · ' : '') + `<span class="clonebadge" title="Jest większy coin o tym samym tickerze — sprawdź adres (CA)">⚠ możliwa kopia</span>`;
+    const hb = holdBadge(keyOf(c)).trim();   // v8.35 ⚠️ few holders
     const star = window.KyvoInsights && window.KyvoInsights.isWatched(keyOf(c)) ? '<span class="wstar" title="Na Twojej watchliście">★</span> ' : '';
     const badge = `<span class="cbadge c-${esc(c.chainId || 'solana')}">${esc(chainBadge(c))}</span>`;
     return `<div class="row" data-key="${esc(keyOf(c))}" role="button" tabindex="0">
       ${imgTag(c)}
       <div class="nm"><b>${star}${badge} ${esc(c.name)} <span class="mut" style="font-weight:600">$${esc(c.symbol)}</span></b>
-        <small>MC ${fmtUsd(c.mcap)} · ${fmtLiq(c) === 'krzywa' ? 'Liq: krzywa' : 'Liq ' + fmtLiq(c)}${extra ? ' · ' + extra : ''}</small>
+        <small>${hb ? hb + ' ' : ''}MC ${fmtUsd(c.mcap)} · ${fmtLiq(c) === 'krzywa' ? 'Liq: krzywa' : 'Liq ' + fmtLiq(c)}${extra ? ' · ' + extra : ''}</small>
         ${rowTimeHtml(c, opts.listId)}${opts.extraHtml || ''}${opts.upside && window.KyvoInsights ? (opts.good ? window.KyvoInsights.goodRowHtml(c) : window.KyvoInsights.upsideRowHtml(c)) : ''}</div>
       <div class="rt">${sparkSvg(c)}<b class="${pctClass(ch)}">${fmtPct(ch)}</b>
         <small class="mut">Vol ${fmtUsd(c.volume.h24)}</small></div>
@@ -3120,6 +3154,8 @@
     try { updateRunnerBadge(); } catch (e) {}
   });
   setInterval(() => refresh(), REFRESH_MS);
+  const holdRefresh = () => { const was = holdDoc && holdDoc.updated_at; loadHolders().then(() => { if (holdDoc && holdDoc.updated_at !== was && ['hot', 'good', 'new', 'stretch', 'migrated', 'boosted', 'runner', 'runner2', 'track', 'watch'].includes(view)) keepUi(() => setView(view)); }); };
+  holdRefresh(); setInterval(holdRefresh, 150e3);   // v8.35 👥
   // v8.33: back from the background with old data -> refresh now (timers are paused while the phone sleeps)
   document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - lastFetch > REFRESH_MS) refresh(); });
   window.addEventListener('pageshow', (ev) => { if (ev.persisted && Date.now() - lastFetch > REFRESH_MS) refresh(); });

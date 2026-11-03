@@ -313,7 +313,7 @@
     return `<div class="card g-card ${L.cls}" id="g-${esc(c.k.replace(/[^A-Za-z0-9]/g, ''))}" data-gk="${esc(c.k)}">
       ${verdictHead(c.level, v, c)}
       ${coinLine(c)}
-      <div class="g-tags">${(c.filters || []).map((x) => `<span class="g-tag flt" title="${L2('Auto-skaner Kyvo', 'Kyvo auto-scanner')}">🔎 ${L2('Filtr', 'Filter')}: ${esc(x.emoji || '')} ${esc(EN() ? x.en : x.pl)}</span>`).join('')}${(c.src || []).filter((s) => s !== 'filter').map((s) => `<span class="g-tag">${esc(srcL[s] || s)}</span>`).join('')}${c.kol && c.kol.badge === 'kol' ? `<span class="g-tag kol">👑 @${esc(c.kol.handle || 'KOL')}</span>` : ''}<span class="g-tag mut">${L2('w feedzie', 'in feed')} ${esc(ago(c.first_at))}${chg}</span></div>
+      <div class="g-tags">${window.KyvoHold ? window.KyvoHold.badge(c.k).trim() : ''}${(c.filters || []).map((x) => `<span class="g-tag flt" title="${L2('Auto-skaner Kyvo', 'Kyvo auto-scanner')}">🔎 ${L2('Filtr', 'Filter')}: ${esc(x.emoji || '')} ${esc(EN() ? x.en : x.pl)}</span>`).join('')}${(c.src || []).filter((s) => s !== 'filter').map((s) => `<span class="g-tag">${esc(srcL[s] || s)}</span>`).join('')}${c.kol && c.kol.badge === 'kol' ? `<span class="g-tag kol">👑 @${esc(c.kol.handle || 'KOL')}</span>` : ''}<span class="g-tag mut">${L2('w feedzie', 'in feed')} ${esc(ago(c.first_at))}${chg}</span></div>
       ${reasonsHtml(v, 5)}
       ${metricsHtml(f, v)}
       <details class="g-more"><summary>📰 ${L2('Narracja, kopie, źródła', 'Narrative, copies, sources')}${c.news && c.news.n24 ? ` · ${c.news.n24} ${L2('art./24 h', 'art./24 h')}` : ''}</summary>${narrativeHtml(f)}</details>
