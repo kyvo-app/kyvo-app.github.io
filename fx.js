@@ -43,7 +43,7 @@
   var RM = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function dockIcons() {
-    var map = { hot: 'pulse', runner: 'runner', gold: 'gold', viral: 'viral', rank: 'rank', search: 'search', profil: 'profil' };
+    var map = { hot: 'pulse', runner: 'runner', gold: 'gold', watch: 'star', viral: 'viral', rank: 'rank', search: 'search', profil: 'profil' };   // v8.36 ⭐ Watchlista replaces 🥇 Gold
     document.querySelectorAll('.tb button[data-tab]').forEach(function (b) {
       var k = map[b.dataset.tab], sp = b.querySelector('span');
       if (k && sp && !sp.querySelector('svg')) sp.innerHTML = I[k];

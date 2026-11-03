@@ -48,9 +48,9 @@
     const T2 = (pl, en) => (l === 'en' ? en : pl);
     return `<div class="kwin" aria-hidden="true"><span class="kwin-hz"></span><div class="kwin-w"><div class="kwin-bar"><i></i><i></i><i></i><span>kyvo · pulse</span></div>
       <div class="kwin-body"><div class="kwin-side"><b></b><b class="on"></b><b></b><b></b><b></b></div><div class="kwin-scr">${A.pic('scr-desk-pulse-' + l, '(min-width:900px) 520px, 86vw')}</div></div></div>
-      <span class="kwin-tip t1">${T2('Zakładki: Pulse · Gold · Runner · Ranking', 'Tabs: Pulse · Gold · Runner · Leaderboard')}</span>
+      <span class="kwin-tip t1">${T2('Zakładki: Pulse · Runner · Ranking · Watchlista', 'Tabs: Pulse · Runner · Leaderboard · Watchlist')}</span>
       <span class="kwin-tip t2">${T2('Runnery oznaczone dziś — na żywo', 'Runners flagged today — live')}</span>
-      <span class="kwin-tip t3">${T2('New Pairs · Final Stretch · Migrated', 'New Pairs · Final Stretch · Migrated')}</span></div>`;
+      <span class="kwin-tip t3">${T2('New Pairs na żywo', 'Live New Pairs')}</span></div>`;
   }
   /* v8.15 pass 8 (ref: Alez 1_coach_panel): a static preview of the Journal coach panel */
   function coachArt(l) {
@@ -200,7 +200,7 @@
     {
       art: art2('pl'),
       t: 'Pulse: coiny na żywo',
-      p: 'Pulse pokazuje nowe pary, coiny blisko końca krzywej (Final Stretch) i te, które właśnie przeszły na DEX (Migrated). Good Coins to coiny po mocniejszych filtrach.',
+      p: 'Pulse pokazuje najnowsze pary (New Pairs) na żywo, z filtrami Kyvo.',
       li: ['Przełącz sieć u góry: Solana · BSC · Robin · Wszystkie', '„Filtry” — ustaw MC, płynność, wolumen, wiek', '⏱ wiek coina i „na liście od” przy każdym wierszu'],
     },
     {
@@ -364,7 +364,7 @@
       L('👀 Push smart money (≥3 top traderów kupuje jeden coin)', '👀 Smart money push (≥3 top traders buy one coin)'),
     ] : [
       L('🏃 3 Runnery dziennie (darmowo: 1)', '🏃 3 Runners a day (free: 1)'),
-      L('🥇 Pełny Gold: feed, sprawdzanie bez limitu, alerty Gold', '🥇 Full Gold: feed, unlimited checks, Gold alerts'),
+      L('👀 Moi traderzy bez limitu + alerty, gdy kupują', '👀 Unlimited My traders + alerts when they buy'),
       L('👀 Tracker: obserwuj portfele bez limitu (darmowo: 3)', '👀 Tracker: follow unlimited wallets (free: 3)'),
       L('🔔 Wszystkie powiadomienia bez limitu (darmowo: 2 dziennie)', '🔔 All notifications, no limit (free: 2 a day)'),
     ];
@@ -450,16 +450,12 @@
       ['Co jeśli portfel prosi o zatwierdzenie transakcji?', 'Odrzuć ją. Kyvo nigdy nie wysyła transakcji do podpisu — tylko wiadomość tekstową. Nikt z Kyvo nie poprosi też o seed phrase ani klucz prywatny.'],
       ['Google, e-mail i Apple', 'Logowanie przez Google i e-mail (link logowania wysyłany na maila — bez hasła) włączymy wkrótce; Apple — później. Do tego czasu przyciski są oznaczone „Wkrótce”.'],
       ['Jak się wylogować?', 'Profil → „Wyloguj”. Adres zostaje w Profilu, możesz go usunąć osobno. Więcej → „Wyczyść dane Kyvo” usuwa wszystko z tej przeglądarki.'],
-      ['Kyvo Premium', 'Plan Premium jest w przygotowaniu — funkcje oznaczone „wkrótce” jeszcze nie działają i nic nie jest sprzedawane. Planowane są dwa plany: Premium — $9.99 / mies. (cena startowa -50%: $4.99 / mies.) oraz 🏃 Runners — $49.99 / mies. (cena startowa -50%: $24.99 / mies.). Oba z 3 dniami za darmo (z podpiętą kartą, Apple Pay lub Google Pay; BLIK nie działa dla subskrypcji) i wymagają logowania. Runnery: darmowo 1 dziennie (pierwszy oznaczony danego dnia), Premium 3 dziennie, Runners — wszystkie + push o Runnerach i push smart money. Premium daje też pełny Gold, Tracker bez limitu i wszystkie powiadomienia. Wszystko inne, co działa dziś, zostaje za darmo.'],
+      ['Kyvo Premium', 'Plan Premium jest w przygotowaniu — funkcje oznaczone „wkrótce” jeszcze nie działają i nic nie jest sprzedawane. Planowane są dwa plany: Premium — $9.99 / mies. (cena startowa -50%: $4.99 / mies.) oraz 🏃 Runners — $49.99 / mies. (cena startowa -50%: $24.99 / mies.). Oba z 3 dniami za darmo (z podpiętą kartą, Apple Pay lub Google Pay; BLIK nie działa dla subskrypcji) i wymagają logowania. Runnery: darmowo 1 dziennie (pierwszy oznaczony danego dnia), Premium 3 dziennie, Runners — wszystkie + push o Runnerach i push smart money. Premium daje też Tracker bez limitu i wszystkie powiadomienia. Wszystko inne, co działa dziś, zostaje za darmo.'],
       ['Kontakt', 'Chcesz pogadać, pomóc albo współpracować? Więcej → Kontakt (Discord).'],
     ]],
     ['Zakładki z coinami', [
-      ['Pulse', 'Główny ekran. Na telefonie przełączasz New / Final Stretch / Migrated, na komputerze widzisz trzy kolumny obok siebie.'],
+      ['Pulse', 'Główny ekran: najnowsze pary (New Pairs) na żywo.'],
       ['New Pairs', 'Najnowsze pary na wybranej sieci. Kyvo domyślnie odsiewa śmieci i martwe pary.'],
-      ['Final Stretch', 'Coiny wciąż na krzywej (bonding curve) pump.fun (Solana) lub four.meme (BSC), które są blisko „ukończenia” krzywej. Procent krzywej to estymacja Kyvo, a nie oficjalna wartość z platformy. Na Robinhood Chain ta zakładka jest niedostępna.'],
-      ['Migrated', 'Coiny, które niedawno przeszły z krzywej na DEX (Solana: PumpSwap, Raydium, Meteora…; BSC: PancakeSwap).'],
-      ['Good Coins', 'Coiny, które przeszły bramki Kyvo: bezpieczeństwo, popularność teraz i potencjał wzrostu. Przy każdym coinie widać, dlaczego tu jest. Przycisk „Konsensus SM” sortuje po tym, ile znanych portfeli kupiło. To nadal nie są rekomendacje.'],
-      ['Hot i Boosted', 'Hot — coiny z najnowszymi profilami i boostami na DexScreener, sortowane po wolumenie. Boosted — coiny, za których promocję ktoś zapłacił na DexScreener (boost to reklama, nie sygnał jakości).'],
       ['Filtry', 'Przycisk „Filtry” nad listą. MC min/max, płynność (Liq) min, wolumen 24h min, wiek min/max w godzinach, zmiana ceny Δ 5m i Δ 1h, „Buy ratio” (udział transakcji kupna w ostatniej godzinie, 0–1) i „Wymagaj socials”. Każda zakładka pamięta własne filtry; „Reset” przywraca domyślne.'],
       ['⏱ wiek i „na liście od”', '⏱ to wiek pary od jej utworzenia. „Na liście od X min” mówi, od kiedy ten coin jest w tej zakładce — liczone od momentu, gdy Twoja przeglądarka zobaczyła go tam pierwszy raz (więc na nowym telefonie licznik startuje od zera).'],
       ['Liq: krzywa', 'Coin jest jeszcze na bonding curve, więc nie ma klasycznej puli płynności na DEX.'],
@@ -585,18 +581,16 @@
   /* ---------------- Premium ---------------- */
   const PREMIUM_ROWS_PL = [ // v8.14.1: [feature, Free, Premium, 🏃 Runners]
     ['Pulse na żywo (Solana · BSC · Robinhood)', 'free', 'free', 'free'],
-    ['Good Coins, Final Stretch, Migrated + filtry', 'free', 'free', 'free'],
+    ['Pulse: filtry Kyvo', 'free', 'free', 'free'],
     ['Viral z X (aktualizacja kilka razy dziennie)', 'free', 'free', 'free'],
     ['Ranking traderów i profile', 'free', 'free', 'free'],
     ['Profil: do 8 portfeli + karta PnL', 'free', 'free', 'free'],
     ['Kyvo Check, watchlista + alerty (gdy apka otwarta)', 'free', 'free', 'free'],
     ['🏃 Runnery (👑 KOL coin, 🚀 Moon run, 📈 Duży runner, 🐦 Tweet runner)', '1 / dzień', '3 / dzień', 'all'],
     ['🔔 Push o Runnerach i Tweet runnerach', '1 / dzień', '3 / dzień', 'all'],
-    ['🥇 Gold: Sprawdź coin (DD jak u pro tradera)', '3 / dzień', 'bez limitu', 'bez limitu'],
-    ['🥇 Feed Gold + alerty Gold (cena ±15–20%, wampiry, artykuły)', '1 karta / dzień', 'all', 'all'],
     ['👀 Tracker: obserwowane portfele', '3', 'bez limitu', 'bez limitu'],
     ['👀 Push smart money (≥3 top traderów kupuje 1 coin)', '—', '—', 'all'],
-    ['🔔 Powiadomienia (Good Coins, Viral, Gold)', '2 / dzień', 'bez limitu', 'bez limitu'],
+    ['🔔 Powiadomienia (Good Coins, Viral)', '2 / dzień', 'bez limitu', 'bez limitu'],
     ['📓 Journal: dziennik z portfela, Kyvo Score, analityka, coach', '—', 'free', 'free'],
     ['📋 Plan dnia, cele, refleksje, karta P&L', '—', 'free', 'free'],
     ['Do 25 portfeli w Profilu', '—', 'soon', 'soon'],
@@ -623,7 +617,7 @@
     {
       art: art2('en'),
       t: 'Pulse: live coins',
-      p: 'Pulse shows new pairs, coins close to finishing their bonding curve (Final Stretch) and coins that just moved to a DEX (Migrated). Good Coins are coins that pass stricter filters.',
+      p: 'Pulse shows the newest pairs (New Pairs) live, with Kyvo\'s filters.',
       li: ['Switch network at the top: Solana · BSC · Robin · All', '“Filters” — set MC, liquidity, volume, age', '⏱ coin age and “on list for” on every row'],
     },
     {
@@ -666,16 +660,12 @@
       ['What if my wallet asks me to approve a transaction?', 'Reject it. Kyvo never sends a transaction to sign — only a text message. Nobody from Kyvo will ever ask for your seed phrase or private key either.'],
       ['Google, email and Apple', 'Google and email sign-in (a sign-in link sent to your email — no password) are coming soon; Apple later. Until then the buttons are marked “Coming soon”.'],
       ['How do I sign out?', 'Profile → “Sign out”. The address stays in Profile and you can remove it separately. More → “Clear Kyvo data” removes everything from this browser.'],
-      ['Kyvo Premium', 'The Premium plans are in preparation — features marked “coming soon” don\'t work yet and nothing is being sold. Two plans are planned: Premium — $9.99 / month (launch price -50%: $4.99 / month) and 🏃 Runners — $49.99 / month (launch price -50%: $24.99 / month). Both come with 3 days free (with a card, Apple Pay or Google Pay attached; BLIK doesn\'t work for subscriptions) and require signing in. Runners: free 1 a day (the first one flagged that day), Premium 3 a day, Runners plan — all of them + Runner push and smart money push. Premium also gives the full Gold tab, unlimited Tracker and all notifications. Everything else that works today stays free.'],
+      ['Kyvo Premium', 'The Premium plans are in preparation — features marked “coming soon” don\'t work yet and nothing is being sold. Two plans are planned: Premium — $9.99 / month (launch price -50%: $4.99 / month) and 🏃 Runners — $49.99 / month (launch price -50%: $24.99 / month). Both come with 3 days free (with a card, Apple Pay or Google Pay attached; BLIK doesn\'t work for subscriptions) and require signing in. Runners: free 1 a day (the first one flagged that day), Premium 3 a day, Runners plan — all of them + Runner push and smart money push. Premium also gives unlimited Tracker and all notifications. Everything else that works today stays free.'],
       ['Contact', 'Want to chat, help out or collaborate? More → Contact (Discord).'],
     ]],
     ['Coin tabs', [
-      ['Pulse', 'The main screen. On a phone you switch between New / Final Stretch / Migrated; on a computer you see three columns side by side.'],
+      ['Pulse', 'The main screen: the newest pairs (New Pairs), live.'],
       ['New Pairs', 'The newest pairs on the selected network. By default Kyvo filters out junk and dead pairs.'],
-      ['Final Stretch', 'Coins still on the pump.fun (Solana) or four.meme (BSC) bonding curve that are close to “completing” it. The curve percentage is Kyvo\'s estimate, not an official platform value. This tab isn\'t available on Robinhood Chain.'],
-      ['Migrated', 'Coins that recently moved from the curve to a DEX (Solana: PumpSwap, Raydium, Meteora…; BSC: PancakeSwap).'],
-      ['Good Coins', 'Coins that passed Kyvo\'s gates: safety, popular right now and upside potential. Each coin shows why it is listed. The “Smart money consensus” button sorts by how many known wallets bought. These are still not recommendations.'],
-      ['Hot and Boosted', 'Hot — coins with the newest DexScreener profiles and boosts, sorted by volume. Boosted — coins someone paid to promote on DexScreener (a boost is advertising, not a quality signal).'],
       ['Filters', 'The “Filters” button above the list. MC min/max, liquidity (Liq) min, 24h volume min, age min/max in hours, price change Δ 5m and Δ 1h, “Buy ratio” (share of buy trades in the last hour, 0–1) and “Require socials”. Every tab remembers its own filters; “Reset” restores the defaults.'],
       ['⏱ age and “on list for”', '⏱ is the pair\'s age since creation. “On list for X min” tells you how long this coin has been in this tab — counted from when your browser first saw it there (so on a new phone the counter starts from zero).'],
       ['Liq: curve', 'The coin is still on the bonding curve, so there is no classic DEX liquidity pool yet.'],
@@ -771,18 +761,16 @@
   };
   const PREMIUM_ROWS_EN = [
     ['Live Pulse (Solana · BSC · Robinhood)', 'free', 'free', 'free'],
-    ['Good Coins, Final Stretch, Migrated + filters', 'free', 'free', 'free'],
+    ['Pulse: Kyvo filters', 'free', 'free', 'free'],
     ['Viral from X (updated a few times a day)', 'free', 'free', 'free'],
     ['Trader leaderboard and profiles', 'free', 'free', 'free'],
     ['Profile: up to 8 wallets + PnL card', 'free', 'free', 'free'],
     ['Kyvo Check, watchlist + alerts (while the app is open)', 'free', 'free', 'free'],
     ['🏃 Runners (👑 KOL coin, 🚀 Moon run, 📈 Big runner, 🐦 Tweet runner)', '1 / day', '3 / day', 'all'],
     ['🔔 Runner and Tweet runner push', '1 / day', '3 / day', 'all'],
-    ['🥇 Gold: Check a coin (pro-trader DD)', '3 / day', 'unlimited', 'unlimited'],
-    ['🥇 Gold feed + Gold alerts (price ±15–20%, vamps, articles)', '1 card / day', 'all', 'all'],
     ['👀 Tracker: followed wallets', '3', 'unlimited', 'unlimited'],
     ['👀 Smart money push (≥3 top traders buy 1 coin)', '—', '—', 'all'],
-    ['🔔 Notifications (Good Coins, Viral, Gold)', '2 / day', 'unlimited', 'unlimited'],
+    ['🔔 Notifications (Good Coins, Viral)', '2 / day', 'unlimited', 'unlimited'],
     ['📓 Journal: wallet journal, Kyvo Score, analytics, coach', '—', 'free', 'free'],
     ['📋 Daily plan, goals, reflections, P&L card', '—', 'free', 'free'],
     ['Up to 25 wallets in Profile', '—', 'soon', 'soon'],

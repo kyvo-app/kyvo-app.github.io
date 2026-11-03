@@ -33,7 +33,7 @@ window.KYVO_PREMIUM_CONFIG = {
 /* v8.12 🥇 Gold tab (Orangie-style coin DD). Client-side gate like the Runner gate (bypassable by a technical user — data is public).
    enabled:false hides the tab, the seg button and the in-app Gold alerts; the server feed (tools/gold.py) keeps running. */
 window.KYVO_GOLD_CONFIG = {
-  enabled: true,
+  enabled: false,              // v8.36: the 🥇 Gold tab is gone (#gold -> Pulse); the feed still loads for the coin page / Kyvo Check, 🛡️ watchlist guard replaces its alerts
   checkerFreePerDay: 3,        // "Sprawdź coin": free checks per Warsaw day (re-checking the same CA the same day is free); Premium = unlimited
   feedFreeCards: 1,            // Gold feed: free users see 1 full DD card per Warsaw day (the first one they open), the rest is Premium
   alertsPremium: true,         // 🔔 Gold alerts (server push + in-app watchlist ±15 % / vamp alerts) = Premium

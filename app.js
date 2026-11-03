@@ -1,4 +1,8 @@
-/* KYVO_LIVE_v8_35 — v8.35: 👥 sprawdzanie holderów (data/holders.json, tools/holders.py: RugCheck, bez puli/LP/krzywej/burn): ⚠️ 'mało holderów'
+/* KYVO_LIVE_v8_36 — v8.36 (pomysły od Orangie): 🛡️ Pilnuj moich coinów (watchlista: ruch ±20 %, 🐋 wieloryb / 🧑‍💻 dev sprzedał, 📰 nowy artykuł,
+   🧛 kopia > $500K MC — w przeglądarce, gdy Kyvo jest otwarte), ⚠️ bundle (tools/coin_checks.py: kto zasilił top 20 holderów, publiczne RPC Solany)
+   i ⚠️ fejkowy wolumen (śr. trade < $30 przy ≥ 300 tx) na listach i w Kyvo Check, 👀 Moi traderzy (do 60 portfeli z Rankingu + alert przy zakupie),
+   📝 podsumowanie po polsku na stronie coina; zakładki Hot / Good / New / Boosted usunięte z UI (stare linki -> Pulse, dane i pushe bez zmian).
+   KYVO_LIVE_v8_35 — v8.35: 👥 sprawdzanie holderów (data/holders.json, tools/holders.py: RugCheck, bez puli/LP/krzywej/burn): ⚠️ 'mało holderów'
    (holderów < 300, top 10 > 30%, 1 portfel > 10%, dev rugował, rug) na każdym wierszu listy (Runner bez zmian — tylko odznaka), 🚀 Runner 2.0
    nie pokazuje i nie pushuje takich coinów, push Runner / Wczesny dostaje '⚠️ …' w treści, strona coina pokazuje top 10 / top 1 bez puli.
    KYVO_LIVE_v8_34 — v8.34: 🚀 nowa zakładka Runner 2.0 (obok Runnera i w Więcej): tylko coiny z Runnera / ⚡ Wczesnego, które przeszły filtry v8.34 (coin ≥ 1 h — młody sprawdzany ponownie po 30–60 min i tylko gdy cena ≥ 0,9× ceny z oznaczenia; bez +100% w 1 h; wolumen 1 h ≤ 1,5× MC), % od wejścia do Runner 2.0, podpowiedź „Sprzedaj ½ na x2, resztę trailing −30%” · osobne powiadomienia 🚀 Runner 2.0 (przełącznik w Powiadomieniach, domyślnie włączone) · 🏃 Runner, jego pushe, ⚡ Wczesny i Gold bez zmian · realniejsze przewidywania (niższy scenariusz bazowy, bez 6–8 h dla coinów < 6 h, „Większość takich coinów oddaje wzrost w 1–3 h”) · przewidywanie zapisywane w Wynikach · v8.33: ⚡ Wczesny Runner (push na starcie pompy, tools/early_runner.py) · jedna reguła wiarygodnej ceny wejścia (pairs.js entryCheck: watchlista z samonaprawą, GTA „od dodania”, Wyniki, statystyki) — koniec „>+99 999%” · nagłówek „2 h 47 min temu” + odświeżanie po powrocie z tła (timeout 20 s) · v8.32: v8.32: 🎮 GTA 6 „📈 od dodania” (ile % poszedł każdy GTA coin od kiedy Kyvo go wykryło / od pusha 🎮 GTA, max od tego czasu, kiedy dodany; plik data/gta_added.json z tools/gta_push.py) · v8.31: 🔔 nowe powiadomienia 🎮 GTA 6 (za darmo, przełącznik „🎮 GTA 6” w Powiadomieniach, domyślnie włączone): nowy GTA coin, który naprawdę rośnie (MC ≥ $25K, prawdziwy wolumen i płynność), i ważne newsy GTA 6 (każdy post Rockstar Games o GTA VI, konta fanowskie tylko trailer / data premiery / opóźnienie); max 1 na 10 min, 15 dziennie.
@@ -145,13 +149,62 @@
     if (w.includes('top1')) return L2(`1 portfel ma ${Math.round(h.t1)}%`, `1 wallet holds ${Math.round(h.t1)}%`);
     return L2('mało holderów', 'few holders');
   }
-  function holdBadge(k, hh) {
+  let holdBadge = function (k, hh) {
     const h = hh || holdOf(k), en = window.KyvoI18n && window.KyvoI18n.isEn(), t = holdText(h, en);
     if (!t) return '';
     const tip = (en ? 'Holder check (RugCheck, pools excluded): ' : 'Sprawdzenie holderów (RugCheck, bez puli): ') + [h.h != null ? h.h + ' holders' : '', h.t10 != null ? 'top 10 ' + h.t10 + '%' : '', h.t1 != null ? 'top 1 ' + h.t1 + '%' : ''].filter(Boolean).join(' · ');
     return ` <span class="holdbadge" translate="no" title="${esc(tip)}">⚠️ ${esc(t)}</span>`;
+  };
+  /* v8.36 🧪 coin checks — data/coin_checks.json (tools/coin_checks.py, server loop; free public Solana RPC + DexScreener, never Helius).
+     b = bundle / wallet-factory (top 20 holders funded by the same small wallets, or many fresh near-equal wallets) for Runner /
+     Runner 2.0 / Gold coins · fv = fake volume (avg trade < $30 with ≥ 300 txns 24h, Gold dust ≥ 70 % or one-buy curve).
+     List rows without a server check get the avg-trade test from the live pair. events[] feed the watchlist alerts (insights.js). */
+  const FV_AVG = 30, FV_MIN_TX = 300;
+  let chkDoc = null, chkAt = 0, chkBusy = false;
+  async function loadChecks() {
+    if (chkBusy || (chkDoc && Date.now() - chkAt < 120e3)) return chkDoc;
+    chkBusy = true;
+    try { const r = await fetch('data/coin_checks.json?t=' + Math.floor(Date.now() / 120000), { cache: 'no-store' }); chkDoc = r.ok ? await r.json() : chkDoc || { coins: {}, events: [] }; } catch (e) { chkDoc = chkDoc || { coins: {}, events: [] }; }
+    chkAt = Date.now(); chkBusy = false;
+    return chkDoc;
   }
-  window.KyvoHold = { get: holdOf, badge: holdBadge, text: holdText, load: loadHolders };
+  function chkOf(k) { const m = chkDoc && chkDoc.coins; return (m && k && m[String(k).toLowerCase()]) || null; }
+  function fvPair(c) {
+    const v = c && c.volume && c.volume.h24, t = c && c.txns && c.txns.h24;
+    const tx = t ? (t.buys || 0) + (t.sells || 0) : 0;
+    if (!v || !tx) return null;
+    const avg = v / tx, flag = tx >= FV_MIN_TX && avg < FV_AVG;
+    return { avg: Math.round(avg * 10) / 10, tx24: tx, flag, why: flag ? ['avg'] : [] };
+  }
+  function fakeVol(k, c) {
+    const s = chkOf(k), sv = s && s.fv, cv = fvPair(c || byKey[k] || byKey[String(k || '').toLowerCase()]);
+    if (cv && (!sv || !(sv.why || []).some((w) => w !== 'avg'))) return cv;   // live pair beats the server snapshot for avg trade
+    return sv || cv || null;
+  }
+  function bundleOf(k) { const s = chkOf(k); return s && s.b && s.b.flag ? s.b : null; }
+  function bundleText(b, en) {
+    if (!b) return '';
+    return b.why === 'funder' ? (en ? `bundle: ${b.n} wallets, 1 funder (${Math.round(b.pct)}%)` : `bundle: ${b.n} portfeli, 1 fundator (${Math.round(b.pct)}%)`)
+      : (en ? `bundle: ${b.n} fresh twin wallets (${Math.round(b.pct)}%)` : `bundle: ${b.n} świeżych bliźniaczych portfeli (${Math.round(b.pct)}%)`);
+  }
+  function fvText(f, en) {
+    if (!f || !f.flag) return '';
+    const w = f.why || [];
+    if (w.includes('avg') && f.avg != null) return en ? `fake volume (avg trade $${f.avg})` : `fejkowy wolumen (śr. trade $${f.avg})`;
+    if (w.includes('curve')) return en ? 'fake volume (1 buy filled the curve)' : 'fejkowy wolumen (1 kupno zapełniło krzywą)';
+    return en ? 'fake volume (dust trades)' : 'fejkowy wolumen (mikro-trade’y)';
+  }
+  function checkBadges(k, c) {
+    const en = window.KyvoI18n && window.KyvoI18n.isEn(), b = bundleOf(k), f = fakeVol(k, c);
+    let out = '';
+    if (b) out += ` <span class="holdbadge bundlebadge" translate="no" title="${esc(en ? 'Bundle / wallet-factory check: top 20 holders and who first funded them (public Solana RPC)' : 'Bundle / fabryka portfeli: top 20 holderów i kto ich pierwszy zasilił (publiczne RPC Solany)')}">⚠️ ${esc(bundleText(b, en))}</span>`;
+    if (f && f.flag) out += ` <span class="holdbadge fvbadge" translate="no" title="${esc(en ? `Avg trade = volume 24h / txns 24h (${f.tx24 || '?'} txns). Under $${FV_AVG} with ≥ ${FV_MIN_TX} txns usually means bots washing volume.` : `Śr. trade = wolumen 24h / transakcje 24h (${f.tx24 || '?'} tx). Poniżej $${FV_AVG} przy ≥ ${FV_MIN_TX} tx to zwykle boty kręcące wolumen.`)}">⚠️ ${esc(fvText(f, en))}</span>`;
+    return out;
+  }
+  const holdBadge0 = holdBadge;
+  holdBadge = function (k, hh, c) { return holdBadge0(k, hh) + checkBadges(k, c); };
+  window.KyvoChecks = { get: chkOf, load: loadChecks, bundle: bundleOf, fake: fakeVol, fvPair, bundleText, fvText, badges: checkBadges, events: () => (chkDoc && chkDoc.events) || [], doc: () => chkDoc };
+  window.KyvoHold = { get: holdOf, badge: (k, hh, c) => holdBadge(k, hh, c), text: holdText, load: loadHolders };
   function chainBadge(c) {
     const id = c.chainId || 'solana';
     return CHAIN_BADGE[id] || id.slice(0, 3).toUpperCase();
@@ -393,7 +446,7 @@
   }
   function chainNote(ch) {
     if (ch === 'robinhood') {
-      return 'Robinhood Chain nie ma publicznej bonding curve jak pump.fun czy four.meme, więc Final Stretch i Migrated są tu niedostępne. New Pairs, Good i Hot działają.';
+      return 'Robinhood Chain nie ma publicznej bonding curve jak pump.fun czy four.meme, więc Final Stretch i Migrated są tu niedostępne. Pulse (New Pairs) działa.';
     }
     if (ch === 'bsc') {
       return 'BSC: Final Stretch = four.meme · Migrated = PancakeSwap.';
@@ -1702,7 +1755,7 @@
     }
     const cl = window.KyvoInsights ? window.KyvoInsights.cloneCheck(c) : null;
     if (cl && cl.bigger) extra += (extra ? ' · ' : '') + `<span class="clonebadge" title="Jest większy coin o tym samym tickerze — sprawdź adres (CA)">⚠ możliwa kopia</span>`;
-    const hb = holdBadge(keyOf(c)).trim();   // v8.35 ⚠️ few holders
+    const hb = holdBadge(keyOf(c), null, c).trim();   // v8.35 ⚠️ few holders · v8.36 + bundle / fake volume
     const star = window.KyvoInsights && window.KyvoInsights.isWatched(keyOf(c)) ? '<span class="wstar" title="Na Twojej watchliście">★</span> ' : '';
     const badge = `<span class="cbadge c-${esc(c.chainId || 'solana')}">${esc(chainBadge(c))}</span>`;
     return `<div class="row" data-key="${esc(keyOf(c))}" role="button" tabindex="0">
@@ -1850,10 +1903,11 @@
     return 'Najnowsze pary';
   }
 
+  const DESK_ONLY_NEW = true;   // v8.36
   function renderPulseDesktop() {
     const news = listNew('new').slice(0, 40);
-    const stretchOk = chainSupportsStretch(activeChain);
-    const migrOk = chainSupportsMigrated(activeChain);
+    const stretchOk = !DESK_ONLY_NEW && chainSupportsStretch(activeChain);
+    const migrOk = !DESK_ONLY_NEW && chainSupportsMigrated(activeChain);
     const stretch = stretchOk ? listStretch('stretch').slice(0, 40) : [];
     const migr = migrOk ? listMigrated('migrated').slice(0, 40) : [];
     document.body.classList.add('pulse-on');
@@ -1873,6 +1927,7 @@
         }
       </div>`;
     let html = col('New Pairs', news, newTip(), { showDex: true });
+    if (DESK_ONLY_NEW) { desk.innerHTML = html; wireRows(desk); return; }   // v8.36: Final Stretch / Migrated columns are gone
     if (stretchOk) {
       html += col('Final Stretch', stretch, stretchTip(), { showCurve: true });
     } else {
@@ -1891,6 +1946,7 @@
   function renderPulseMobile() {
     document.body.classList.remove('pulse-on');
     $('#pulseDesk').innerHTML = '';
+    mobilePulseTab = 'new';   // v8.36: Final Stretch / Migrated are gone from the UI -> New Pairs only
     if (mobilePulseTab === 'stretch') {
       if (!chainSupportsStretch(activeChain)) {
         renderList([], 'Final Stretch', 'Niedostępne na tym chainie', {
@@ -1925,7 +1981,7 @@
     } else {
       renderList(listNew('new'), 'New Pairs', newTip(), {
         filtTab: 'new',
-        swipeTabs: true,
+        swipeTabs: false,   // v8.36: the New / Final Stretch / Migrated switch is gone
         rowOpts: { showDex: true },
         footnote: qualityNote('new'),
       });
@@ -2748,11 +2804,16 @@
     $('#' + (map[which] || 's-list')).classList.add('on');
     $$('#seg button').forEach((b) => b.classList.toggle('on', b.dataset.view === (which === 'coin' ? view : which === 'trader' || which === 'tracker' ? 'rank' : which === 'search' ? 'hot' : which)));
     if (which === 'gta') { const gb = document.querySelector('#seg button[data-view="gta"]'); try { if (gb) gb.scrollIntoView({ inline: 'center', block: 'nearest' }); } catch (e) {} }   // v8.30: the 🎮 GTA 6 button sits off-screen on a phone
-    const tabMap = { gold: 'gold', runner: 'runner', runner2: 'runner', gta: 'hot', track: 'hot', pulse: 'hot', hot: 'hot', good: 'hot', new: 'hot', stretch: 'hot', migrated: 'hot', boosted: 'hot', search: 'search', viral: 'viral', tweets: 'viral', watch: 'hot', more: 'profil', rank: 'rank', trader: 'rank', tracker: 'rank', journal: 'profil', profil: 'profil', help: 'profil', legal: 'profil', login: 'profil', premium: 'profil', kontakt: 'profil' };
+    const tabMap = { gold: 'gold', runner: 'runner', runner2: 'runner', gta: 'hot', track: 'hot', pulse: 'hot', hot: 'hot', good: 'hot', new: 'hot', stretch: 'hot', migrated: 'hot', boosted: 'hot', search: 'search', viral: 'viral', tweets: 'viral', watch: 'watch', more: 'profil', rank: 'rank', trader: 'rank', tracker: 'rank', journal: 'profil', profil: 'profil', help: 'profil', legal: 'profil', login: 'profil', premium: 'profil', kontakt: 'profil' };
     $$('.tb button').forEach((b) => b.classList.toggle('on', b.dataset.tab === (tabMap[which] || 'hot')));
   }
 
+  /* v8.36: Hot, Good, New and Boosted are gone from the UI (nav, More, links). Their data is still built (Pulse, pushes, Kyvo Check
+     use it); old links / pushes like #good or #hot just open Pulse. */
+  const GONE_TABS = ['hot', 'good', 'new', 'boosted', 'gold', 'stretch', 'migrated'];   // v8.36: + 🥇 Gold, Final Stretch, Migrated
+  const GONE_RE = /^#(hot|good|new|boosted|gold|stretch|migrated)(\/|$)/;
   function setView(v, arg) {
+    if (GONE_TABS.includes(v)) { v = 'pulse'; mobilePulseTab = 'new'; if (GONE_RE.test(location.hash)) history.replaceState(null, '', '#pulse'); }
     view = v; try { updatePulseHero(); } catch (e) {} // v8.14.1 chrome hero on Pulse
     if (['help', 'legal', 'login', 'premium', 'kontakt'].includes(v)) {
       view = v;
@@ -2929,8 +2990,17 @@
     location.hash = 'search/' + encodeURIComponent(q);
     const list = await searchDex(q);
     for (const c of list) byKey[keyOf(c)] = c;
+    // v8.36 🛡️ a pasted CA -> the coin on top with a big "Pilnuj tego coina" button (watchlist + guard alerts in one tap)
+    const qa = q.trim(), isCa = /^(0x[0-9a-fA-F]{40}|[1-9A-HJ-NP-Za-km-z]{32,44})$/.test(qa);
+    const caHit = isCa ? list.find((c) => String(c.address).toLowerCase() === qa.toLowerCase()) || (list.length === 1 ? list[0] : null) : null;
+    const caCard = caHit && window.KyvoInsights && window.KyvoInsights.guardBtnHtml
+      ? `<div class="card ca-hit"><div class="ca-hit-h">🔎 ${esc(window.KyvoI18n && window.KyvoI18n.isEn() ? 'Coin for this CA' : 'Coin dla tego CA')}</div>
+           <div style="padding:0 0 2px">${coinRow(caHit)}</div>
+           ${window.KyvoInsights.guardBtnHtml(caHit)}
+           <a class="pill ca-open" href="#coin/${esc(encodeURIComponent(keyOf(caHit)))}">${esc(window.KyvoI18n && window.KyvoI18n.isEn() ? '🧪 Open Kyvo Check' : '🧪 Otwórz Kyvo Check')}</a></div>`
+      : '';
     body.innerHTML = list.length
-      ? `<div class="h">Wyniki <span class="badge live">LIVE</span> · ${esc(CHAIN_LABEL[activeChain])}</div>
+      ? `${caCard}<div class="h">Wyniki <span class="badge live">LIVE</span> · ${esc(CHAIN_LABEL[activeChain])}</div>
          <div class="sub">Wyniki dla „${esc(q)}” (także literówki)</div>
          <div class="card" style="padding:4px 10px">${list.map((c) => coinRow(c)).join('')}</div>`
       : `<div class="empty">Nic nie znaleziono dla „${esc(q)}” (${esc(CHAIN_LABEL[activeChain])})</div>`;
@@ -3095,11 +3165,8 @@
     const k = keyOf(c), out = [];
     const has = (l) => l.some((x) => keyOf(x) === k);
     try {
-      if (has(listGood())) out.push('good');
       if (has(listNew('new'))) out.push('new');
-      if (has(listStretch('stretch'))) out.push('stretch');
-      if (has(listMigrated('migrated'))) out.push('migrated');
-      if (has(listHot())) out.push('hot');
+      // v8.36: Final Stretch / Migrated tabs are gone -> no chips for them
     } catch (e) {}
     return out;
   }
@@ -3145,6 +3212,7 @@
   });
   // v8.7: a cold start with a deep link (#watch, #coin/…, #tweets — e.g. from a push notification) used to land on Pulse,
   // because the first live render set location.hash = 'pulse' before this route ran. Restore the boot hash unless the user navigated.
+  if (GONE_RE.test(location.hash)) { try { history.replaceState(null, '', '#pulse'); } catch (e) {} }   // v8.36 removed tabs (incl. #gold/<ca>) -> Pulse
   const bootHash = location.hash;
   let userNav = false;
   document.addEventListener('click', () => { userNav = true; }, { once: true, capture: true });
@@ -3154,8 +3222,8 @@
     try { updateRunnerBadge(); } catch (e) {}
   });
   setInterval(() => refresh(), REFRESH_MS);
-  const holdRefresh = () => { const was = holdDoc && holdDoc.updated_at; loadHolders().then(() => { if (holdDoc && holdDoc.updated_at !== was && ['hot', 'good', 'new', 'stretch', 'migrated', 'boosted', 'runner', 'runner2', 'track', 'watch'].includes(view)) keepUi(() => setView(view)); }); };
-  holdRefresh(); setInterval(holdRefresh, 150e3);   // v8.35 👥
+  const holdRefresh = () => { const was = (holdDoc && holdDoc.updated_at) + '|' + (chkDoc && chkDoc.updated_at); Promise.all([loadHolders(), loadChecks()]).then(() => { try { window.KyvoInsights && window.KyvoInsights.onChecks && window.KyvoInsights.onChecks(chkDoc); } catch (e) {} if ((holdDoc && holdDoc.updated_at) + '|' + (chkDoc && chkDoc.updated_at) !== was && ['hot', 'good', 'new', 'stretch', 'migrated', 'boosted', 'runner', 'runner2', 'track', 'watch'].includes(view)) keepUi(() => setView(view)); }); };
+  holdRefresh(); setInterval(holdRefresh, 150e3);   // v8.35 👥 · v8.36 🧪 coin checks
   // v8.33: back from the background with old data -> refresh now (timers are paused while the phone sleeps)
   document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - lastFetch > REFRESH_MS) refresh(); });
   window.addEventListener('pageshow', (ev) => { if (ev.persisted && Date.now() - lastFetch > REFRESH_MS) refresh(); });

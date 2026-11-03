@@ -109,7 +109,9 @@
         <div class="cp-mc"><div><small>MC</small> <b id="cpMc">${D.fmtUsd(c.mcap)}</b></div>
           <span class="cp-pct ${(c.change.h24 || 0) >= 0 ? 'up' : 'dn'}">${(c.change.h24 || 0) >= 0 ? '↑' : '↓'} ${E(D.fmtPct(c.change.h24).replace(/^[+-]/, ''))} <small>24h</small></span></div>
       </div>
-      <div class="cp-hold" id="cpHoldLine"><span class="mut">${L('Sprawdzam holderów…', 'Checking holders…')}</span></div>`;
+      <div class="cp-hold" id="cpHoldLine"><span class="mut">${L('Sprawdzam holderów…', 'Checking holders…')}</span></div>
+      <div class="cp-sum" id="cpSum" translate="no"></div>
+      ${window.KyvoInsights && window.KyvoInsights.guardBtnHtml ? window.KyvoInsights.guardBtnHtml(c) : ''}`;   // v8.36 🛡️ Pilnuj tego coina
   }
   function tabsHtml() {
     const t = localStorage.getItem(TAB_KEY) || 'callouts';
@@ -205,6 +207,47 @@
       : `<div class="cp-holdok mut" translate="no">👥 ${facts} ${L('(bez puli / LP)', '(pools / LP excluded)')}</div>`;
   }
   function keyOfC(c) { return (c.chainId || 'solana') + ':' + (c.address || ''); }
+  /* v8.36 📝 plain-language summary (template, no AI): age · holders / top 10 / top 1 · bundle · avg trade · liquidity · news */
+  function summaryHtml(c) {
+    const h = rcHold(curRc) || (window.KyvoHold && window.KyvoHold.get(keyOfC(c)));
+    const KC = window.KyvoChecks, k = keyOfC(c), b = KC && KC.bundle(k), fv = KC && KC.fake(k, c);
+    const n = (curInfo && curInfo.holders && curInfo.holders.count) || (curRc && curRc.totalHolders) || (h && h.h) || null;
+    const P = [], bad = [], ok = [];
+    const ageH = c.pairCreatedAt ? (Date.now() - c.pairCreatedAt) / 3600e3 : null;
+    if (ageH != null) P.push(ageH < 1 ? L(`$${E(c.symbol)} to bardzo świeży coin (${Math.max(1, Math.round(ageH * 60))} min) — większość takich szybko traci wartość.`, `$${E(c.symbol)} is a very fresh coin (${Math.max(1, Math.round(ageH * 60))} min) — most of these lose value fast.`)
+      : L(`$${E(c.symbol)} istnieje od ${E(D.ageFrom(c.pairCreatedAt))}.`, `$${E(c.symbol)} has existed for ${E(D.ageFrom(c.pairCreatedAt))}.`));
+    if (ageH != null && ageH < 1) bad.push('age');
+    if (n != null || (h && h.t10 != null)) {
+      const few = n != null && n < 300, conc = h && ((h.t10 != null && h.t10 > 30) || (h.t1 != null && h.t1 > 10));
+      let t = n != null ? L(`Ma ${kfmt(n)} holderów`, `It has ${kfmt(n)} holders`) : L('Holderzy', 'Holders');
+      if (h && h.t10 != null) t += L(`, a top 10 portfeli trzyma ${E(h.t10)}% podaży`, `, and the top 10 wallets hold ${E(h.t10)}% of supply`) + (h.t1 != null ? L(` (największy ${E(h.t1)}%)`, ` (biggest ${E(h.t1)}%)`) : '');
+      t += few || conc ? L(' — to mało i skupione w kilku rękach, więc kilka osób może zrzucić cenę.', ' — that is few and concentrated, so a handful of people can dump the price.') : L(' — rozkład wygląda zdrowo.', ' — the spread looks healthy.');
+      P.push(t); (few || conc ? bad : ok).push('holders');
+    }
+    if (b) { P.push(b.why === 'funder' ? L(`Uwaga: ${b.n} z top 20 holderów zasilił ten sam mały portfel (razem ${Math.round(b.pct)}%) — wygląda na bundle jednej osoby.`, `Careful: ${b.n} of the top 20 holders were funded by the same small wallet (${Math.round(b.pct)}% together) — looks like one person's bundle.`)
+      : L(`Uwaga: ${b.n} świeżych portfeli trzyma prawie równe ilości (razem ${Math.round(b.pct)}%) — wygląda na bundle.`, `Careful: ${b.n} fresh wallets hold almost equal amounts (${Math.round(b.pct)}% together) — looks like a bundle.`)); bad.push('bundle'); }
+    else if (KC && KC.get(k) && KC.get(k).b) { P.push(L('Nie widzimy bundla w top 20 holderach.', 'We see no bundle among the top 20 holders.')); ok.push('bundle'); }
+    if (fv && fv.avg != null && fv.tx24) {
+      if (fv.flag) { P.push(L(`Średni trade to tylko $${fv.avg} przy ${fv.tx24} transakcjach w 24h — wolumen wygląda na kręcony przez boty.`, `The average trade is only $${fv.avg} over ${fv.tx24} trades in 24h — the volume looks bot-made.`)); bad.push('fv'); }
+      else { P.push(L(`Średni trade $${fv.avg} (${fv.tx24} transakcji w 24h) — wolumen wygląda na prawdziwy.`, `Average trade $${fv.avg} (${fv.tx24} trades in 24h) — the volume looks real.`)); ok.push('fv'); }
+    } else if (fv && fv.flag) { P.push(L('Wolumen wygląda na sztuczny (mikro-trade’y albo jedno kupno zapełniło krzywą).', 'The volume looks artificial (dust trades or one buy filled the curve).')); bad.push('fv'); }
+    if (c.onCurve && !c.migrated) P.push(L('Coin jest jeszcze na krzywej pump.fun — płynność jest w krzywej.', 'The coin is still on the pump.fun curve — liquidity sits in the curve.'));
+    else if (c.liquidity != null) {
+      const r = c.mcap > 0 ? c.liquidity / c.mcap : null, low = c.liquidity < 20000 || (r != null && r < 0.03);
+      P.push(L(`Płynność ${D.fmtUsd(c.liquidity)}${r != null ? ` (${(r * 100).toFixed(1)}% MC)` : ''}${low ? ' — mało, przy sprzedaży łatwo o duży poślizg.' : ' — wystarczy na normalne wejście i wyjście.'}`,
+        `Liquidity ${D.fmtUsd(c.liquidity)}${r != null ? ` (${(r * 100).toFixed(1)}% of MC)` : ''}${low ? ' — thin, selling can slip a lot.' : ' — enough for a normal entry and exit.'}`));
+      (low ? bad : ok).push('liq');
+    }
+    const G = window.KyvoGold, gc = G && G._feed && G._feed() && (G._feed().cards || []).find((x) => String(x.k).toLowerCase() === k.toLowerCase());
+    const nw = gc && gc.news, nEv = KC ? KC.events().filter((e) => e.t === 'news' && String(e.k).toLowerCase() === k.toLowerCase()) : [];
+    if (nw && nw.n24 != null) P.push(nw.n24 ? L(`W Google News: ${nw.n24} ${nw.n24 === 1 ? 'artykuł' : 'artykułów'} z 24h.`, `Google News: ${nw.n24} article${nw.n24 === 1 ? '' : 's'} in 24h.`) : L('Brak artykułów w Google News z 24h.', 'No Google News articles in 24h.'));
+    else if (nEv.length) P.push(L(`Nowy artykuł: „${E(String(nEv[0].pl || '').split('— ').slice(1).join('— '))}”.`, `New article: "${E(String(nEv[0].en || '').split('— ').slice(1).join('— '))}".`));
+    if (P.length < 2) return '';
+    const v = bad.length >= 3 ? L('Wniosek: dużo czerwonych flag — wysokie ryzyko.', 'Bottom line: many red flags — high risk.')
+      : bad.length ? L(`Wniosek: ${bad.length} ${bad.length === 1 ? 'sygnał ostrzegawczy' : 'sygnały ostrzegawcze'} — uważaj i wchodź mniejszą kwotą.`, `Bottom line: ${bad.length} warning sign${bad.length === 1 ? '' : 's'} — be careful and size down.`)
+      : L('Wniosek: w tych danych nie widać czerwonych flag (to nie gwarancja).', 'Bottom line: no red flags in this data (not a guarantee).');
+    return `<p class="cp-sum-p"><b>📝 ${L('W skrócie', 'In short')}:</b> ${P.join(' ')} <b>${v}</b> <small class="mut">${L('Szablon z danych publicznych, nie porada finansowa.', 'Template from public data, not financial advice.')}</small></p>`;
+  }
   function holdLine(c, root) {
     const el = root.querySelector('#cpHoldLine'), hd = root.querySelector('#cpHolders');
     if (!el) return;
@@ -213,6 +256,9 @@
     const kh = kolHolders(c);
     const who = kh.slice(0, 4).map((k) => av(k.img, k.name, 'xs')).join('');
     const hs = n ? `<b>${kfmt(n)}</b> holders` : L('holderzy: —', 'holders: —');
+    const sm = root.querySelector('#cpSum'); if (sm) { try { sm.innerHTML = summaryHtml(c); } catch (e) { sm.innerHTML = ''; } }   // v8.36 📝
+    const G = window.KyvoGold;
+    if (sm && G && G._feed && !G._feed() && G.loadFeed && !holdLine._g) { holdLine._g = 1; Promise.resolve(G.loadFeed()).then(() => { if (curC === c && sm.isConnected) { try { sm.innerHTML = summaryHtml(c); } catch (e) {} } }).catch(() => {}); }
     el.innerHTML = holdWarnHtml(c) + `${hs}, ${kh.length ? `<span class="cp-kav">${who}</span><b>${kh.length}</b> ${kh.length === 1 ? L('śledzony KOL trzyma', 'tracked KOL holds') : L('KOL-i trzyma', 'KOLs hold')} <span class="mut">(${E(kh.slice(0, 3).map((k) => k.name).join(', '))}${kh.length > 3 ? '…' : ''})</span>` : `<span class="mut">${L('żaden śledzony KOL nie trzyma', 'no tracked KOL holds it')}</span>`}`;
   }
 

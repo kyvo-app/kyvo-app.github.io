@@ -9,6 +9,9 @@ A coin enters Runner 2.0 only if it passes ALL v8.34 filters (72 h backtest, kyv
   * 1 h volume <= 1.5× MC  (churn / bots)
   * v8.35 👥 holders (data/holders.json, tools/holders.py — RugCheck, pools/LP/curve excluded): a coin flagged ⚠️ (holders < 300,
     top 10 > 30 %, top 1 > 10 %, dev rugged before, rugged) is NOT added; a Solana coin without holder data yet waits ≤ 15 min
+  * v8.36 🧪 bundle (data/coin_checks.json, tools/coin_checks.py — first funders of the top 20 holders, public Solana RPC): a coin
+    flagged ⚠️ bundle is NOT added (backtest on the 47 v8.34 entries: +$457 -> +$500, 1 coin dropped, it lost −43 %). No waiting:
+    the RPC is slow (1–3 coins / run), so a coin without a bundle check yet goes in as before; one flagged later only gets the badge.
 The plain 🏃 Runner list, its pushes and ⚡ Early pushes are NOT changed by this (v8.33 behaviour).
 Entry = price / MC at the moment the coin passed (validated like pairs.js entryCheck: MC < $1K or price vs MC off > 5× -> not added).
 Output data/runner2.json (the app's 🚀 Runner 2.0 tab, ~72 h) — tools/kyvo_push.py pushes new entries (type 'runner2', tag runner2).
@@ -87,6 +90,7 @@ def main() -> int:
     ap.add_argument("--out", type=Path, default=Path("data/runner2.json"))
     ap.add_argument("--state", type=Path, default=Path(".kyvo_push/runner2_state.json"))
     ap.add_argument("--holders", type=Path, default=Path("data/holders.json"), help="v8.35 holder check (tools/holders.py)")
+    ap.add_argument("--checks", type=Path, default=None, help="v8.36 🧪 bundle check (tools/coin_checks.py -> data/coin_checks.json)")
     ap.add_argument("--no-net", action="store_true", help="no DexScreener (tests): no re-check, no live price update")
     ap.add_argument("--dry-run", action="store_true", help="print only, write nothing")
     a = ap.parse_args()
@@ -106,8 +110,13 @@ def main() -> int:
         t0 = hp.setdefault(k, now)
         if now - t0 < HOLD_WAIT_S: skipped["holders_wait"] = skipped.get("holders_wait", 0) + 1; return False
         return True
+    CB = {x.lower(): v for x, v in ((load(a.checks, {}) or {}).get("coins") or {}).items()} if a.checks else {}
+    def bundled(k) -> bool:
+        """v8.36: ⚠️ bundle / wallet factory (coin_checks.py) -> never added."""
+        return bool(((CB.get(k) or {}).get("b") or {}).get("flag"))
     def add(k, f, px, mc, h1, age_h, vol1h, how):
         if not entry_ok(px, mc): skipped["entry"] = skipped.get("entry", 0) + 1; return
+        if bundled(k): q.pop(k, None); skipped["bundle"] = skipped.get("bundle", 0) + 1; return
         if not hold_ok(k):
             if k in hp and k not in q:   # v8.35: waiting for holder data -> queue it (due on the next scan, re-checked live like a young coin)
                 q[k] = {"t": int(now - F["recheckMinS"]), "px0": px, "mc0": mc, "f": {x: f.get(x) for x in ("k", "sym", "name", "chain", "addr", "pair", "img", "at", "px0")}, "src": f.get("src") or src_of(f), "hw": 1}

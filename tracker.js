@@ -27,7 +27,7 @@
   function save(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
   const list = () => st().wallets;
   const isFollowed = (a) => list().some((w) => w.address === a);
-  const limit = () => (isPrem() ? Infinity : CFG.freeFollows);
+  const limit = () => (isPrem() ? Infinity : CFG.freeFollows);   // v8.36 👀 Moi traderzy: Premium stays unlimited (≥ 60 like Orangie), free 3
   const validAddr = (a) => /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a);
   function looksSecret(a) {
     const t = String(a || '').trim();
@@ -175,6 +175,41 @@
     } finally { cust.busy = false; cust.at = Date.now(); cust.ok = ok; }
   }
 
+  /* ---------- v8.36 🔔 Moi traderzy — alert when a followed wallet BUYS (this browser only) ----------
+     Ranking wallets: data/tracker_feed.json (server, every ~4 min) checked every 60 s while Kyvo is open; pasted wallets: only while
+     the Tracker view is open (browser RPC). In-app toast + system notification (service worker) — no closed-app push: OneSignal
+     Free has 6 data tags per user and no "contains" filter, so a push only to the users who follow wallet X is not possible for free. */
+  const AKEY = 'kyvo_trk_alerts_v1';
+  function ast() { try { return Object.assign({ on: true, last: 0 }, JSON.parse(localStorage.getItem(AKEY) || '{}') || {}); } catch (e) { return { on: true, last: 0 }; } }
+  function asave(a) { try { localStorage.setItem(AKEY, JSON.stringify(a)); } catch (e) {} }
+  let aBusy = false;
+  async function alertTick() {
+    if (aBusy || !CFG.enabled) return;
+    const ws = list(), a = ast();
+    if (!a.on || !ws.length) return;
+    aBusy = true;
+    try {
+      await loadFeed(false);
+      const fol = new Set(ws.map((w) => w.address));
+      const tr = ((feed && feed.trades) || []).concat([...cust.trades.values()]).filter((t) => t.buy && fol.has(t.w));
+      if (!a.last) { a.last = Date.now() / 1000; asave(a); return; }   // first run = baseline, no alerts for old buys
+      const nw = tr.filter((t) => t.at > a.last).sort((x, y) => x.at - y.at);
+      if (!nw.length) return;
+      a.last = Math.max(...nw.map((t) => t.at)); asave(a);
+      const rec = nw.filter((t) => Date.now() / 1000 - t.at < 3600);
+      const N = (window.KyvoInsights && window.KyvoInsights.notify) || ((t) => toast('🔔 ' + t));
+      const name = (t) => walletInfo(t.w).name, sym = (t) => '$' + (coinOf(t.m).s || short(t.m));
+      if (rec.length > 3) { N(L(`👀 Moi traderzy: ${rec.length} nowych zakupów`, `👀 My traders: ${rec.length} new buys`), rec.slice(-4).map((t) => `${name(t)} → ${sym(t)}`).join(' · '), 'solana:' + rec[rec.length - 1].m); return; }
+      for (const t of rec) N(L(`👀 ${name(t)} kupił ${sym(t)}`, `👀 ${name(t)} bought ${sym(t)}`), `${t.usd ? usd(t.usd) : t.sol + ' SOL'} · MC ${mcS(mcAt(t))} · Kyvo · ${L('Moi traderzy', 'My traders')}`, 'solana:' + t.m);
+    } catch (e) {} finally { aBusy = false; }
+  }
+  function alertCardHtml() {
+    const a = ast();
+    return `<div class="card trk-al" style="font-size:12.5px;line-height:1.5"><label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="trkAlertOn" ${a.on ? 'checked' : ''}><span><b>🔔 ${L('Alert, gdy moi traderzy kupią', 'Alert when my traders buy')}</b><br><small class="mut">${L(
+      'Działa, gdy Kyvo jest otwarte (karta w tle też): portfele z Rankingu co ~4 min (dane z serwera), wklejone adresy — gdy ten widok jest otwarty. Push przy zamkniętej apce tylko dla Ciebie nie jest możliwy za darmo (limit tagów OneSignal Free) — 🏃 Runners mają push „≥3 top traderów kupuje”.',
+      'Works while Kyvo is open (a background tab too): Ranking wallets every ~4 min (server data), pasted addresses — while this view is open. A closed-app push just for you is not possible for free (OneSignal Free tag limit) — 🏃 Runners get the "≥3 top traders buy" push.')}</small></span></label></div>`;
+  }
+
   /* ---------- view ---------- */
   let root = null, tab = localStorage.getItem('kyvo_trk_tab') || 'mine', timer = null, adding = false;
   function coinOf(m) { return (feed && feed.coins && feed.coins[m]) || cust.coins[m] || {}; }
@@ -282,7 +317,7 @@
       <div class="h">👀 Tracker <span class="badge live">live</span></div>
       <div class="sub">${L('Obserwuj portfele top traderów (kolscan + pump.fun) albo wklej dowolny publiczny adres Solany i patrz, co kupują i sprzedają.', 'Follow top traders’ wallets (kolscan + pump.fun) or paste any public Solana address and see what they buy and sell.')}</div>
       <div class="card trk-me">
-        <div class="trk-meh"><b>${L('Obserwowane', 'Following')} ${ws.length}${lim === Infinity ? '' : '/' + lim}</b>
+        <div class="trk-meh"><b>${L('Obserwowane', 'Following')} ${ws.length}/${lim === Infinity ? "∞" : lim}</b>
           <span class="mut">${prem ? (isRun() ? '🏃 Runners · ' + L('bez limitu + push', 'unlimited + push') : '✦ Premium · ' + L('bez limitu', 'unlimited') + ` · <a href="#premium" class="trk-up">🏃 Runners: + push</a>`) : L('Darmowy plan', 'Free plan') + ` · <a href="#premium" class="trk-up">✦ Premium: ${L('bez limitu', 'unlimited')} · 🏃 Runners: + push</a>`}</span>
           <button type="button" class="pill" id="trkAdd">${adding ? '×' : '+ ' + L('Dodaj adres', 'Add address')}</button></div>
         ${adding ? `<form class="trk-form" id="trkForm" autocomplete="off">
@@ -294,8 +329,9 @@
         ${ws.length ? `<div class="trk-chips">${ws.map((w) => `<span class="trk-chip">${av(walletInfo(w.address), 20)}<b>${E(w.name)}</b>${tracked.has(w.address) ? '' : `<small title="${L('Czytane z publicznego RPC Solany w przeglądarce', 'Read from a public Solana RPC in your browser')}">RPC${cust.stat[w.address] && !cust.stat[w.address].ok ? ' · ' + L('brak udanych tx', 'no successful tx') : ''}</small>`}<a href="https://pump.fun/profile/${E(w.address)}" target="_blank" rel="noopener" title="pump.fun">↗</a><button type="button" data-unf="${E(w.address)}" aria-label="${L('Przestań obserwować', 'Unfollow')}">×</button></span>`).join('')}</div>`
           : `<div class="mut" style="font-size:12px;margin-top:6px">${L('Nie obserwujesz jeszcze nikogo — zacznij od sugerowanych top traderów poniżej.', 'You are not following anyone yet — start with the suggested top traders below.')}</div>`}
       </div>
+      ${ws.length ? alertCardHtml() : ''}
       <div class="rk-per trk-tabs" id="trkTabs">
-        <button type="button" data-tt="mine" class="${tab === 'mine' ? 'on' : ''}">👀 ${L('Obserwowani', 'Following')} (${mineT.length})</button>
+        <button type="button" data-tt="mine" class="${tab === 'mine' ? 'on' : ''}">👀 ${L('Moi traderzy', 'My traders')} (${mineT.length})</button>
         <button type="button" data-tt="top" class="${tab === 'top' ? 'on' : ''}">🏆 ${L('Top traderzy', 'Top traders')} (${(feed && feed.wallets || []).length})</button>
       </div>
       ${cls.length ? `<div class="trk-h">👥 ${L('Wspólne zakupy (≥2 portfele w 30 min)', 'Cluster buys (≥2 wallets within 30 min)')}</div>${cls.map((c) => clusterHtml(c, tab === 'mine')).join('')}` : ''}
@@ -321,6 +357,8 @@
     };
     root.querySelectorAll('[data-unf]').forEach((b) => (b.onclick = () => { unfollow(b.dataset.unf); render(); }));
     root.querySelectorAll('#trkTabs [data-tt]').forEach((b) => (b.onclick = () => { tab = b.dataset.tt; localStorage.setItem('kyvo_trk_tab', tab); render(); }));
+    const ta = root.querySelector('#trkAlertOn');
+    if (ta) ta.onchange = () => { const a = ast(); a.on = ta.checked; a.last = Date.now() / 1000; asave(a); toast(ta.checked ? L('🔔 Alert, gdy moi traderzy kupią', '🔔 Alerts when my traders buy') : L('Alerty traderów wyłączone', 'Trader alerts off')); };
   }
   async function tick(force) {
     if (!root || !root.isConnected || document.hidden) return;
@@ -338,6 +376,6 @@
     clearInterval(timer);
     timer = setInterval(() => { if (!root || !root.isConnected || !root.closest('.scr.on')) { clearInterval(timer); timer = null; return; } tick(false); }, 20000);
   }
-  function init(deps) { D = deps || {}; }
+  function init(deps) { D = deps || {}; setTimeout(alertTick, 8000); setInterval(alertTick, 60000); }   // v8.36 🔔 Moi traderzy alerts (static file, 1 fetch / min, only with ≥1 followed wallet)
   window.KyvoTracker = { init, show, btnHtml, isFollowed, follow, unfollow, toggle, list, enabled: () => !!CFG.enabled, _parseSwap: parseSwap, _looksSecret: looksSecret };
 })();

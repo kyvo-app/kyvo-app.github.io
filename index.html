@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Kyvo">
 <meta name="description" content="Kyvo — smart money i viralowe memecoiny w jednym miejscu. Live Pulse z Solany, BSC i Robinhood Chain, ranking traderów, Viral z X i Twój PnL. Za darmo, bez konta. To nie jest porada finansowa.">
-<meta name="kyvo-build" content="KYVO_LIVE_v8_35">
+<meta name="kyvo-build" content="KYVO_LIVE_v8_36">
 <meta name="color-scheme" content="dark">
 <meta name="format-detection" content="telephone=no">
 <link rel="canonical" href="https://kyvo-app.github.io/">
@@ -136,7 +136,7 @@ mark{background:#8B5CF633;color:#fff;border-radius:4px;padding:0 3px}
 
 .pulse{display:none}
 @media(min-width:900px){
-  .pulse{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:12px 14px}
+  .pulse{display:grid;grid-template-columns:1fr;max-width:860px;margin:0 auto;gap:10px;padding:12px 14px}   /* v8.36: New Pairs only (Final Stretch / Migrated gone) */
   .pulse .pcol{background:var(--card);border-radius:16px;padding:10px;box-shadow:inset 0 0 0 1px var(--line);min-height:420px;max-height:calc(100vh - 220px);overflow:auto}
   .pulse .pcol h3{font-size:13px;margin:0 0 8px;display:flex;align-items:center;gap:6px}
   body.pulse-on #s-list .pg-list{display:none}
@@ -899,14 +899,21 @@ body.pulse-on .kyhero-slot{max-width:1400px;margin:0 auto}
 .pf-xl{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 @media(max-width:420px){.trk-f.rk{width:26px}.rk .rk-x{display:none}.rk-row{gap:6px}.rk-badges .srcb{font-size:8.5px;padding:0 3px}}
 </style>
-<link rel="stylesheet" href="journal.css?v=8.35"><!-- 📓 Journal -->
+<link rel="stylesheet" href="journal.css?v=8.36"><!-- 📓 Journal -->
 <link rel="preload" href="fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/space-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="theme.css?v=8.35"><!-- v8.15 Obsidian design layer -->
+<link rel="stylesheet" href="theme.css?v=8.36"><!-- v8.15 Obsidian design layer -->
 <style>
 /* v8.35 👥 ⚠️ few holders / concentration badge (data/holders.json) */
 .holdbadge{display:inline-block;margin:0 4px 0 0;padding:1px 6px;border-radius:999px;font-size:10.5px;font-weight:700;line-height:1.5;color:#fde68a;background:#f59e0b22;box-shadow:inset 0 0 0 1px #f59e0b66;white-space:nowrap;vertical-align:1px}
 .g-tags .holdbadge{margin:0 4px 4px 0;font-size:11px}
+.bundlebadge{color:#fecaca;background:#ef444422;box-shadow:inset 0 0 0 1px #ef444466}   /* v8.36 🧪 */
+.fvbadge{color:#e9d5ff;background:#a855f722;box-shadow:inset 0 0 0 1px #a855f766}
+.cp-sum-p{margin:6px 0 2px;padding:9px 11px;border-radius:12px;font-size:12.5px;line-height:1.5;background:#ffffff08;box-shadow:inset 0 0 0 1px #ffffff14}
+.gbtn-wrap{margin:10px 0}.gbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:13px 14px;border-radius:14px;font:800 15px/1.2 system-ui;color:#fff;background:linear-gradient(135deg,#16a34a,#0ea5e9);box-shadow:0 6px 18px #16a34a44}
+.gbtn.on{background:#0f2a1a;color:#4ade80;box-shadow:inset 0 0 0 1px #4ade8066}.gbtn .gbtn-stop{font-size:12px;font-weight:700;color:var(--mut);text-decoration:underline}
+.gbtn-sub{font-size:11.5px;color:var(--mut);margin-top:6px;line-height:1.45}.ca-hit{box-shadow:inset 0 0 0 1px #4ade8055}.ca-hit-h{font-weight:800;font-size:13px;margin-bottom:2px}.ca-open{display:inline-block;margin-top:2px;text-decoration:none}
+.cp-sum-p small{display:block;margin-top:3px;font-size:10.5px}
 .cp-holdwarn{margin:0 0 6px;padding:8px 10px;border-radius:12px;font-size:12px;line-height:1.4;color:#fde68a;background:#f59e0b1a;box-shadow:inset 0 0 0 1px #f59e0b55}
 .cp-holdok{margin:0 0 4px;font-size:11.5px}
 /* v8.34 🚀 Runner 2.0 tab */
@@ -943,12 +950,11 @@ body.pulse-on .kyhero-slot{max-width:1400px;margin:0 auto}
       <span class="mut" style="font-size:11px" id="clock">—</span>
     </div>
     <div class="search">
-      <input id="q" type="search" placeholder="Szukaj coina (nazwa / ticker / CA)…" autocomplete="off" enterkeyhint="search">
+      <input id="q" type="search" placeholder="Wklej CA, żeby sprawdzić coina" autocomplete="off" enterkeyhint="search">
     </div>
     <div class="chainsw" id="chainSwitch" aria-label="Chain"></div>
     <div class="seg" id="seg">
       <button data-view="pulse" class="on"><i class="sgi" data-i="pulse"></i>Pulse</button>
-      <button data-view="gold" class="seg-gold" translate="no" data-gold-ui><i class="sgi" data-i="gold"></i>Gold <span class="wcount" data-gold-count style="display:none"></span></button>
       <button data-view="tweets" class="seg-tweets" translate="no"><i class="sgi" data-i="tweet"></i>New Tweet</button>
       <button data-view="runner" class="seg-runner" translate="no"><i class="sgi" data-i="runner"></i>Runner <span class="wcount" data-runner-count style="display:none"></span></button>
       <button data-view="runner2" class="seg-runner2" translate="no"><span class="sge" aria-hidden="true">🚀</span>Runner 2.0</button><!-- v8.34 -->
@@ -956,12 +962,6 @@ body.pulse-on .kyhero-slot{max-width:1400px;margin:0 auto}
       <button data-view="track" class="seg-track"><i class="sgi" data-i="bars"></i>Wyniki</button>
       <button data-view="rank" class="seg-rank"><i class="sgi" data-i="rank"></i>Ranking</button>
       <button data-view="watch"><i class="sgi" data-i="star"></i>Watchlista <span class="wcount" data-watch-count style="display:none"></span></button>
-      <button data-view="hot"><i class="sgi" data-i="flame"></i>Hot</button>
-      <button data-view="good">Good</button>
-      <button data-view="new">New</button>
-      <button data-view="stretch">Final Stretch</button>
-      <button data-view="migrated">Migrated</button>
-      <button data-view="boosted">Boosted</button>
       <button data-view="viral"><i class="sgi" data-i="viral"></i>Viral z X</button>
       <button data-view="more">Więcej</button>
     </div>
@@ -997,45 +997,45 @@ body.pulse-on .kyhero-slot{max-width:1400px;margin:0 auto}
     <div><b>To nie jest porada finansowa. DYOR.</b> Memecoiny są bardzo ryzykowne — możesz stracić wszystko. Kyvo pokazuje tylko publiczne dane, nie trzyma Twoich środków i nigdy nie prosi o seed phrase ani klucz prywatny.</div>
     <div style="margin-top:6px">Dane: DexScreener, GeckoTerminal, publiczne RPC, Blockscout, Binance · treści X jako cytaty z linkiem · wykresy <a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView Lightweight Charts™</a>. Konto niewymagane, bez trackingu.</div>
     <div class="foot-links"><a href="#help">Jak korzystać</a><a href="#legal/regulamin">Regulamin</a><a href="#legal/prywatnosc">Prywatność</a><a href="#legal/zrodla">Źródła danych</a><a href="#legal/ryzyko">Ryzyko</a><a href="#premium">Premium</a><a href="#kontakt">Kontakt</a></div>
-    <div style="margin-top:6px;opacity:.55">Kyvo v8.35 <span id="mvpMarker" data-marker="KYVO_LIVE_v8_35" style="display:none">KYVO_LIVE_v8_35</span></div>
+    <div style="margin-top:6px;opacity:.55">Kyvo v8.36 <span id="mvpMarker" data-marker="KYVO_LIVE_v8_36" style="display:none">KYVO_LIVE_v8_36</span></div>
   </div>
 </div>
 
 <nav class="tb"><nav>
   <button data-tab="hot" class="on"><span>⚡</span>Pulse</button>
   <button data-tab="runner" class="tb-runner" translate="no"><span>🏃</span>Runner</button>
-  <button data-tab="gold" class="tb-gold" translate="no" data-gold-ui><span>🥇</span>Gold</button>
   <button data-tab="viral"><span>𝕏</span>Viral</button>
   <button data-tab="rank" class="tb-center" aria-label="Ranking traderów"><span>🏆</span>Ranking</button>
+  <button data-tab="watch"><span>⭐</span>Watchlista</button><!-- v8.36: replaces 🥇 Gold; 3 | Ranking | 3 -->
   <button data-tab="search"><span>⌕</span>Szukaj</button>
   <button data-tab="profil"><span>👤</span>Profil</button>
 </nav></nav>
 <div class="toast" id="toast"></div>
-<script src="compat.js?v=8.35"></script>
-<script src="pairs.js?v=8.35"></script>
-<script src="i18n.js?v=8.35" defer></script>
-<script src="auth-config.js?v=8.35" defer></script>
-<script src="premium-config.js?v=8.35" defer></script>
-<script src="contact-config.js?v=8.35" defer></script>
-<script src="push-config.js?v=8.35" defer></script>
-<script src="vendor/kyvo-crypto/kyvo-crypto.min.js?v=8.35" defer></script>
+<script src="compat.js?v=8.36"></script>
+<script src="pairs.js?v=8.36"></script>
+<script src="i18n.js?v=8.36" defer></script>
+<script src="auth-config.js?v=8.36" defer></script>
+<script src="premium-config.js?v=8.36" defer></script>
+<script src="contact-config.js?v=8.36" defer></script>
+<script src="push-config.js?v=8.36" defer></script>
+<script src="vendor/kyvo-crypto/kyvo-crypto.min.js?v=8.36" defer></script>
 <script src="vendor/lightweight-charts/lightweight-charts.standalone.production.js" defer></script>
-<script src="chart.js?v=8.35" defer></script>
-<script src="evm.js?v=8.35" defer></script>
-<script src="profile.js?v=8.35" defer></script>
-<script src="launch.js?v=8.35" defer></script>
-<script src="auth.js?v=8.35" defer></script>
-<script src="insights.js?v=8.35" defer></script>
-<script src="gold-rules.js?v=8.35" defer></script>
-<script src="gold.js?v=8.35" defer></script>
-<script src="notify.js?v=8.35" defer></script>
-<script src="coinpage.js?v=8.35" defer></script>
-<script src="tracker.js?v=8.35" defer></script>
-<script src="fx.js?v=8.35" defer></script>
-<script src="share.js?v=8.35" defer></script>
-<script src="pnlcard.js?v=8.35" defer></script><!-- v8.20 🎴 Kreator P&L -->
-<script src="journal.js?v=8.35" defer></script>
-<script src="gta.js?v=8.35" defer></script><!-- v8.30 🎮 GTA 6 -->
-<script src="app.js?v=8.35" defer></script>
+<script src="chart.js?v=8.36" defer></script>
+<script src="evm.js?v=8.36" defer></script>
+<script src="profile.js?v=8.36" defer></script>
+<script src="launch.js?v=8.36" defer></script>
+<script src="auth.js?v=8.36" defer></script>
+<script src="insights.js?v=8.36" defer></script>
+<script src="gold-rules.js?v=8.36" defer></script>
+<script src="gold.js?v=8.36" defer></script>
+<script src="notify.js?v=8.36" defer></script>
+<script src="coinpage.js?v=8.36" defer></script>
+<script src="tracker.js?v=8.36" defer></script>
+<script src="fx.js?v=8.36" defer></script>
+<script src="share.js?v=8.36" defer></script>
+<script src="pnlcard.js?v=8.36" defer></script><!-- v8.20 🎴 Kreator P&L -->
+<script src="journal.js?v=8.36" defer></script>
+<script src="gta.js?v=8.36" defer></script><!-- v8.30 🎮 GTA 6 -->
+<script src="app.js?v=8.36" defer></script>
 </body>
 </html>

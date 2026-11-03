@@ -189,17 +189,34 @@
     else { try { rem = await remoteChecks(c); if (rem.srcs.length) remCache[ck] = { t: Date.now(), v: rem }; } catch (e) {} }
     return scoreOf(local.concat(rem.checks));
   }
+  // v8.36 🧪 bundle + fake volume in Kyvo Check (display only — the Good Coins / push scores keep using localChecks as before)
+  function extraChecks(c) {
+    const out = [], KC = window.KyvoChecks;
+    if (!KC) return out;
+    const k = D.keyOf(c), b = KC.bundle(k), f = KC.fake(k, c);
+    if (b) out.push({ lvl: 'warn', src: 'Solana RPC', txt: b.why === 'funder'
+      ? `Bundle / fabryka portfeli: ${b.n} z top 20 holderów zasilił ten sam mały portfel — razem mają ${Math.round(b.pct)}% podaży. Mogą sprzedać naraz.`
+      : `Bundle: ${b.n} świeżych portfeli z top 20 ma prawie równe ilości (${Math.round(b.pct)}% podaży razem) i podobną liczbę transakcji — wygląda na jedną osobę.` });
+    if (f && f.flag) {
+      const w = f.why || [];
+      out.push({ lvl: 'warn', src: w.includes('avg') ? 'DexScreener' : 'Kyvo Gold', txt: w.includes('avg')
+        ? `Fejkowy wolumen? Średni trade to tylko $${f.avg} (${f.tx24} transakcji w 24h). Poniżej $30 to zwykle boty kręcące wolumen — w naszych danych Gold 14 z 17 takich coinów spadło o 80%+.`
+        : w.includes('curve') ? 'Fejkowy wolumen? Jedno kupno zapełniło krzywą pump.fun — wolumen i MC nie pokazują prawdziwego popytu.'
+        : 'Fejkowy wolumen? Większość transakcji to mikro-trade’y (dust) — typowe dla botów.' });
+    } else if (f && f.avg != null && f.tx24 >= 300) out.push({ lvl: 'ok', src: 'DexScreener', txt: `Średni trade $${f.avg} (${f.tx24} transakcji w 24h) — nie wygląda na boty.` });
+    return out;
+  }
   async function mountCheck(slot, c) {
     if (!slot) return;
-    const local = localChecks(c);
-    slot.innerHTML = checkHtml(c, local, [], c.chainId === 'solana' || c.chainId === 'bsc' || !c.chainId);
+    const local = localChecks(c).concat(extraChecks(c));
+    slot.innerHTML = checkHtml(c, local, [], c.chainId === 'solana' || c.chainId === 'bsc' || !c.chainId) + guardBtnHtml(c, false);   // v8.36 🛡️
     let rem = { checks: [], srcs: [] };
     const ck = (c.chainId || 'solana') + ':' + c.address, hit = remCache[ck];
     if (hit && Date.now() - hit.t < 5 * 60e3) rem = hit.v;
     else { try { rem = await remoteChecks(c); if (rem.srcs.length) remCache[ck] = { t: Date.now(), v: rem }; } catch (e) {} }
     if (!slot.isConnected) return;
     // de-duplicate: remote holder/LP checks beat local ones
-    slot.innerHTML = checkHtml(c, local.concat(rem.checks), rem.srcs, false);
+    slot.innerHTML = checkHtml(c, local.concat(rem.checks), rem.srcs, false) + guardBtnHtml(c, false);   // v8.36 🛡️
   }
 
   /* ---------------- Dlaczego ten coin jest tu? ---------------- */
@@ -314,6 +331,7 @@
     }
     updateEntries();
     checkAlerts();
+    guardTick();   // v8.36 🛡️
     verifyEntries().then((ch) => { if (ch && document.querySelector('#s-watch.on')) renderWatch(document.querySelector('#watchBody')); });
     if (document.querySelector('#watchBody') && document.querySelector('#s-watch.on')) renderWatch(document.querySelector('#watchBody'));
   }
@@ -461,6 +479,138 @@
     }
     if (dirty) saveWatch();
   }
+  /* ---------------- v8.36 🛡️ Pilnuj moich coinów (Gold-style alerts for every watchlist coin) ----------------
+     Free and per user, all in this browser (localStorage kyvo_guard_v1):
+       • price ±20 % since the last guard alert (live DexScreener price, the same 30-s watchlist poll)
+       • events from data/coin_checks.json (tools/coin_checks.py on the server): 🐋 whale / 🧑‍💻 dev sells (RugCheck top holders),
+         📰 new Google News articles, 🧛 a copy of the ticker > $500K MC — for coins Kyvo tracks (Runner / Runner 2.0 / Gold)
+       • 🧛 copies > $500K MC for ANY watched coin: DexScreener search in the browser, ≤ 2 coins every 10 min
+     No per-user push when the app is closed: OneSignal Free has 6 data tags per user (all used) and no "contains" filter. */
+  const GKEY = 'kyvo_guard_v1', GUARD_PCT = 20, VAMP_MC = 500000;
+  let guard = { on: true, since: Date.now(), base: {}, seen: {}, vamp: {}, vampAt: {}, feed: [] };
+  try { Object.assign(guard, JSON.parse(localStorage.getItem(GKEY) || '{}') || {}); } catch (e) {}
+  function saveGuard() { try { localStorage.setItem(GKEY, JSON.stringify(guard)); } catch (e) {} }
+  function guardHit(k, ico, pl, en, kind) {
+    const w = watch[k]; if (!w || w.guard === false) return;
+    const txt = L(pl, en);
+    guard.feed.unshift({ k, sym: w.symbol, ico, txt, kind, at: Date.now() }); guard.feed = guard.feed.slice(0, 40);
+    notify(txt, L('Kyvo · Pilnuj moich coinów', 'Kyvo · Guard my coins'), k);
+  }
+  function guardMoves() {
+    if (!guard.on) return;
+    let dirty = false;
+    for (const [k, w] of Object.entries(watch)) {
+      if (w.guard === false) continue;   // v8.36: "przestań pilnować" for this coin
+      const Lv = live[k];
+      if (!Lv || !(Lv.priceUsd > 0) || w.entryPending) continue;
+      const b = guard.base[k];
+      if (!b || !(b.px > 0)) { guard.base[k] = { px: Lv.priceUsd, mc: Lv.mcap, at: Date.now() }; dirty = true; continue; }
+      const ch = window.KyvoPairs.safePct(Lv.priceUsd, b.px, b.mc, Lv.mcap);
+      if (ch == null || Math.abs(ch) < GUARD_PCT) continue;
+      const mins = Math.max(1, Math.round((Date.now() - b.at) / 60000)), t = mins < 120 ? mins + ' min' : Math.round(mins / 60) + ' h';
+      guardHit(k, ch > 0 ? '📈' : '📉', `${ch > 0 ? '📈' : '📉'} $${w.symbol}: ${D.fmtPct(ch)} w ${t} · MC ${D.fmtUsd(Lv.mcap)}`, `${ch > 0 ? '📈' : '📉'} $${w.symbol}: ${D.fmtPct(ch)} in ${t} · MC ${D.fmtUsd(Lv.mcap)}`, 'move');
+      guard.base[k] = { px: Lv.priceUsd, mc: Lv.mcap, at: Date.now() }; dirty = true;
+    }
+    for (const k of Object.keys(guard.base)) if (!watch[k]) { delete guard.base[k]; dirty = true; }
+    if (dirty) saveGuard();
+  }
+  function watchLc() { const m = {}; for (const k of Object.keys(watch)) m[k.toLowerCase()] = k; return m; }
+  function onChecks(doc) {
+    if (!guard.on || !doc || !Array.isArray(doc.events)) return;
+    const wl = watchLc(); let dirty = false;
+    const live1 = {};
+    for (const e of doc.events) {
+      const id = e.k + '|' + e.t + '|' + e.at + '|' + (e.pl || '').slice(0, 40); live1[id] = 1;
+      const k = wl[String(e.k || '').toLowerCase()];
+      if (!k || guard.seen[id]) continue;
+      guard.seen[id] = Date.now(); dirty = true;
+      const w = watch[k];
+      if (e.at < Math.max(guard.since, w.addedAt || 0) - 60000) continue;   // older than the guard / the watch -> no alert
+      guardHit(k, { whale: '🐋', dev: '🧑‍💻', news: '📰', vamp: '🧛' }[e.t] || '⚠️', e.pl || e.en, e.en || e.pl, e.t);
+    }
+    for (const id of Object.keys(guard.seen)) if (!live1[id] && Date.now() - guard.seen[id] > 3 * 86400e3) { delete guard.seen[id]; dirty = true; }
+    if (dirty) saveGuard();
+  }
+  let vampBusy = false;
+  async function guardVamps() {
+    if (!guard.on || vampBusy || document.hidden) return;
+    const keys = Object.keys(watch).filter((k) => watch[k].guard !== false && Date.now() - (guard.vampAt[k] || 0) > 30 * 60e3).sort((a, b) => (guard.vampAt[a] || 0) - (guard.vampAt[b] || 0)).slice(0, 2);
+    if (!keys.length) return;
+    vampBusy = true;
+    try {
+      for (const k of keys) {
+        const w = watch[k]; guard.vampAt[k] = Date.now();
+        if (!w || !w.symbol) continue;
+        const d = await getJson('https://api.dexscreener.com/latest/dex/search?q=' + encodeURIComponent(w.symbol), 15000);
+        const born = (live[k] && live[k].pairCreatedAt) || 0, sym = String(w.symbol).toLowerCase(), addr = String(w.address).toLowerCase();
+        const cps = {};
+        for (const p of (d && d.pairs) || []) {
+          const bt = p.baseToken || {}, a = String(bt.address || '').toLowerCase();
+          if (!a || a === addr || String(bt.symbol || '').toLowerCase() !== sym || (p.chainId || 'solana') !== (w.chain || 'solana')) continue;
+          if (born && p.pairCreatedAt && p.pairCreatedAt < born) continue;   // older coin with the same ticker = not a copy of ours
+          const mc = p.marketCap || p.fdv || 0;
+          if (mc >= VAMP_MC && (!cps[a] || cps[a].mc < mc)) cps[a] = { mc, url: p.url };
+        }
+        const seen = guard.vamp[k];
+        guard.vamp[k] = Object.keys(cps).concat(seen || []).filter((x, i, arr) => arr.indexOf(x) === i).slice(0, 30);
+        if (seen) for (const [a, c] of Object.entries(cps)) if (!seen.includes(a)) guardHit(k, '🧛', `🧛 $${w.symbol}: kopia tickera ma już MC ${D.fmtUsd(c.mc)}`, `🧛 $${w.symbol}: a ticker copy passed ${D.fmtUsd(c.mc)} MC`, 'vamp');
+        await new Promise((r) => setTimeout(r, 800));
+      }
+    } catch (e) { /* next time */ } finally { vampBusy = false; saveGuard(); }
+  }
+  function guardTick() { try { guardMoves(); } catch (e) {} const doc = window.KyvoChecks && window.KyvoChecks.doc(); if (doc) onChecks(doc); guardVamps(); }
+  function setGuard(on) { guard.on = !!on; if (on) { guard.since = Date.now(); guard.base = {}; } saveGuard(); }
+  /* v8.36 🛡️ "Pilnuj tego coina" — one tap: add to the watchlist + guard alerts on (±20 %, copies > $500K, whale / dev sells, news).
+     Per-coin stop = w.guard false (the coin stays on the watchlist). Buttons anywhere: [data-guard-k], wired once by delegation. */
+  const gReg = {};
+  function isGuarded(k) { return !!(guard.on && watch[k] && watch[k].guard !== false); }
+  function guardCoin(c) {
+    const k = D.keyOf(c);
+    if (!watch[k] && !toggleWatch(c)) return false;          // max 60 -> toast from toggleWatch
+    watch[k].guard = true; saveWatch();
+    if (!guard.on) setGuard(true);
+    delete guard.base[k]; saveGuard();                       // first live price = baseline for ±20 %
+    D.toast(L(`🛡️ Pilnuję $${c.symbol || ''} — ±${GUARD_PCT}%, kopie > $500K, wieloryby / dev, artykuły (gdy Kyvo jest otwarte)`, `🛡️ Guarding $${c.symbol || ''} — ±${GUARD_PCT}%, copies > $500K, whales / dev, articles (while Kyvo is open)`));
+    ensurePoll();
+    return true;
+  }
+  function unguardCoin(k) { if (watch[k]) { watch[k].guard = false; saveWatch(); D.toast(L('Nie pilnuję już tego coina (zostaje na watchliście)', 'Stopped guarding this coin (it stays on your watchlist)')); } }
+  function guardBtnInner(k) {
+    return isGuarded(k)
+      ? `<span class="gbtn-on">✓ ${L('Pilnuję', 'Guarding')}</span><span class="gbtn-stop" data-guard-stop>${L('przestań', 'stop')}</span>`
+      : `🛡️ ${L('Pilnuj tego coina', 'Guard this coin')}`;
+  }
+  function guardBtnHtml(c, sub) {
+    const k = D.keyOf(c); gReg[k] = c;
+    return `<div class="gbtn-wrap"><button type="button" class="gbtn${isGuarded(k) ? ' on' : ''}" data-guard-k="${E(k)}">${guardBtnInner(k)}</button>${sub === false ? '' : `<div class="gbtn-sub">${L(`Jednym tapnięciem: ⭐ watchlista + alerty: cena ±${GUARD_PCT}%, 🧛 kopia > $500K MC, 🐋 wieloryb / 🧑‍💻 dev sprzedaje, 📰 artykuł. Działa, gdy Kyvo jest otwarte.`, `One tap: ⭐ watchlist + alerts: price ±${GUARD_PCT}%, 🧛 copy > $500K MC, 🐋 whale / 🧑‍💻 dev sells, 📰 article. Works while Kyvo is open.`)}</div>`}</div>`;
+  }
+  function syncGuardBtns(k) {
+    document.querySelectorAll('[data-guard-k]').forEach((b) => { if (b.dataset.guardK !== k) return; b.classList.toggle('on', isGuarded(k)); b.innerHTML = guardBtnInner(k); });
+    const on = !!watch[k];   // coin page ⭐ buttons
+    document.querySelectorAll('[data-watch-star]').forEach((b) => { b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); b.textContent = b.classList.contains('cp-star') ? (on ? '★' : '☆') : on ? '★ ' + L('Obserwujesz', 'Watching') : '☆ ' + L('Obserwuj', 'Watch'); });
+    const wb = document.getElementById('watchBtn'); if (wb) { wb.classList.toggle('on', on); wb.textContent = on ? '★ Obserwujesz' : '☆ Obserwuj'; }
+  }
+  document.addEventListener('click', (ev) => {
+    const b = ev.target.closest && ev.target.closest('[data-guard-k]'); if (!b) return;
+    ev.preventDefault(); ev.stopPropagation();
+    const k = b.dataset.guardK;
+    if (isGuarded(k)) unguardCoin(k);   // '✓ Pilnuję · przestań' -> one tap stops
+    else { const c = gReg[k] || (watch[k] && { chainId: watch[k].chain, address: watch[k].address, symbol: watch[k].symbol, name: watch[k].name, image: watch[k].image }); if (c) guardCoin(c); }
+    syncGuardBtns(k);
+  }, true);
+  function guardCardHtml() {
+    const fd = (guard.feed || []).filter((x) => watch[x.k]).slice(0, 8);
+    return `<div class="card guard" style="font-size:12.5px;line-height:1.5">
+      <label class="nrow" style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="guardOn" ${guard.on ? 'checked' : ''}><span><b>🛡️ ${L('Pilnuj moich coinów', 'Guard my coins')}</b><br><small class="mut">${L(
+        `Każdy coin z watchlisty: ruch ceny ±${GUARD_PCT}%, 🐋 sprzedaż wieloryba / 🧑‍💻 deva, 📰 nowy artykuł, 🧛 kopia tickera > $500K MC.`,
+        `Every watchlist coin: price move ±${GUARD_PCT}%, 🐋 whale / 🧑‍💻 dev sells, 📰 new article, 🧛 ticker copy > $500K MC.`)}</small></span></label>
+      ${guard.on ? (() => { const ks = Object.keys(watch), n = ks.filter(isGuarded).length; return `<div style="margin-top:6px">🛡️ ${L(`Pilnuję ${n} z ${ks.length} coinów z watchlisty. Nowy coin: wklej CA w Szukaj → „Pilnuj tego coina”. Pojedynczy coin wyłączysz przyciskiem „✓ Pilnuję · przestań”.`, `Guarding ${n} of ${ks.length} watchlist coins. New coin: paste a CA in Search → "Guard this coin". Stop one coin with "✓ Guarding · stop".`)}</div>`; })() : ''}
+      ${fd.length ? `<div class="guard-feed" style="margin-top:6px">${fd.map((x) => `<a href="#coin/${E(encodeURIComponent(x.k))}" style="display:block;text-decoration:none;color:inherit;padding:3px 0;border-top:1px solid var(--line,#2223)">${E(x.txt)} <small class="mut">· ${E(agoLong(x.at))}</small></a>`).join('')}</div>` : ''}
+      <div class="mut" style="margin-top:6px;font-size:11.5px">${L(
+        'Uczciwie: alerty działają tylko gdy Kyvo jest otwarte (karta w tle też). Push przy zamkniętej apce nie jest możliwy za darmo dla każdego coina osobno (limit tagów OneSignal Free). Wieloryb / dev / artykuły — tylko dla coinów, które Kyvo i tak śledzi (Runner, Runner 2.0, Gold); ruch ceny i kopie — dla każdego coina.',
+        'Honest note: alerts run only while Kyvo is open (a background tab works too). A closed-app push per coin is not possible for free (OneSignal Free tag limit). Whale / dev / articles — only for coins Kyvo already tracks (Runner, Runner 2.0, Gold); price moves and copies — for every coin.')}</div>
+    </div>`;
+  }
   let pollT = null;
   function ensurePoll() {
     if (pollT || !Object.keys(watch).length) return;
@@ -585,7 +735,7 @@
         </div>`;
       }).join('')}</div>
       <div class="foot">${L('Wynik „od dodania” = cena teraz vs cena w chwili dodania (bez opłat i poślizgu). Szczyt liczymy z odświeżeń co 30 s, gdy Kyvo jest otwarte.', '“Since added” = price now vs price when you added it (no fees or slippage). Peak is taken from 30 s refreshes while Kyvo is open.')}</div>
-      ${notifCard}${nset}
+      ${guardCardHtml()}${notifCard}${nset}
       <div class="foot">Alerty działają lokalnie, gdy Kyvo jest otwarte · to nie jest porada finansowa</div>`;
     root.querySelectorAll('.wrow').forEach((row) => {
       const k = row.dataset.wk, w = watch[k];
@@ -604,6 +754,8 @@
     wireNotif(root);
   }
   function wireNotif(root) {
+    const g = root.querySelector('#guardOn');
+    if (g) g.onchange = () => { setGuard(g.checked); D.toast(g.checked ? L('🛡️ Pilnuję Twoich coinów', '🛡️ Guarding your coins') : L('Pilnowanie wyłączone', 'Guard off')); };
     const b = root.querySelector('#notifBtn');
     if (b) b.onclick = async () => { try { await Notification.requestPermission(); } catch (e) {} renderWatch(root); };
     if (window.KyvoNotify) window.KyvoNotify.wireSettings(root, () => renderWatch(root));
@@ -1513,7 +1665,7 @@
   window.KyvoInsights = {
     init(deps) { D = deps; updateBadge(); ensurePoll(); },
     mountCheck, localChecks, scoreOf, cloneCheck, whyHtml,
-    watchButtonHtml, wireWatchButton, renderWatch, addAlert, alertsOf, removeAlert, isWatched, toggleWatch, getWatch: () => watch, checkAlerts, _live: live,
+    watchButtonHtml, wireWatchButton, renderWatch, onChecks, notify, guardCardHtml, guardBtnHtml, guardCoin, unguardCoin, isGuarded, getGuard: () => guard, setGuard, addAlert, alertsOf, removeAlert, isWatched, toggleWatch, getWatch: () => watch, checkAlerts, _live: live,
     fillTweetSince, priceAtTweet, fullScore,
     analyze, runnerList, runnerOf, tweetRunners, goodOutlook, goodRowHtml, contractFacts, gatesHtml, estimateUpside, estimatePopularity, goodCoinRule, UPSIDE_HORIZONS, upsideRowHtml, upsideCardHtml, mountUpside, openUpInfo, tweetLinks,
   };

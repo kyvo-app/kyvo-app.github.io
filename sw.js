@@ -2,7 +2,7 @@
 /* v8.4: with push on, OneSignalSDKWorker.js loads OneSignal's worker and then this file (one SW for the app folder (/ on kyvo-app.github.io)).
    Then OneSignal handles 'push'/'notificationclick' for its messages; our generic push handler stays off. */
 const PUSH = !!self.KYVO_ONESIGNAL;
-const C = 'kyvo-v8-35';
+const C = 'kyvo-v8-36';
 const A = [
   './', 'index.html', 'compat.js', 'i18n.js', 'app.js', 'insights.js', 'chart.js', 'evm.js', 'profile.js', 'launch.js', 'auth.js', 'auth-config.js', 'premium-config.js', 'contact-config.js', 'push-config.js', 'notify.js', 'gold-rules.js', 'gold.js', 'pairs.js', 'coinpage.js', 'tracker.js', 'journal.js', 'journal.css', 'theme.css', 'fx.js', 'share.js', 'pnlcard.js', 'gta.js', 'fonts/inter-latin-wght-normal.woff2', 'fonts/inter-latin-ext-wght-normal.woff2', 'fonts/space-grotesk-latin-wght-normal.woff2', 'fonts/space-grotesk-latin-ext-wght-normal.woff2',
   'vendor/lightweight-charts/lightweight-charts.standalone.production.js', 'vendor/kyvo-crypto/kyvo-crypto.min.js', 'manifest.json',

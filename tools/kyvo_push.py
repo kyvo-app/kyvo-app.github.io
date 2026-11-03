@@ -8,6 +8,7 @@ Sends one push per genuinely NEW item:
   * v8.9 🐦 Tweet runner: coin from a fresh New Tweet item that clearly runs after the tweet (dedupe id twr:<coin>)
   * v8.9 📈 Big runner: established $1M–$100M coin running now (bigRunnerRule + tools/kol_coins.big_check)
   * v8.12 🥇 Gold alerts (tools/gold.py -> .kyvo_push/gold_alerts.json): price ±15–20 % / vamp > $500K MC / new article on a Gold coin.
+    v8.36: OFF (the Gold tab is gone; KYVO_GOLD_PUSH=1 turns them back on). 👀 Smart money (kind gold + smart) is NOT affected.
     Tag "gold"; Premium only by default (GOLD_FREE_PUSH=0 -> never counts against / goes to the free 2/day plan); max GOLD_PER_RUN per run.
   * v8.14 👀 Smart money (tools/pump_tracker.py -> .kyvo_push/smart_alerts.json): ≥3 tracked top Ranking traders bought the same coin
     within 30 min. Premium only (never the free plan), tag "gold" opt-out respected, max SMART_PER_RUN per run, id smart:<mint> -> one push
@@ -76,6 +77,7 @@ MAX_TWEET_AGE_S = 2 * 3600
 MAX_PER_RUN = 6
 GOLD_FREE_PUSH = int(os.environ.get("KYVO_GOLD_FREE_PUSH", "0"))   # v8.12: 0 = Gold alerts go to premium=1 only
 GOLD_PER_RUN = 2
+GOLD_PUSH = int(os.environ.get("KYVO_GOLD_PUSH", "0"))   # v8.36: the 🥇 Gold tab is gone -> Gold alert pushes are OFF (tools/gold.py still builds data/gold.json)
 MAX_GOLD_AGE_S = 3600
 SMART_PER_RUN = 1          # v8.14
 GTA_GAP_S = int(os.environ.get("KYVO_GTA_GAP_S", "600"))       # v8.31 🎮 GTA: ≥ 10 min between two GTA pushes
@@ -122,6 +124,7 @@ def runner2_items(a, st: dict, sent: dict, now: float, seeding: bool, items_now:
         if r2seed or now - (c.get("at") or 0) / 1000 > R2_MAX_AGE_S: sent[kid] = now; continue
         hw = (HOLD.get(k) or {}).get("w") or ((c.get("hold") or {}).get("w"))
         if hw: sent[kid] = now; print(f"- {kid}: 🚀 Runner 2.0 skipped — ⚠️ holders {hw}"); continue   # v8.35 never push a flagged coin
+        if ((CHECKS.get(k) or {}).get("b") or {}).get("flag"): sent[kid] = now; print(f"- {kid}: 🚀 Runner 2.0 skipped — ⚠️ bundle"); continue   # v8.36
         other = max([sent.get(p + k, 0) for p in ("run:", "early:", "kol:", "moon:", "big:", "twr:")] + [0])
         if k in busy or now - other < R2_GAP_S:
             print(f"- {kid}: 🚀 Runner 2.0 waits ({int(now - other) if other else 0}s since the Runner push < {R2_GAP_S}s)"); continue
@@ -136,6 +139,7 @@ def runner2_items(a, st: dict, sent: dict, now: float, seeding: bool, items_now:
         out.append(it)
     if r2seed: st["r2_seeded_v"] = R2_SEED_V; print(f"Runner 2.0: first v{R2_SEED_V} run -> seeded, nothing sent")
     return out
+CHECKS: dict = {}   # v8.36 🧪 data/coin_checks.json coins (tools/coin_checks.py) — only the ⚠️ bundle flag stops a Runner 2.0 push
 HOLD: dict = {}   # v8.35 👥 data/holders.json coins (tools/holders.py), loaded in main()
 
 def hold_label(h: dict | None, lang: str) -> str:
@@ -491,6 +495,7 @@ def main() -> int:
     ap.add_argument("--gold", type=Path, default=Path(".kyvo_push/gold_alerts.json"), help="v8.12 Gold alerts written by tools/gold.py")
     ap.add_argument("--smart", type=Path, default=Path(".kyvo_push/smart_alerts.json"), help="v8.14 Tracker cluster-buy alerts (tools/pump_tracker.py)")
     ap.add_argument("--runner2", type=Path, default=None, help="v8.34 🚀 Runner 2.0 list (tools/runner2.py -> data/runner2.json)")
+    ap.add_argument("--checks", type=Path, default=None, help="v8.36 🧪 coin checks (tools/coin_checks.py -> data/coin_checks.json)")
     ap.add_argument("--holders", type=Path, default=None, help="v8.35 👥 holder check (tools/holders.py -> data/holders.json)")
     ap.add_argument("--gta", type=Path, default=Path(".kyvo_push/gta_alerts.json"), help="v8.31 🎮 GTA coins running now (tools/gta_push.py)")
     ap.add_argument("--dry-run", action="store_true")
@@ -608,12 +613,14 @@ def main() -> int:
                       "title_pl": f"🏃 Runner · ${f['sym']}", "title_en": f"🏃 Runner · ${f['sym']}",
                       "body_pl": f"MC {fmt_usd(f.get('mc0'))}", "body_en": f"MC {fmt_usd(f.get('mc0'))}"})
     if a.holders: HOLD.update((load(a.holders, {}) or {}).get("coins") or {})
+    if a.checks: CHECKS.update({x.lower(): v for x, v in ((load(a.checks, {}) or {}).get("coins") or {}).items()})
     runner_style(items, load(a.flags, []))    # v8.24 FOMO-style Runner pushes: coin logo, real 1 h move, deep link, Kyvo branding
     n_gold = 0
     for g in sorted(load(a.gold, []), key=lambda x: -(x.get("at") or 0)):   # v8.12 🥇 Gold alerts
         kid = "gold:" + str(g.get("id"))
         if kid in sent or now - (g.get("at") or 0) / 1000 > MAX_GOLD_AGE_S: continue
         if seeding: sent[kid] = now; continue
+        if not GOLD_PUSH: sent[kid] = now; print(f"- {kid}: 🥇 Gold push off (v8.36)"); continue   # marked sent -> no burst if it is ever turned back on
         if n_gold >= GOLD_PER_RUN: continue          # next run (alerts expire after 1 h)
         n_gold += 1
         items.append({"id": kid, "kind": "gold", "topic": kid, "hash": g.get("hash") or "#gold",

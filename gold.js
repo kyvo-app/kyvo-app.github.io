@@ -451,7 +451,7 @@
 
   function init(deps) {
     D = deps || {};
-    if (!CFG.enabled) { document.querySelectorAll('[data-gold-ui]').forEach((el) => (el.style.display = 'none')); document.documentElement.style.setProperty('--tbn', '6'); return; }
+    if (!CFG.enabled) { document.querySelectorAll('[data-gold-ui]').forEach((el) => (el.style.display = 'none')); loadFeed().catch(() => {}); return; }   // v8.36: no tab / alerts, feed still loads (coin page Gold card, 📝 summary)
     loadFeed().then(() => { if (D.isView && D.isView('gold')) render(); updateBadge(); });
     setInterval(() => { if (!document.hidden) loadFeed(true).then(() => { updateBadge(); if (D.isView && D.isView('gold') && !busy) keepScroll(render); }); }, 120000);
     if (!wT) { wT = setInterval(watchTick, 60000); setTimeout(watchTick, 8000); }
