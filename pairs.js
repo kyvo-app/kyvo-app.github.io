@@ -59,5 +59,28 @@
     const b = choose(ps);
     return !!(b && !isCurve(b) && ps.some(isCurve));
   }
-  window.KyvoPairs = { best, bestMap, choose, migrated, isCurve, liq, MIN_LIQ, CURVE };
+  /* v8.33 entry sanity — ONE rule for every "% since entry" in Kyvo (watchlist, GTA, Wyniki, Runner hero, launch stats).
+     A brand-new pool's first candle / first DexScreener tick can carry a price near 0 (MC of a few dollars) and turn a normal
+     pump into ">+99 999%" / "$100 → $533K". null = entry is fine; else the reason:
+       'none'     no entry price
+       'low'      entry MC under $1K (no real Solana/BSC launch starts there; pump.fun starts at ~$4K)
+       'mismatch' stored entry MC and the MC implied by the entry price (same supply as now) differ more than 5×
+       'jump'     more than 500× since entry from an entry MC under $3K → treated as a bad first price, re-checked */
+  const ENTRY_MIN_MC = 1000, JUMP_X = 500, JUMP_MC = 3000;
+  function entryCheck(px0, mc0, pxNow, mcNow) {
+    if (!(px0 > 0) || !isFinite(px0)) return 'none';
+    const sup = pxNow > 0 && mcNow > 0 ? mcNow / pxNow : null;
+    const mcPx = sup ? px0 * sup : null;
+    if ((mcPx != null && mcPx < ENTRY_MIN_MC) || (mc0 > 0 && mc0 < ENTRY_MIN_MC)) return 'low';
+    if (mc0 > 0 && mcPx != null && (mc0 / mcPx > 5 || mcPx / mc0 > 5)) return 'mismatch';
+    if (pxNow > 0 && pxNow / px0 > JUMP_X && (mcPx || mc0 || 0) < JUMP_MC) return 'jump';
+    return null;
+  }
+  /* % move from px0 to px, or null when the entry fails entryCheck (callers show "—" and leave it out of totals) */
+  function safePct(px, px0, mc0, mcNow) {
+    if (!(px > 0) || entryCheck(px0, mc0, px, mcNow)) return null;
+    const v = (px / px0 - 1) * 100;
+    return isFinite(v) ? v : null;
+  }
+  window.KyvoPairs = { best, bestMap, choose, migrated, isCurve, liq, MIN_LIQ, CURVE, entryCheck, safePct, ENTRY_MIN_MC };
 })();

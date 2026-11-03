@@ -255,6 +255,7 @@
       if (!w || typeof w !== 'object' || !w.address) { delete watch[k]; dirty = true; continue; }
       if (!(w.addedPrice > 0) && !w.entryPending) { w.entryPending = 'update'; w.addedPrice = null; dirty = true; }
       if (!w.addedAt) { w.addedAt = Date.now(); dirty = true; }
+      if (w.addedMcap > 0 && w.addedMcap < 1000 && !w.entryBad) { w.entryBad = { at: Date.now(), why: 'low', oldPrice: w.addedPrice, oldMcap: w.addedMcap }; w.entryTries = 0; dirty = true; }  // v8.33 self-heal (no live data needed)
     }
     if (dirty) { try { localStorage.setItem(WKEY, JSON.stringify(watch)); } catch (e) {} }
   })();
@@ -269,7 +270,8 @@
     watch[k] = { chain: c.chainId || 'solana', address: c.address, symbol: c.symbol, name: c.name, image: c.image || null,
       addedAt: Date.now(), entryAt: null, addedPrice: null, addedMcap: c.mcap || null, peakPct: 0, lowPct: 0, alerts: [], pair: c.pairAddress || null };
     const px = c.priceUsd != null ? +c.priceUsd : NaN;
-    if (px > 0 && isFinite(px)) { watch[k].addedPrice = px; watch[k].entryAt = watch[k].addedAt; }
+    // v8.33: a coin object with MC < $1K = bogus tick -> wait for the live price
+    if (px > 0 && isFinite(px) && !(c.mcap > 0 && c.mcap < 1000)) { watch[k].addedPrice = px; watch[k].entryAt = watch[k].addedAt; }
     else watch[k].entryPending = 'add'; // no price on this coin object → first live DexScreener price (≤ 30 s)
     saveWatch();
     D.toast('⭐ Dodano do watchlisty');
@@ -327,6 +329,7 @@
     const ageMin = (Date.now() - t0) / 60000;
     const [tf, agg, step] = ageMin <= 80 * 60 ? ['minute', 5, 300] : ageMin <= 40 * 1440 ? ['hour', 1, 3600] : ['day', 1, 86400];
     const lim = Math.min(1000, Math.ceil((ageMin * 60) / step) + 3);
+    const EC = window.KyvoPairs.entryCheck;
     const url = `https://api.geckoterminal.com/api/v2/networks/${net}/pools/${encodeURIComponent(Lv.pair)}/ohlcv/${tf}?aggregate=${agg}&limit=${lim}&currency=usd&token=${encodeURIComponent(w.address)}`;
     const d = window.KyvoGT ? await window.KyvoGT.fetch(url, 300000) : await getJson(url, 300000);
     const ol = ((d && d.data && d.data.attributes && d.data.attributes.ohlcv_list) || []).map((r) => r.map(Number)).sort((a, b) => a[0] - b[0]);
@@ -335,8 +338,11 @@
     if (ol[0][0] > ts) return { before: true }; // the pool has no candle that old (pool newer than the entry, or history cut)
     const inC = ol.find((r) => r[0] <= ts && ts < r[0] + step);
     const prev = ol.filter((r) => r[0] <= ts).pop();
-    const px = inC ? inC[1] : prev ? prev[4] : null;
-    if (!(px > 0)) return null;
+    // v8.33: the entry candle's open, else its close, else the previous close — the first that passes entryCheck (a new pool's
+    // first candle often OPENS near 0: that is how "$404: MC $12.85 → $68.5K, >+99 999%" got in as a "fixed" entry)
+    const cand = [inC && inC[1], inC && inC[4], prev && prev[4]].filter((v) => v > 0);
+    const px = cand.find((v) => !EC(v, null, Lv.priceUsd, Lv.mcap));
+    if (!(px > 0)) return { bad: true };
     const after = ol.filter((r) => r[0] + step > ts);
     return { px, hi: Math.max(...after.map((r) => r[2])), lo: Math.min(...after.map((r) => r[3])) };
   }
@@ -346,18 +352,27 @@
     let changed = false, n = 0;
     try {
       for (const [k, w] of Object.entries(watch)) {
-        if ((w.entryChecked || 0) >= ENTRY_V || w.entryPending || !(w.addedPrice > 0)) continue;
+        const redo = w.entryBad && !w.entryBad.final;   // v8.33: a bogus entry is re-derived from the main pool's candles
+        if (((w.entryChecked || 0) >= ENTRY_V && !redo) || w.entryPending || !(w.addedPrice > 0)) continue;
         const Lv = live[k];
         if (!Lv || !Lv.pair || !(Lv.priceUsd > 0)) continue;
         const t0 = w.entryAt || w.addedAt;
         if (!t0 || Date.now() - t0 < 3 * 60e3) continue; // the candle of the entry minute is not final yet
         if (n++ >= 3) break; // ≤ 3 GeckoTerminal calls per 30-s refresh (shared public rate limit)
         // pool created after the entry → the coin was on its curve then; the curve price was the real price
-        if (Lv.pairCreatedAt && Lv.pairCreatedAt > t0 && !Lv.curve) { w.entryChecked = ENTRY_V; changed = true; continue; }
+        if (Lv.pairCreatedAt && Lv.pairCreatedAt > t0 && !Lv.curve && !redo) { w.entryChecked = ENTRY_V; changed = true; continue; }
         let r = null;
         try { r = await entryFromOhlcv(w, Lv, t0); } catch (e) { r = null; }
-        if (!r) { w.entryTries = (w.entryTries || 0) + 1; if (w.entryTries >= 4) w.entryChecked = ENTRY_V; changed = true; continue; }
-        if (r.before) { w.entryChecked = ENTRY_V; changed = true; continue; }
+        const giveUp = () => { if (redo) w.entryBad.final = 1; w.entryChecked = ENTRY_V; };
+        if (!r) { w.entryTries = (w.entryTries || 0) + 1; if (w.entryTries >= 4) giveUp(); changed = true; continue; }
+        if (r.before || r.bad) { giveUp(); changed = true; continue; }
+        if (redo) {   // v8.33: bogus entry -> the main pool's candle at the add time (validated), peak / low rebuilt from the same candles
+          w.entryFix = { oldPrice: w.entryBad.oldPrice, oldMcap: w.entryBad.oldMcap, at: Date.now(), pool: Lv.pair, how: 'ohlcv' };
+          w.addedPrice = r.px; w.addedMcap = Lv.mcap > 0 ? (Lv.mcap * r.px) / Lv.priceUsd : null;
+          w.peakPct = Math.max(0, (r.hi / r.px - 1) * 100); w.lowPct = Math.min(0, (r.lo / r.px - 1) * 100);
+          delete w.entryBad; delete lastCh[k]; for (const a of w.alerts || []) if (a.type === 'pct') a.fired = null;
+          w.entryChecked = ENTRY_V; w.pair = Lv.pair; changed = true; continue;
+        }
         const ratio = w.addedPrice / r.px;
         if (ratio > 5 || ratio < 0.2) {
           w.entryFix = { oldPrice: w.addedPrice, oldMcap: w.addedMcap || null, at: Date.now(), pool: Lv.pair };
@@ -375,7 +390,25 @@
     return changed;
   }
   // v8.7: fill missing entry prices + track peak / low "since added" from every live refresh (only while Kyvo is open)
-  function sincePct(w, L) { return w && w.addedPrice > 0 && L && L.priceUsd > 0 ? (L.priceUsd / w.addedPrice - 1) * 100 : null; }
+  function sincePct(w, L) { return w && !w.entryBad && w.addedPrice > 0 && L && L.priceUsd > 0 ? window.KyvoPairs.safePct(L.priceUsd, w.addedPrice, w.addedMcap, L.mcap) : null; }
+  /* v8.33 self-heal of a bogus entry (wrong pool / near-0 first price): 1) entry MC kept but price off -> price from that MC;
+     2) an earlier "fix" made it worse -> back to the old entry if that one is sane; 3) else entryBad -> verifyEntries re-derives
+     it from the main pool's candle at the add time; if that fails too: "brak wiarygodnej ceny wejścia", left out of the totals. */
+  function healEntry(w, L) {
+    const EC = window.KyvoPairs.entryCheck;
+    const why = EC(w.addedPrice, w.addedMcap, L.priceUsd, L.mcap);
+    if (!why || why === 'none') return false;
+    const sup = L.mcap > 0 ? L.mcap / L.priceUsd : null;
+    const old = { oldPrice: w.addedPrice, oldMcap: w.addedMcap || null };
+    const set = (px, mc, how) => { w.entryFix = Object.assign(old, { at: Date.now(), pool: L.pair, how }); w.addedPrice = px; w.addedMcap = mc; w.peakPct = 0; w.lowPct = 0; delete w.entryBad; delete lastCh[k0(w)]; return true; };
+    if (why === 'mismatch' && sup && w.addedMcap >= 1000 && !EC(w.addedMcap / sup, w.addedMcap, L.priceUsd, L.mcap)) return set(w.addedMcap / sup, w.addedMcap, 'mc');
+    const f = w.entryFix;
+    if (f && f.oldPrice > 0 && !EC(f.oldPrice, f.oldMcap, L.priceUsd, L.mcap)) { const r = set(f.oldPrice, f.oldMcap || (sup ? f.oldPrice * sup : null), 'revert'); delete w.entryFix; return r; }
+    if (w.entryBad) return false;
+    w.entryBad = Object.assign(old, { at: Date.now(), why }); w.entryTries = 0; w.peakPct = 0; w.lowPct = 0; delete lastCh[k0(w)];
+    return true;
+  }
+  const k0 = (w) => (w.chain || 'solana') + ':' + w.address;
   const lastCh = {}; // key -> % since added at the previous refresh (memory only)
   function updateEntries() {
     let dirty = false;
@@ -383,13 +416,16 @@
       const L = live[k];
       if (!L || !(L.priceUsd > 0)) continue;
       if (w.entryPending || !(w.addedPrice > 0)) {
+        if (!(L.mcap >= 1000)) continue;   // v8.33: no entry from a bogus (MC < $1K) tick
         w.addedPrice = L.priceUsd; w.addedMcap = L.mcap || w.addedMcap || null; w.entryAt = Date.now();
         if (w.entryPending === 'update') w.entryFrom = 'update';
         delete w.entryPending; w.peakPct = 0; w.lowPct = 0; dirty = true;
         continue;
       }
       // v8.13: within 2 min after adding, the entry must match the coin's main pool (the coin object could carry a stale pair)
-      if (!w.entryFix && Date.now() - (w.entryAt || w.addedAt) < 120e3 && (w.addedPrice / L.priceUsd > 3 || L.priceUsd / w.addedPrice > 3)) {
+      if (healEntry(w, L)) { dirty = true; continue; }
+      if (w.entryBad) continue;
+      if (!w.entryFix && L.mcap >= 1000 && Date.now() - (w.entryAt || w.addedAt) < 120e3 && (w.addedPrice / L.priceUsd > 3 || L.priceUsd / w.addedPrice > 3)) {
         w.entryFix = { oldPrice: w.addedPrice, oldMcap: w.addedMcap || null, at: Date.now(), pool: L.pair };
         w.addedPrice = L.priceUsd; w.addedMcap = L.mcap || null; w.peakPct = 0; w.lowPct = 0; delete lastCh[k]; dirty = true;
         continue;
@@ -416,8 +452,8 @@
         let hit = false, msg = '';
         if (a.type === 'mcAbove' && L.mcap != null && L.mcap >= a.value) { hit = true; msg = `MC ${D.fmtUsd(L.mcap)} ≥ ${D.fmtUsd(a.value)}`; }
         if (a.type === 'mcBelow' && L.mcap != null && L.mcap <= a.value) { hit = true; msg = `MC ${D.fmtUsd(L.mcap)} ≤ ${D.fmtUsd(a.value)}`; }
-        if (a.type === 'pct' && w.addedPrice && L.priceUsd) {
-          const ch = (L.priceUsd / w.addedPrice - 1) * 100;
+        if (a.type === 'pct' && w.addedPrice && L.priceUsd && !w.entryBad) {
+          const ch = sincePct(w, L); if (ch == null) continue;
           if (Math.abs(ch) >= a.value) { hit = true; msg = `${D.fmtPct(ch)} od dodania`; }
         }
         if (hit) { a.fired = Date.now(); dirty = true; notify(`$${w.symbol}: ${msg}`, 'Kyvo · alert z watchlisty', k); }
@@ -524,13 +560,13 @@
         const val = since != null ? 100 * (1 + since / 100) : null;
         const peak = since != null && (w.peakPct || 0) > 0.05 ? Math.max(w.peakPct, since) : null;
         const cls = D.pctClass(since);
-        const tip = w.addedPrice > 0 ? `${L('Wejście', 'Entry')}: ${L('cena', 'price')} ${D.fmtUsd(w.addedPrice)} · MC ${D.fmtUsd(w.addedMcap)} · ${new Date(t0).toLocaleString(L('pl-PL', 'en-US'))}` : '';
+        const tip = w.addedPrice > 0 && !w.entryBad ? `${L('Wejście', 'Entry')}: ${L('cena', 'price')} ${D.fmtUsd(w.addedPrice)} · MC ${D.fmtUsd(w.addedMcap)} · ${new Date(t0).toLocaleString(L('pl-PL', 'en-US'))}` : '';
         return `<div class="wrow${since != null ? ' w-' + cls : ''}" data-wk="${E(k)}">
           <a class="wmain" href="#coin/${encodeURIComponent(k)}"${tip ? ` title="${E(tip)}"` : ''}>
             ${D.imgTag ? D.imgTag({ chainId: w.chain, address: w.address, symbol: w.symbol, image: lv.image || w.image }, 'tok', 38) : ''}
             <span class="nm"><b><span class="cbadge c-${E(w.chain)}">${E(w.chain === 'solana' ? 'SOL' : w.chain === 'bsc' ? 'BSC' : 'RH')}</span> $${E(w.symbol)}</b>
-              <small>MC <span class="wmc0">${D.fmtUsd(w.addedMcap)}</span> → <b class="${cls}">${D.fmtUsd(mcNow)}</b></small>
-              <small>${timeTxt}</small>${w.entryFix ? `<small class="wfix" title="${E(L('Stara cena wejścia', 'Old entry price') + ': ' + D.fmtUsd(w.entryFix.oldPrice) + ' · MC ' + D.fmtUsd(w.entryFix.oldMcap))}">✓ ${L('wejście poprawione (główna pula)', 'entry fixed (main pool)')}</small>` : ''}</span>
+              <small>MC <span class="wmc0">${w.entryBad ? '—' : D.fmtUsd(w.addedMcap)}</span> → <b class="${cls}">${D.fmtUsd(mcNow)}</b></small>
+              <small>${timeTxt}</small>${w.entryFix ? `<small class="wfix" title="${E(L('Stara cena wejścia', 'Old entry price') + ': ' + D.fmtUsd(w.entryFix.oldPrice) + ' · MC ' + D.fmtUsd(w.entryFix.oldMcap))}">✓ ${L('wejście poprawione (główna pula)', 'entry fixed (main pool)')}</small>` : ''}${w.entryBad ? `<small class="wfix" style="color:var(--warn)">⚠️ ${w.entryBad.final ? L('brak wiarygodnej ceny wejścia — nie liczymy do wyniku', 'no reliable entry price — left out of the total') : L('sprawdzam cenę wejścia…', 'checking the entry price…')}</small>` : ''}</span>
             <span class="rt"><b class="wpct ${cls}">${since != null ? D.fmtPct(since) : '—'}</b><small class="mut">${mig ? L('od startu', 'since start') : L('od dodania', 'since added')}</small></span>
           </a>
           ${since != null ? `<div class="wpl">

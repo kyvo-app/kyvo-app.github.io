@@ -64,7 +64,12 @@
     const e = S.added && S.added[String(ctx.keyOf(c) || '').toLowerCase()];
     const px = Number(c.priceUsd);
     if (!e || !(e.px0 > 0) || !(px > 0)) return null;
-    const pct = (px / e.px0 - 1) * 100, max = (Math.max(e.max || 0, px) / e.px0 - 1) * 100;
+    // v8.33: same entry sanity as the watchlist (pairs.js): reference MC < $1K / price vs MC off / > 500x from < $3K -> no badge
+    const KP = window.KyvoPairs, mcNow = c.mcap > 0 ? c.mcap : null;
+    const pct = KP ? KP.safePct(px, e.px0, e.mc0, mcNow) : (px / e.px0 - 1) * 100;
+    if (pct == null) return null;
+    const mx = Math.max(e.max || 0, px);
+    const max = KP && KP.safePct(mx, e.px0, e.mc0, mcNow ? (mcNow * mx) / px : null) == null ? pct : (mx / e.px0 - 1) * 100;
     return { pct, max, h: Math.max(0, (Date.now() / 1000 - e.t) / 3600), push: e.src === 'push' };
   }
   const fmtPct = (v) => (v >= 0 ? '+' : '−') + (Math.abs(v) >= 1000 ? ctx.fmtInt(Math.round(Math.abs(v))) : Math.abs(v) >= 10 ? Math.round(Math.abs(v)) : Math.abs(v).toFixed(1)) + '%';

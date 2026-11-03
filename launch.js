@@ -100,9 +100,10 @@
       o.since = Math.min(...it.map((e) => e.at || Date.now()));
       o.run = it.filter((e) => e.kinds && e.kinds.runner).length;
       // same sanity rule as the Runner hero: >50x = suspect price sample, skipped
-      o.x2 = it.filter((e) => e.px0 > 0 && e.max > 0 && e.max / e.px0 >= 2 && e.max / e.px0 < 51).length;
+      const KP = window.KyvoPairs, sane = (e) => !KP || !KP.entryCheck(e.px0, e.mc0, e.max, e.mc0 > 0 ? (e.mc0 * e.max) / e.px0 : null);   // v8.33 shared entry rule
+      o.x2 = it.filter((e) => e.px0 > 0 && e.max > 0 && sane(e) && e.max / e.px0 >= 2 && e.max / e.px0 < 51).length;
       // v8.18: biggest move of a flagged coin (peak vs price at flag), same >50x sanity rule
-      const ok = it.filter((e) => e.px0 > 0 && e.max > 0 && e.max / e.px0 < 51);
+      const ok = it.filter((e) => e.px0 > 0 && e.max > 0 && sane(e) && e.max / e.px0 < 51);
       if (ok.length) { const b = ok.reduce((m, e) => (e.max / e.px0 > m.max / m.px0 ? e : m)); const pct = (b.max / b.px0 - 1) * 100; if (pct >= 50) { o.top = Math.round(pct); o.topSym = b.sym || ''; } }
     }
     const nt = lb && (lb.wallets_count || (lb.leaders && lb.leaders.length));

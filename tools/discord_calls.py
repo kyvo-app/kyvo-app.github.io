@@ -28,6 +28,7 @@ from kyvo_config import APP_URL as KYVO_APP, REPO_URL as KYVO_REPO  # v8.25 sing
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import kol_coins  # noqa: E402  v8.8: 👑 KOL coin / 🚀 Moon run overrides
+import early_runner  # noqa: E402  v8.33 ⚡ Wczesny Runner rule
 
 APP = KYVO_APP
 DS = "https://api.dexscreener.com"
@@ -62,7 +63,49 @@ RC_PL = {
     "Low amount of holders": "Bardzo mało holderów", "Transfer fee": "Opłata od transferu",
 }
 
+# v8.33 latency: RugCheck / GoPlus answers are cached for SAFETY_TTL s (in memory + KYVO_SAFETY_CACHE file between scans) and
+# prefetched in parallel for every coin a scan will check — the scan used to take 126–250 s (median ~180 s), mostly sequential
+# RugCheck + GoPlus reads (GoPlus Solana was even read twice per coin: Kyvo Check + contract facts).
+SAFETY_TTL = int(os.environ.get("KYVO_SAFETY_TTL", "300"))
+SAFETY_CACHE = Path(os.environ.get("KYVO_SAFETY_CACHE", ".kyvo_calls/safety_cache.json"))
+_MEMO: dict[str, list] = {}
+
+def _memo_load() -> None:
+    try:
+        now = time.time()
+        _MEMO.update({u: v for u, v in json.loads(SAFETY_CACHE.read_text()).items() if now - v[0] < SAFETY_TTL})
+    except Exception: pass
+
+def _memo_save() -> None:
+    try:
+        now = time.time(); SAFETY_CACHE.parent.mkdir(parents=True, exist_ok=True)
+        SAFETY_CACHE.write_text(json.dumps({u: v for u, v in _MEMO.items() if now - v[0] < SAFETY_TTL and v[1] is not None}))
+    except Exception: pass
+
+def safety_urls(c: dict, report: bool = False) -> list[str]:
+    if c["chain"] == "solana":
+        u = [RC + urllib.parse.quote(c["address"]) + "/report/summary", GP + "solana/token_security?contract_addresses=" + c["address"]]
+        return u + ([RC + urllib.parse.quote(c["address"]) + "/report"] if report else [])
+    if c["chain"] == "bsc": return [GP + "token_security/56?contract_addresses=" + c["address"]]
+    return []
+
+def prefetch(coins: list[dict], report: bool = False, workers: int = 6) -> None:
+    """v8.33: warm the safety cache for these coins in parallel (same GETs kyvo_check / contract_facts make later)."""
+    from concurrent.futures import ThreadPoolExecutor
+    urls = list(dict.fromkeys(u for c in coins for u in safety_urls(c, report) if u not in _MEMO))
+    if urls:
+        with ThreadPoolExecutor(max_workers=workers) as ex: list(ex.map(get, urls))
+
 def get(url: str, timeout: int = 20):
+    cache = url.startswith((RC, GP))
+    if cache:
+        m = _MEMO.get(url)
+        if m and time.time() - m[0] < SAFETY_TTL: return m[1]
+    r = _get(url, timeout)
+    if cache and r is not None: _MEMO[url] = [time.time(), r]
+    return r
+
+def _get(url: str, timeout: int = 20):
     for i in range(3):
         try:
             with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=timeout) as r:
@@ -371,10 +414,20 @@ def write_early_shadow(path: Path, hits: list[dict], flags: list[dict]) -> None:
             e.update({"runner_at": f["at"], "runner_px": f["px0"], "runner_mc": f["mc0"], "lead_min": round((f["at"] - e["at"]) / 60000, 1)})
     keep = sorted((e for e in items.values() if now_ms - e["at"] < 7 * 864e5), key=lambda e: -e["at"])[:1500]
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps({"updated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "shadow": True,
-                                "note": "v8.24 SHADOW test of the early Runner rule (EARLY_T). Logged only — never posted or pushed. Not financial advice.",
+    path.write_text(json.dumps({"updated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "shadow": False,
+                                "note": "v8.33 ⚡ Wczesny Runner log (tools/early_runner.py; v8.24–8.32: shadow test of EARLY_T): first early signal per coin + the later 🏃 Runner flag, for lead time.",
                                 "items": keep}, ensure_ascii=False, separators=(",", ":")))
     print(f"early shadow -> {path}: {len(keep)} coins ({new} new)")
+
+def early_snap(c: dict) -> dict:
+    b5, s5 = c.get("buys5m") or 0, c.get("sells5m") or 0
+    return {"liq": c.get("liq"), "vol5m": c.get("vol5m"), "vol1h": c.get("vol1h"), "m5": c.get("m5"), "h1": c.get("h1"), "tx5": b5 + s5,
+            "br5": round(b5 / (b5 + s5), 3) if b5 + s5 else None, "acc": round(early_runner.accel(c) or 0, 2),
+            "age_h": round(c["age_h"], 3) if c.get("age_h") is not None else None}
+
+def early_log(c: dict) -> dict:
+    return dict({"k": f"{c['chain']}:{c['address']}", "sym": c["symbol"], "name": c["name"], "chain": c["chain"], "addr": c["address"],
+                 "pair": c.get("pair") or "", "at": int(time.time() * 1000), "px0": c["price"], "mc0": c["mcap"]}, **early_snap(c))
 
 def heat(c: dict) -> float:
     """v8.25 Runner prefilter order: 1 h volume weighted by the 1 h move (capped), so the hottest coins are checked first."""
@@ -453,6 +506,7 @@ def main() -> int:
             print(("DRY RUN" if a.dry_run else "DISCORD_WEBHOOK_NEWS not set -> skipped"), json.dumps(payload, ensure_ascii=False, indent=1)); return 0
         return 0 if post(hook, payload) else 1
 
+    _memo_load()
     hooks = {ch: os.environ.get(CHAINS[ch]["secret"], "").strip() for ch in CHAINS}
     chains = [c for c in a.chains.split(",") if c in CHAINS and (a.dry_run or hooks[c] or a.flags_out)]
     flags: list[dict] = []
@@ -482,6 +536,11 @@ def main() -> int:
         boosted = sorted([c for c in coins if c["boost"]], key=lambda c: -c["boost"])
         brank = {c["address"].lower(): i + 1 for i, c in enumerate(boosted)}
         good_coins.sort(key=lambda c: -(c["vol1h"] or 0))
+        # v8.33: everything this scan will Kyvo-Check, prefetched in parallel (Good / Runner / KOL young / ⚡ early / Big runner)
+        _pre = sorted([c for c in coins if (c["vol1h"] or 0) >= 100_000 and (c["h1"] or 0) >= 30 and (c["tx_h1"] or 0) >= 1000 and (c["liq"] or 0) >= 15_000], key=lambda c: -heat(c))[:RUNNER_CAP]
+        _big = sorted([c for c in coins if 1e6 <= (c["mcap"] or 0) <= 1e8 and (c["age_h"] or 0) >= 6 and (c["vol1h"] or 0) >= 150_000 and ((c["h1"] or 0) >= 5 or (c["h6"] or 0) >= 40)], key=lambda c: -(c["vol1h"] or 0))[:10]
+        _t = time.time(); prefetch(good_coins[:12], report=True); prefetch(_pre + early_runner.prefilter(coins) + _big)
+        print(f"  [{chain}] safety prefetch {time.time() - _t:.1f}s")
         print(f"[{chain}] candidates={len(coins)} good&new={len(good_coins)} room={room}")
         scored = []
         for c in good_coins[:12]:
@@ -535,28 +594,21 @@ def main() -> int:
                 flag(c, "runner", ov if ov and ov.get("badge") == "kol" else None); print(f"  runner ${c['symbol']} MC {fmt_usd(c['mcap'])}" + (" 👑 KOL" if ov and ov.get("badge") == "kol" else ""))
             elif ov and ov.get("badge"):
                 flag(c, "runner", ov); print(f"  runner (override {ov['badge']}) ${c['symbol']} MC {fmt_usd(c['mcap'])} @{ov.get('handle') or '-'} top {ov.get('top_pct')}% ev={ov.get('evidence')}")
-        # v8.24 SHADOW test of the early rule (earlyRunnerRule / EARLY_T, same code as the app): cheap prefilter, ≤ 8 coins, Kyvo Check,
-        # node --early. Hits only go to --early-out (data/early_shadow.json) with the flag price / MC / time — no post, no push.
-        if a.early_out:
-            try:
-                runner_now = {f["addr"] for f in flags if f["kind"] == "runner"}
-                ec = sorted([c for c in coins if (c["mcap"] or 0) and c["mcap"] <= 3e6 and (c["vol5m"] or 0) >= 8000 and (c["vol5m"] or 0) <= 170000
-                             and (c["m5"] or 0) >= 5 and (c["liq"] or 0) >= 10000 and ((c.get("buys5m") or 0) + (c.get("sells5m") or 0)) >= 40],
-                            key=lambda c: -(c["vol5m"] or 0))[:8]
-                ein = []
-                for c in ec:
-                    score, checks = kyvo_check(c, coins); ein.append((c, rule_input(c, score, checks, brank.get(c["address"].lower()))))
-                res_e = good_rule([x for _, x in ein], "--early") or [{} for _ in ein]
-                for (c, _), r in zip(ein, res_e):
-                    if not r.get("ok") or not c.get("price"): continue
-                    early_hits.append({"k": f"{c['chain']}:{c['address']}", "sym": c["symbol"], "name": c["name"], "chain": c["chain"], "addr": c["address"],
-                                       "pair": c.get("pair") or "", "at": int(time.time() * 1000), "px0": c["price"], "mc0": c["mcap"], "liq": c.get("liq"),
-                                       "age_h": round(c["age_h"], 3) if c.get("age_h") is not None else None, "m5": c.get("m5"), "h1": c.get("h1"),
-                                       "vol5m": c.get("vol5m"), "acc": round(r.get("acc") or 0, 2), "br5": round(r.get("br5") or 0, 3), "tx5": r.get("tx5"),
-                                       "runner_same_scan": c["address"] in runner_now})
-                if ein: print(f"  [{chain}] early shadow: {len(ein)} checked, {sum(1 for r in res_e if r.get('ok'))} pass (logged only)")
-            except Exception as e:
-                print(f"  early shadow error: {type(e).__name__}")
+        # v8.33 ⚡ Wczesny Runner (was the v8.24 shadow test): tools/early_runner.py market rule -> Kyvo Check + contract facts ->
+        # flag kind "early" (kyvo_push.py pushes it, tag "early"). Also logged to --early-out (data/early_shadow.json) for the lead-time log.
+        try:
+            runner_now = {f["addr"] for f in flags if f["kind"] == "runner"}
+            ec = early_runner.prefilter(coins)
+            for c in ec:
+                score, checks = kyvo_check(c, coins)
+                why = early_runner.safety(score, checks, contract_facts(c))
+                if why or not c.get("price"): print(f"  ⚡ early ${c['symbol']} blocked: {why or 'price'}"); continue
+                flag(c, "early"); flags[-1]["snap"] = early_snap(c)
+                print(f"  ⚡ early runner ${c['symbol']} MC {fmt_usd(c['mcap'])} +{c.get('m5')}% 5m vol5m {fmt_usd(c.get('vol5m'))}")
+                early_hits.append(dict(early_log(c), runner_same_scan=c["address"] in runner_now))
+            if ec: print(f"  [{chain}] early: {len(ec)} passed the market rule")
+        except Exception as e:
+            print(f"  early error: {type(e).__name__}")
         # v8.25 🔁 Kolejna fala / Second leg on the SERVER too (same secondLegRule as the app): market prefilter on DexScreener fields,
         # Kyvo Check, node --leg2 (market part) -> 15-min candle shape (GeckoTerminal, ≤ LEG2_SHAPES reads / chain / scan, 10-min cache)
         # -> node --leg2 again. Passers are saved to the track record as kind "leg2" (no Discord post, no push — like the app).
@@ -626,6 +678,7 @@ def main() -> int:
         print(f"flags -> {a.flags_out}: {len(flags)}")
     if a.kol_out: write_kol_feed(a.kol_out, [f for f in flags if f.get("badge")], dry=a.dry_run)
     if a.early_out: write_early_shadow(a.early_out, early_hits, flags)
+    _memo_save()
     if a.audit_out:
         a.audit_out.parent.mkdir(parents=True, exist_ok=True); a.audit_out.write_text(json.dumps(audit))
     return 0

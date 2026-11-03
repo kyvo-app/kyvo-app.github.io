@@ -1,4 +1,4 @@
-/* KYVO_LIVE_v8_32 — v8.32: 🎮 GTA 6 „📈 od dodania” (ile % poszedł każdy GTA coin od kiedy Kyvo go wykryło / od pusha 🎮 GTA, max od tego czasu, kiedy dodany; plik data/gta_added.json z tools/gta_push.py) · v8.31: 🔔 nowe powiadomienia 🎮 GTA 6 (za darmo, przełącznik „🎮 GTA 6” w Powiadomieniach, domyślnie włączone): nowy GTA coin, który naprawdę rośnie (MC ≥ $25K, prawdziwy wolumen i płynność), i ważne newsy GTA 6 (każdy post Rockstar Games o GTA VI, konta fanowskie tylko trailer / data premiery / opóźnienie); max 1 na 10 min, 15 dziennie.
+/* KYVO_LIVE_v8_33 — v8.33: ⚡ Wczesny Runner (push na starcie pompy, tools/early_runner.py) · jedna reguła wiarygodnej ceny wejścia (pairs.js entryCheck: watchlista z samonaprawą, GTA „od dodania”, Wyniki, statystyki) — koniec „>+99 999%” · nagłówek „2 h 47 min temu” + odświeżanie po powrocie z tła (timeout 20 s) · v8.32: v8.32: 🎮 GTA 6 „📈 od dodania” (ile % poszedł każdy GTA coin od kiedy Kyvo go wykryło / od pusha 🎮 GTA, max od tego czasu, kiedy dodany; plik data/gta_added.json z tools/gta_push.py) · v8.31: 🔔 nowe powiadomienia 🎮 GTA 6 (za darmo, przełącznik „🎮 GTA 6” w Powiadomieniach, domyślnie włączone): nowy GTA coin, który naprawdę rośnie (MC ≥ $25K, prawdziwy wolumen i płynność), i ważne newsy GTA 6 (każdy post Rockstar Games o GTA VI, konta fanowskie tylko trailer / data premiery / opóźnienie); max 1 na 10 min, 15 dziennie.
    KYVO_LIVE_v8_30 — v8.30: 🎮 nowa zakładka GTA 6 (za darmo dla wszystkich): nowe GTA coiny, GTA coiny co rosną (runnery GTA), największe GTA coiny i tweety o GTA (Rockstar Games, GTA 6 Countdown, Rockstar INTEL + każdy śledzony tweet o GTA, 72 h). Strona coina jak wszędzie.
    KYVO_LIVE_v8_29 — v8.29: 📈 strona coina nie przeładowuje się co 45 s (wykres DexScreener nie kręci się w kółko, statystyki i Cena aktualizowane na miejscu, Cena zgodna z MC), mniej zapytań GeckoTerminal przy otwartym coinie, 🧠 smart money z serwera na żywo (stare >72 h ukryte), Viral → New Tweet gdy dane z X są stare.
    KYVO_LIVE_v8_28 — v8.28: 🔔 krótkie powiadomienia (typ + $SYM + jedna liczba, bez dopisków), wyłączenie typu (🥇 Gold, nowy 👀 Smart money…) naprawdę zatrzymuje push („Zapisano” dopiero po zapisie w OneSignal).
@@ -130,10 +130,7 @@
     else t = new Date(isoOrSec).getTime();
     if (!isFinite(t)) return '—';
     const sec = Math.max(0, Math.round((Date.now() - t) / 1000));
-    if (sec < 60) return sec + 's temu';
-    if (sec < 3600) return Math.floor(sec / 60) + ' min temu';
-    if (sec < 86400) return Math.floor(sec / 3600) + 'h temu';
-    return Math.floor(sec / 86400) + 'd temu';
+    return agoShort(sec);
   }
   /* honest timestamp: "20.10, 08:43 (3h temu)" in the user's local time */
   function stampLabel(iso) {
@@ -689,9 +686,15 @@
 
   async function fetchJson(url) {
     if (window.KyvoGT && url.indexOf(GT) === 0) return window.KyvoGT.fetch(url, 120000); // shared GT rate gate (2 min cache)
-    const r = await fetch(url, { headers: { Accept: 'application/json' } });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return r.json();
+    // v8.33: 20 s timeout — a request frozen while the phone slept (iOS PWA) used to hang forever, so refreshBusy stayed true
+    // and the list never refreshed again ("10030s temu" = 2.8 h old screen while the server feeds were fine)
+    const ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const tm = ac ? setTimeout(() => ac.abort(), 20000) : 0;
+    try {
+      const r = await fetch(url, { headers: { Accept: 'application/json' }, signal: ac ? ac.signal : undefined });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return await r.json();
+    } finally { if (tm) clearTimeout(tm); }
   }
 
   function allowedChain(cid) {
@@ -1185,7 +1188,8 @@
     try { const r = await fetch('data/track_record.json?t=' + Math.floor(Date.now() / 600000), { cache: 'no-store' }); if (r.ok) { trackServer = await r.json(); trackServerAt = Date.now(); } } catch (e) {}
     return trackServer;
   }
-  const pctOf = (a, b) => (a && b ? (a / b - 1) * 100 : null);
+  // v8.33: % since a flag / entry through the shared entry sanity rule (pairs.js entryCheck): entry MC < $1K or > 500x from < $3K = "—"
+  const pctE = (px, e) => (px > 0 && e && e.px0 > 0 ? KP.safePct(px, e.px0, e.mc0, e.mc0 > 0 ? (e.mc0 * px) / e.px0 : null) : null);
   let trackKind = localStorage.getItem('kyvo_track_kind') || 'all';
   async function renderTrack() {
     document.body.classList.remove('pulse-on');
@@ -1199,7 +1203,7 @@
     for (const e of Object.values(track.items)) { const s = merged[e.k]; merged[e.k] = s && s.at <= e.at ? Object.assign({}, e, s, { kinds: Object.assign({}, e.kinds, s.kinds), src: 'server' }) : Object.assign({ src: 'local' }, e); }
     let all = Object.values(merged).filter((e) => Date.now() - e.at < 7 * 864e5).sort((a, b) => b.at - a.at);
     const list = trackKind === 'all' ? all : all.filter((e) => e.kinds && e.kinds[trackKind]);
-    const nowP = (e) => pctOf(e.last, e.px0), maxP = (e) => pctOf(e.max, e.px0);
+    const nowP = (e) => pctE(e.last, e), maxP = (e) => pctE(e.max, e);
     const med = (a) => { a = a.filter((v) => v != null && isFinite(v)).sort((x, y) => x - y); return a.length ? a[Math.floor(a.length / 2)] : null; };
     const done1 = list.filter((e) => Date.now() - e.at > 3.6e6);
     const hit50 = done1.filter((e) => (maxP(e) || 0) >= 50).length, hit100 = done1.filter((e) => (maxP(e) || 0) >= 100).length;
@@ -1211,8 +1215,8 @@
       if (!tkPrem && rAt && Date.now() - rAt < 24 * 3.6e6 && !tkOpen.includes(e.k)) // v8.11: Runners from the last 24 h stay locked for free users (no name / CA)
         return `<div class="row trk rlock" role="button" tabindex="0" data-unlock translate="no"><div class="rlock-ic" aria-hidden="true">🔒</div><div class="nm"><b>🏃 Runner <span class="mut" style="font-weight:600">· ${L2('Oznaczony', 'Flagged')} ${esc(tm(rAt))}</span></b><small class="rlock-t">🔒 ${L2('Wynik widoczny w planie 🏃 Runners (darmowo po 24 h)', 'Result visible with the 🏃 Runners plan (free after 24 h)')}</small></div></div>`;
       const st = stageOf(e.mc0);
-      const kinds = Object.keys(e.kinds || {}).map((k) => (k === 'runner' ? (e.badge === 'kol' ? '👑 KOL coin' : e.badge === 'moon' ? '🚀 Moon run' : '🏃 Runner') : k === 'leg2' ? '🔁 ' + L2('Kolejna fala', 'Second leg') : '✅ Good')).join(' · ');
-      const p1 = e.p1 != null ? pctOf(e.p1, e.px0) : null, p8 = e.p8 != null ? pctOf(e.p8, e.px0) : null;
+      const kinds = Object.keys(e.kinds || {}).map((k) => (k === 'runner' ? (e.badge === 'kol' ? '👑 KOL coin' : e.badge === 'moon' ? '🚀 Moon run' : '🏃 Runner') : k === 'leg2' ? '🔁 ' + L2('Kolejna fala', 'Second leg') : k === 'early' ? '⚡ ' + L2('Wczesny Runner', 'Early Runner') : '✅ Good')).join(' · ');
+      const p1 = e.p1 != null ? pctE(e.p1, e) : null, p8 = e.p8 != null ? pctE(e.p8, e) : null;
       const pend = (h) => (Date.now() - e.at < h * 3.6e6 ? `<span class="mut">${L2('za', 'in')} ${ageLabelH(h - (Date.now() - e.at) / 3.6e6)}</span>` : '<span class="mut">—</span>');
       return `<div class="row trk" data-key="${esc(e.k)}" role="button" tabindex="0">${imgTag({ image: e.img, chainId: e.chain, address: e.addr, symbol: e.sym, dexId: '' })}
         <div class="nm"><b><span class="cbadge c-${esc(e.chain)}">${esc(CHAIN_BADGE[e.chain] || e.chain)}</span> $${esc(e.sym)} <span class="mut" style="font-weight:600;font-size:11px">${kinds}${e.kinds && (e.kinds.runner || e.kinds.leg2) && st ? ' · ' + L2('etap', 'stage') + ' ' + st.n : ''}${e.src === 'local' ? ` · <span title="${esc(L2('Zapisane tylko na tym telefonie (wykryte w apce, nie przez serwer Kyvo).', 'Saved only on this phone (detected in the app, not by the Kyvo server).'))}">📱 ${L2('tylko ten telefon', 'this phone only')}</span>` : ''}</span></b>
@@ -1221,13 +1225,13 @@
     };
     $('#listBody').innerHTML = `<div class="h">📊 ${L2('Wyniki', 'Track record')}</div>
       <div class="sub" translate="no">${L2('Każdy coin, który Kyvo oznaczyło (Good Coin lub Runner), zapisany w chwili PIERWSZEGO oznaczenia — z ceną i MC. Pokazujemy wszystkie, także te, które spadły.', 'Every coin Kyvo flagged (Good Coin or Runner), logged at the FIRST flag with price and MC. We show all of them, including the ones that fell.')}</div>
-      <div class="filtbar" style="margin:8px 0" id="trkKinds">${[['all', L2('Wszystkie', 'All')], ['good', '✅ Good'], ['runner', '🏃 Runner'], ['leg2', '🔁 ' + L2('Kolejna fala', 'Second leg')]].map(([k, t]) => `<button type="button" class="fbtn ${trackKind === k ? 'on' : ''}" data-tk="${k}">${t}</button>`).join('')}</div>
+      <div class="filtbar" style="margin:8px 0" id="trkKinds">${[['all', L2('Wszystkie', 'All')], ['good', '✅ Good'], ['runner', '🏃 Runner'], ['early', '⚡ ' + L2('Wczesny', 'Early')], ['leg2', '🔁 ' + L2('Kolejna fala', 'Second leg')]].map(([k, t]) => `<button type="button" class="fbtn ${trackKind === k ? 'on' : ''}" data-tk="${k}">${t}</button>`).join('')}</div>
       <div class="card trk-sum" translate="no">
         <div><b>${list.length}</b><small>${L2('oznaczeń (7 dni)', 'flags (7 days)')}</small></div>
         <div><b>${done1.length ? Math.round(hit50 / done1.length * 100) + '%' : '—'}</b><small>${L2('doszło do +50% (max)', 'reached +50% (max)')}</small></div>
         <div><b>${done1.length ? Math.round(hit100 / done1.length * 100) + '%' : '—'}</b><small>${L2('doszło do 2x (max)', 'reached 2x (max)')}</small></div>
         <div><b class="${pctClass(med(list.map(nowP)))}">${med(list.map(nowP)) != null ? fmtPct(med(list.map(nowP))) : '—'}</b><small>${L2('mediana teraz', 'median now')}</small></div>
-        <div><b class="${pctClass(med(list.map((e) => (e.p8 != null ? pctOf(e.p8, e.px0) : null))))}">${med(list.map((e) => (e.p8 != null ? pctOf(e.p8, e.px0) : null))) != null ? fmtPct(med(list.map((e) => (e.p8 != null ? pctOf(e.p8, e.px0) : null)))) : '—'}</b><small>${L2('mediana po 8h', 'median at 8h')}</small></div>
+        <div><b class="${pctClass(med(list.map((e) => (e.p8 != null ? pctE(e.p8, e) : null))))}">${med(list.map((e) => (e.p8 != null ? pctE(e.p8, e) : null))) != null ? fmtPct(med(list.map((e) => (e.p8 != null ? pctE(e.p8, e) : null)))) : '—'}</b><small>${L2('mediana po 8h', 'median at 8h')}</small></div>
       </div>
       ${list.length ? `<div class="card" style="padding:4px 10px">${list.slice(0, 120).map(row).join('')}</div>` : `<div class="empty" translate="no">${L2('Jeszcze nic nie zapisano. Wyniki zbierają się, gdy Kyvo oznacza coiny (Good Coins / Runner) — na tym urządzeniu oraz w logu serwera.', 'Nothing logged yet. Results build up as Kyvo flags coins (Good Coins / Runner) — on this device and in the server log.')}</div>`}
       <div class="foot" translate="no">${L2('„Max” = najwyższa cena po oznaczeniu (świece 15-min GeckoTerminal lub próbki z apki). Wejście po cenie z chwili oznaczenia, bez poślizgu i opłat. „Kyvo” = log serwera (GitHub Action co ~15 min), reszta = log z tego urządzenia, gdy apka była otwarta. Przeszłe wyniki nie gwarantują przyszłych — to nie porada finansowa, memecoiny mogą spaść do zera.', '“Max” = highest price after the flag (GeckoTerminal 15-min candles or app samples). Entry at the price at flag time, no slippage or fees. “Kyvo” = server log (GitHub Action every ~15 min), the rest = this device’s log while the app was open. Past results don’t guarantee future ones — not financial advice, memecoins can go to zero.')}</div>`;
@@ -1341,7 +1345,7 @@
     let win = rs.filter((e) => warsawDay(e.kinds.runner) === day), today = true;
     if (!win.length) { win = rs.filter((e) => Date.now() - e.kinds.runner < 24 * 3.6e6); today = false; }
     if (!win.length) return null;
-    const mx = win.map((e) => (e.max > 0 ? (e.max / e.px0 - 1) * 100 : null)).filter((v) => v != null && isFinite(v) && v < 5000); // >50x = suspect price sample, skipped
+    const mx = win.map((e) => pctE(e.max, e)).filter((v) => v != null && isFinite(v) && v < 5000); // >50x = suspect price sample, skipped
     return { n: win.length, today, win, best: mx.length ? Math.max(...mx) : null, x2: mx.length ? mx.filter((v) => v >= 100).length : null };
   }
   function runnerHeroHtml(big) {
@@ -1461,7 +1465,7 @@
     const HS = runnerHeroStats(), todayList = HS ? HS.win.slice().sort((a, b) => b.kinds.runner - a.kinds.runner) : [], todayN = todayList.length;
     const todayOpen = (() => { if (prem) return null; const o = openK.slice(); for (const e of todayList.slice().sort((a, b) => a.kinds.runner - b.kinds.runner)) { if (o.length >= quota) break; if (!o.includes(e.k)) o.push(e.k); } return o; })();
     const todayRow = (e) => {
-      const maxP = e.max > 0 && e.px0 > 0 ? (e.max / e.px0 - 1) * 100 : null, nowP = e.last > 0 && e.px0 > 0 ? (e.last / e.px0 - 1) * 100 : null;
+      const maxP = pctE(e.max, e), nowP = pctE(e.last, e);
       const ok = (v) => v != null && isFinite(v) && v < 5000;
       const res = `<div class="rt td-rt">${ok(maxP) ? `<b class="chrome td-max">+${Math.round(Math.max(0, maxP))}%</b><small class="mut">${L2('max po oznacz.', 'max after flag')}</small>` : ''}${ok(nowP) ? `<small class="${pctClass(nowP)}">${L2('teraz', 'now')} ${fmtPct(nowP)}</small>` : ''}</div>`;
       if (todayOpen && !todayOpen.includes(e.k)) return `<div class="row td-row rlock" role="button" tabindex="0" data-unlock translate="no"><div class="rlock-ic" aria-hidden="true">🔒</div><div class="nm"><b>🏃 Runner <span class="mut" style="font-weight:600">· ${esc(flagAgo(e.kinds.runner))}</span></b><div class="rlock-bars" aria-hidden="true"><i style="width:58%"></i><i style="width:40%"></i></div></div>${res}</div>`;
@@ -2877,7 +2881,7 @@
   let lastImgFill = 0;
   /* v8.4 anti-glitch: one refresh at a time; a failed refresh keeps the last good data (no error box / ERR flash
      when coins are already on screen); auto re-render keeps scroll position and opened ▾ panels. */
-  let refreshBusy = false, refreshFails = 0;
+  let refreshBusy = false, refreshFails = 0, refreshStart = 0;
   function keepUi(fn) {
     const y = window.scrollY;
     const open = new Set();
@@ -2891,8 +2895,8 @@
     if (Math.abs(window.scrollY - y) > 2) window.scrollTo(0, y);
   }
   async function refresh(manual) {
-    if (refreshBusy) return;
-    refreshBusy = true;
+    if (refreshBusy && Date.now() - refreshStart < 90000) return;   // v8.33 watchdog: a refresh stuck > 90 s no longer blocks all later ones
+    refreshBusy = true; refreshStart = Date.now();
     try { await refreshInner(manual); } catch (e) { console.warn('refresh', e); } finally { refreshBusy = false; }
   }
   async function refreshInner(manual) {
@@ -2929,7 +2933,17 @@
       return;
     }
     const sec = Math.round((Date.now() - lastFetch) / 1000);
-    el.textContent = sec < 5 ? 'teraz' : sec + 's temu';
+    el.textContent = sec < 5 ? (window.KyvoI18n && window.KyvoI18n.isEn() ? 'now' : 'teraz') : agoShort(sec);
+    el.classList.toggle('stale', sec > 300);
+  }
+  /* v8.33: "47 s temu" / "12 min temu" / "2 h 47 min temu" (was raw seconds: "10030s temu") */
+  function agoShort(sec) {
+    const en = window.KyvoI18n && window.KyvoI18n.isEn(), ago = en ? ' ago' : ' temu';
+    if (sec < 60) return sec + ' s' + ago;
+    if (sec < 3600) return Math.floor(sec / 60) + ' min' + ago;
+    const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60);
+    if (h < 48) return h + ' h' + (m ? ' ' + m + ' min' : '') + ago;
+    return Math.floor(h / 24) + (en ? ' d' : ' dni') + ago;
   }
 
   function goCoin(key) {
@@ -3047,6 +3061,9 @@
     try { updateRunnerBadge(); } catch (e) {}
   });
   setInterval(() => refresh(), REFRESH_MS);
+  // v8.33: back from the background with old data -> refresh now (timers are paused while the phone sleeps)
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - lastFetch > REFRESH_MS) refresh(); });
+  window.addEventListener('pageshow', (ev) => { if (ev.persisted && Date.now() - lastFetch > REFRESH_MS) refresh(); });
   document.addEventListener('visibilitychange', () => { if (!document.hidden && navigator.serviceWorker && navigator.serviceWorker.getRegistration) navigator.serviceWorker.getRegistration().then((r) => r && r.update()).catch(() => {}); });
   document.addEventListener('visibilitychange', () => { if (!document.hidden && lastFetch && ['pulse', 'hot', 'good', 'new', 'stretch', 'migrated', 'boosted', 'runner'].includes(view)) keepUi(() => setView(view)); });
   // v8.2: re-check the X snapshot every 10 min while Kyvo is open -> "new important tweet" notification

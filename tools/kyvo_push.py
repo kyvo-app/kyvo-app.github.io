@@ -232,9 +232,10 @@ def runner_style(items: list[dict], flags: list[dict]) -> None:
     """v8.28: every Runner-family push -> title '<emoji> <Type> · $SYM +X%' (X = DexScreener priceChange.h1 at the flag, real data;
        omitted when unknown), plain Runner body 'MC $X · Name', coin logo as icon + big image, tap opens the coin page in Kyvo."""
     fm = {str(f.get("k", "")).lower(): f for f in flags if f.get("kind") == "runner"}
+    fe = {str(f.get("k", "")).lower(): f for f in flags if f.get("kind") == "early"}    # v8.33 ⚡ early flags (title already has the 5-min move)
     for it in items:
         if it.get("kind") != "runner" or it.get("smart"): continue
-        f = fm.get(it["id"].split(":", 1)[1])
+        f = (fe if it["id"].startswith("early:") else fm).get(it["id"].split(":", 1)[1])
         if not f: continue
         h1 = f.get("h1") if f.get("h1") is not None else (f.get("snap") or {}).get("h1")
         if it["id"].startswith("twr:") and (f.get("tweet") or {}).get("chg") is not None: h1 = None   # title already has the % after the tweet
@@ -488,7 +489,19 @@ def main() -> int:
         if n_vip >= VIP_PER_RUN: print(f"VIP @{h}: per-run limit {VIP_PER_RUN} -> next run"); continue
         n_vip += 1
         items.append(vip_item(h, ts, now))
-    for f in load(a.flags, []):
+    _flags = load(a.flags, [])
+    run_now = {str(x.get("k", "")).lower() for x in _flags if x.get("kind") == "runner"}
+    for f in _flags:
+        if f.get("kind") == "early":    # v8.33 ⚡ Wczesny Runner (tools/early_runner.py): the start of a strong pump, before the 🏃 Runner rule
+            ekid, rkid = "early:" + f["k"].lower(), "run:" + f["k"].lower()
+            if ekid in sent or rkid in sent or f["k"].lower() in run_now: continue               # once per coin; never after it was already pushed as a Runner
+            if seeding: sent[ekid] = now; continue
+            m5 = (f.get("snap") or {}).get("m5", f.get("m5"))
+            mv = f" +{round(m5)}% 5 min" if isinstance(m5, (int, float)) and 0 < m5 < 100000 else ""
+            items.append({"id": ekid, "kind": "runner", "plain": True, "topic": ekid, "hash": "#coin/" + f["k"],
+                          "title_pl": f"⚡ Wczesny Runner · ${f['sym']}{mv}", "title_en": f"⚡ Early Runner · ${f['sym']}{mv}",
+                          "body_pl": f"MC {fmt_usd(f.get('mc0'))} · start pompy", "body_en": f"MC {fmt_usd(f.get('mc0'))} · pump starting"})
+            continue
         if f.get("kind") != "runner": continue
         kid = "run:" + f["k"].lower()
         if kid in sent and not f.get("tweet"): continue

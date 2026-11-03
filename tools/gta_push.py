@@ -130,6 +130,16 @@ def coin_runs(c: dict) -> str | None:
     if h6 is not None and h6 >= H6_MIN and (h1 or 0) >= 0: return f"+{h6:.0f}% 6h"
     return None
 
+ENTRY_MIN_MC, JUMP_X, JUMP_MC = 1_000, 500, 3_000   # v8.33: same entry sanity rule as the app (pairs.js entryCheck)
+
+def entry_ok(px0, mc0, sup: float, px_hi: float) -> bool:
+    """reference price sane? implied MC ≥ $1K, stored MC within 5x of it, not > 500x from < $3K"""
+    if not px0 or px0 <= 0: return False
+    mc_px = px0 * sup
+    if mc_px < ENTRY_MIN_MC or (mc0 and mc0 < ENTRY_MIN_MC): return False
+    if mc0 and (mc0 / mc_px > 5 or mc_px / mc0 > 5): return False
+    return not (px_hi / px0 > JUMP_X and (mc_px or mc0 or 0) < JUMP_MC)
+
 def update_added(path: Path, matched: list[dict], state: Path | None, now: float) -> dict:
     """v8.32: first-seen reference per GTA coin (+ max since then); a 🎮 GTA push re-bases it to the push price/time."""
     try: d = json.loads(path.read_text())
@@ -139,14 +149,17 @@ def update_added(path: Path, matched: list[dict], state: Path | None, now: float
     except Exception: pushed = {}
     for c in matched:
         px, k = c.get("px"), c["k"].lower()
-        if not px or px <= 0: continue
+        if not px or px <= 0 or not c.get("mc") or c["mc"] < ENTRY_MIN_MC: continue      # v8.33: no reference from a bogus (MC < $1K) tick
+        sup = c["mc"] / px
         e = coins.get(k)
+        if e is not None and not entry_ok(e.get("px0"), e.get("mc0"), sup, max(e.get("max") or 0, px)):
+            e = None                                                                       # v8.33 self-heal: bad stored reference -> re-based now
         if e is None:
             e = coins[k] = {"t": int(now), "px0": px, "mc0": c.get("mc"), "src": "seen", "max": px, "maxT": int(now)}
         pu = pushed.get(k)
         if pu and e.get("src") != "push" and pu.get("t"):                  # pushed coin -> push price (state px, else MC ratio)
             ppx = pu.get("px") or (px * pu["mc"] / c["mc"] if pu.get("mc") and c.get("mc") else None)
-            if ppx and ppx > 0: e.update({"t": int(pu["t"]), "px0": ppx, "mc0": pu.get("mc"), "src": "push", "max": max(ppx, px), "maxT": int(now)})
+            if ppx and ppx > 0 and entry_ok(ppx, pu.get("mc"), sup, max(ppx, px)): e.update({"t": int(pu["t"]), "px0": ppx, "mc0": pu.get("mc"), "src": "push", "max": max(ppx, px), "maxT": int(now)})
         if px > (e.get("max") or 0): e["max"], e["maxT"] = px, int(now)
         e["sym"] = c.get("sym") or e.get("sym")
     coins = {k: v for k, v in coins.items() if now - (v.get("t") or 0) < ADDED_KEEP_D * 86400}
