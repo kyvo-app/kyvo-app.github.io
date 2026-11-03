@@ -52,12 +52,19 @@ function estimateUpside(x) {
     dumping: h1 != null && h1 < -20,
     sellersDom: br != null && ntx >= 20 && br < 0.45,
     concentrated: top10 != null && top10 > 0.5,
+    // v8.34 (72 h backtest, 160 flagged coins): < 1 h old, already > +100% in 1 h, or vol 1h > 1.5× MC -> 76–83% fell −50% before 2x
+    young: ageH != null && ageH < 1,
+    hot1h: h1 != null && h1 > 100,
+    churn: mc > 0 && v1 != null && v1 / mc > 1.5,
     buyShare: br, volX,
   };
   let G = (0.25 * comp.mom + 0.15 * comp.flow + 0.15 * comp.act + 0.15 * comp.sm + 0.1 * comp.viral + 0.1 * comp.q + 0.1 * comp.liqOk) * ageF;
   if (flags.concentrated) G -= 0.1;
   if (flags.over) G -= 0.15;
   if (flags.dumping) G -= 0.1;
+  if (flags.young) G -= 0.1;
+  if (flags.hot1h) G -= 0.1;
+  if (flags.churn) G -= 0.1;
   G = c01(G);
   const gated = S < 50 || reds > 0 || (!onCurve && liq != null && liq < 5000);
   const noData = !(mc > 0) || (!onCurve && liq != null && liq > 2 * mc); // liq > 2×MC = broken MC/price data
@@ -77,10 +84,18 @@ function estimateUpside(x) {
     // base (signed central case): midpoint of the range × (G_h − 0.22)/0.78 → negative when the signal is weak/fading
     // (v8.3 calibration: neutral point lowered from 0.30 so calm, established coins with buyer flow are not all negative)
     const gH = c01(G - 0.005 * h), mid = (hiRaw * share * 1.25) / 2;
-    const base = Math.round(mid * (gH - 0.22) / 0.78);
-    return { h, label: h < 1 ? Math.round(h * 60) + ' min' : h + ' h', lo: Math.min(lH, hH), hi: hH, base, scen: scenOf(gH), conf, confLabel: conf < 25 ? 'low' : conf < 45 ? 'med' : 'high' };
+    const base0 = Math.round(mid * (gH - 0.22) / 0.78);   // v8.3 base (still used by the Good Coins gate so the list is not emptied)
+    // v8.34 calibration on real outcomes: only 23–33% of flagged coins were higher after 1–8 h (median −22% 1 h, −62% 3 h, −80% 8 h),
+    // the old base was > 0 for ~60% -> neutral point raised 0.22 -> 0.40, extra fade for longer horizons and the risky setups above.
+    const risky = (flags.young ? 1 : 0) + (flags.hot1h ? 1 : 0) + (flags.churn ? 1 : 0);
+    const base = Math.round(mid * (gH - 0.4) / 0.6 - mid * (0.04 * h + 0.15 * risky));
+    // v8.34: coins < 6 h old -> 3 h range shrunk (×0.6), 6 h / 8 h hidden (they almost never hold a move that long)
+    const young6 = ageH != null && ageH < 6, k3 = young6 && h === 3 ? 0.6 : 1;
+    const hi2 = Math.max(3, nice(hH * k3)), lo2 = Math.max(1, nice(lH * k3));
+    return { h, label: h < 1 ? Math.round(h * 60) + ' min' : h + ' h', lo: Math.min(lo2, hi2), hi: hi2, base, base0, hidden: young6 && h >= 6, scen: scenOf(gH), conf, confLabel: conf < 25 ? 'low' : conf < 45 ? 'med' : 'high' };
   });
-  return { gated, noData, G, comp, ageF, flags, scen: scenOf(G), lo, hi, tf, room, horizons };
+  const note = { pl: 'Większość takich coinów oddaje wzrost w 1–3 h', en: 'Most coins like this give back the move within 1–3 h' };
+  return { gated, noData, G, comp, ageF, flags, scen: scenOf(G), lo, hi, tf, room, horizons, note };
 }
 /**
  * estimatePopularity(x) → { P 0..1, parts, reasons } "Popularne teraz / Hot now" (attention right now).
@@ -169,7 +184,7 @@ function goodCoinRule(x, T) {
   add('upside', 'buys', br != null && br >= T.buyShare, br);
   add('upside', 'mom', h1 != null && h1 > 0 && h1 <= T.h1Max, h1);
   add('upside', 'notLate', !(h24 != null && h24 > 300 && ((h1 != null && h1 < 0) || (m5 != null && m5 < 0))) && !est.flags.over && !est.flags.dumping && !est.flags.sellersDom && !(h1 != null && h1 <= -15), null);
-  add('upside', 'base', !est.gated && !est.noData && z(1).base > 0 && z(3).base > 0 && z(8).base > 0, z(8).base);
+  add('upside', 'base', !est.gated && !est.noData && z(1).base0 > 0 && z(3).base0 > 0 && z(8).base0 > 0, z(8).base0);   // v8.34: gate keeps the v8.3 base
   const all = g.safety.concat(g.hot, g.upside);
   const failed = all.find((q) => q.pass === false);
   const pending = !failed && all.some((q) => q.pass === null);

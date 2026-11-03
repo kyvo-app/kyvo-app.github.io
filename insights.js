@@ -786,12 +786,19 @@
       dumping: h1 != null && h1 < -20,
       sellersDom: br != null && ntx >= 20 && br < 0.45,
       concentrated: top10 != null && top10 > 0.5,
+      // v8.34 (72 h backtest, 160 flagged coins): < 1 h old, already > +100% in 1 h, or vol 1h > 1.5× MC -> 76–83% fell −50% before 2x
+      young: ageH != null && ageH < 1,
+      hot1h: h1 != null && h1 > 100,
+      churn: mc > 0 && v1 != null && v1 / mc > 1.5,
       buyShare: br, volX,
     };
     let G = (0.25 * comp.mom + 0.15 * comp.flow + 0.15 * comp.act + 0.15 * comp.sm + 0.1 * comp.viral + 0.1 * comp.q + 0.1 * comp.liqOk) * ageF;
     if (flags.concentrated) G -= 0.1;
     if (flags.over) G -= 0.15;
     if (flags.dumping) G -= 0.1;
+    if (flags.young) G -= 0.1;
+    if (flags.hot1h) G -= 0.1;
+    if (flags.churn) G -= 0.1;
     G = c01(G);
     const gated = S < 50 || reds > 0 || (!onCurve && liq != null && liq < 5000);
     const noData = !(mc > 0) || (!onCurve && liq != null && liq > 2 * mc); // liq > 2×MC = broken MC/price data
@@ -811,10 +818,18 @@
       // base (signed central case): midpoint of the range × (G_h − 0.22)/0.78 → negative when the signal is weak/fading
       // (v8.3 calibration: neutral point lowered from 0.30 so calm, established coins with buyer flow are not all negative)
       const gH = c01(G - 0.005 * h), mid = (hiRaw * share * 1.25) / 2;
-      const base = Math.round(mid * (gH - 0.22) / 0.78);
-      return { h, label: h < 1 ? Math.round(h * 60) + ' min' : h + ' h', lo: Math.min(lH, hH), hi: hH, base, scen: scenOf(gH), conf, confLabel: conf < 25 ? 'low' : conf < 45 ? 'med' : 'high' };
+      const base0 = Math.round(mid * (gH - 0.22) / 0.78);   // v8.3 base (still used by the Good Coins gate so the list is not emptied)
+      // v8.34 calibration on real outcomes: only 23–33% of flagged coins were higher after 1–8 h (median −22% 1 h, −62% 3 h, −80% 8 h),
+      // the old base was > 0 for ~60% -> neutral point raised 0.22 -> 0.40, extra fade for longer horizons and the risky setups above.
+      const risky = (flags.young ? 1 : 0) + (flags.hot1h ? 1 : 0) + (flags.churn ? 1 : 0);
+      const base = Math.round(mid * (gH - 0.4) / 0.6 - mid * (0.04 * h + 0.15 * risky));
+      // v8.34: coins < 6 h old -> 3 h range shrunk (×0.6), 6 h / 8 h hidden (they almost never hold a move that long)
+      const young6 = ageH != null && ageH < 6, k3 = young6 && h === 3 ? 0.6 : 1;
+      const hi2 = Math.max(3, nice(hH * k3)), lo2 = Math.max(1, nice(lH * k3));
+      return { h, label: h < 1 ? Math.round(h * 60) + ' min' : h + ' h', lo: Math.min(lo2, hi2), hi: hi2, base, base0, hidden: young6 && h >= 6, scen: scenOf(gH), conf, confLabel: conf < 25 ? 'low' : conf < 45 ? 'med' : 'high' };
     });
-    return { gated, noData, G, comp, ageF, flags, scen: scenOf(G), lo, hi, tf, room, horizons };
+    const note = { pl: 'Większość takich coinów oddaje wzrost w 1–3 h', en: 'Most coins like this give back the move within 1–3 h' };
+    return { gated, noData, G, comp, ageF, flags, scen: scenOf(G), lo, hi, tf, room, horizons, note };
   }
   /**
    * estimatePopularity(x) → { P 0..1, parts, reasons } "Popularne teraz / Hot now" (attention right now).
@@ -903,7 +918,7 @@
     add('upside', 'buys', br != null && br >= T.buyShare, br);
     add('upside', 'mom', h1 != null && h1 > 0 && h1 <= T.h1Max, h1);
     add('upside', 'notLate', !(h24 != null && h24 > 300 && ((h1 != null && h1 < 0) || (m5 != null && m5 < 0))) && !est.flags.over && !est.flags.dumping && !est.flags.sellersDom && !(h1 != null && h1 <= -15), null);
-    add('upside', 'base', !est.gated && !est.noData && z(1).base > 0 && z(3).base > 0 && z(8).base > 0, z(8).base);
+    add('upside', 'base', !est.gated && !est.noData && z(1).base0 > 0 && z(3).base0 > 0 && z(8).base0 > 0, z(8).base0);   // v8.34: gate keeps the v8.3 base
     const all = g.safety.concat(g.hot, g.upside);
     const failed = all.find((q) => q.pass === false);
     const pending = !failed && all.some((q) => q.pass === null);
@@ -1350,8 +1365,8 @@
   function goodRowHtml(c) {
     const o = goodOutlook(c);
     if (!o.a) return '';
-    const z8 = o.a.horizons && o.a.horizons.find((z) => z.h === 8);
-    const big = z8 ? `<div class="g8" translate="no"><b>8h</b> ${L('bazowo', 'base')} <b class="${z8.base > 0 ? 'up' : 'dn'}">${z8.base > 0 ? '+' : ''}${z8.base}%</b> <span class="mut">· ${L('zakres', 'range')}</span> <span class="ups-v ups-${z8.scen}">+${z8.lo}–${z8.hi}%</span> <span class="mut">· ${L('pewność', 'conf.')} ${z8.conf}%</span></div>` : '';
+    const z8 = o.a.horizons && (o.a.horizons.find((z) => z.h === 8 && !z.hidden) || o.a.horizons.find((z) => z.h === 1));   // v8.34: young coin -> 1 h
+    const big = z8 ? `<div class="g8" translate="no"><b>${z8.label.replace(' ', '')}</b> ${L('bazowo', 'base')} <b class="${z8.base > 0 ? 'up' : 'dn'}">${z8.base > 0 ? '+' : ''}${z8.base}%</b> <span class="mut">· ${L('zakres', 'range')}</span> <span class="ups-v ups-${z8.scen}">+${z8.lo}–${z8.hi}%</span> <span class="mut">· ${L('pewność', 'conf.')} ${z8.conf}%</span></div>` : '';
     const gl = `<div class="gpass" translate="no">✅ ${L('Bezpieczny', 'Safe')} · ✅ ${L('Popularny', 'Hot')} · ✅ ${L('Potencjał 8h', '8h upside')}</div>`;
     return hotBadgeHtml(o) + big + (o.ok ? gl : '') + upsideRowHtml(c);
   }
@@ -1372,13 +1387,13 @@
   function horizonsHtml(a) {
     if (a.gated || a.noData || !a.horizons) return '';
     return `<table class="hz"><thead><tr><th>${L('Czas', 'Horizon')}</th><th>${L('Bazowo', 'Base')}</th><th>${L('Zakres', 'Range')}</th><th>${L('Scenariusz', 'Scenario')}</th><th>${L('Pewność', 'Confidence')}</th></tr></thead><tbody>
-      ${a.horizons.map((z) => `<tr><td>${z.label}</td><td class="${z.base > 0 ? 'up' : z.base < 0 ? 'dn' : 'mut'}" style="font-weight:700">${z.base > 0 ? '+' : ''}${z.base}%</td><td class="ups-v ups-${z.scen}">+${z.lo}–${z.hi}%</td><td><span class="ups-s ups-${z.scen}">${L(SCEN[z.scen][0], SCEN[z.scen][1])}</span></td><td><span class="hz-c"><i style="width:${z.conf}%"></i></span> ${z.conf}% <span class="mut">${L(CONF[z.confLabel][0], CONF[z.confLabel][1])}</span></td></tr>`).join('')}
-      </tbody></table><div class="mut" style="font-size:10.5px;margin-top:3px">${L('Pewność spada z dłuższym czasem. Spadek zawsze możliwy do −100%.', 'Confidence drops with longer horizons. Downside always possible to −100%.')}</div>`;
+      ${a.horizons.filter((z) => !z.hidden).map((z) => `<tr><td>${z.label}</td><td class="${z.base > 0 ? 'up' : z.base < 0 ? 'dn' : 'mut'}" style="font-weight:700">${z.base > 0 ? '+' : ''}${z.base}%</td><td class="ups-v ups-${z.scen}">+${z.lo}–${z.hi}%</td><td><span class="ups-s ups-${z.scen}">${L(SCEN[z.scen][0], SCEN[z.scen][1])}</span></td><td><span class="hz-c"><i style="width:${z.conf}%"></i></span> ${z.conf}% <span class="mut">${L(CONF[z.confLabel][0], CONF[z.confLabel][1])}</span></td></tr>`).join('')}
+      </tbody></table><div class="mut" style="font-size:10.5px;margin-top:3px">${a.est && a.est.note ? `⏱ ${L(a.est.note.pl, a.est.note.en)}. ` : ''}${a.horizons.some((z) => z.hidden) ? L('Coin młodszy niż 6 h — bez prognozy 6–8 h. ', 'Coin younger than 6 h — no 6–8 h estimate. ') : ''}${L('Pewność spada z dłuższym czasem. Spadek zawsze możliwy do −100%.', 'Confidence drops with longer horizons. Downside always possible to −100%.')}</div>`;
   }
   function compactHz(a) {
     if (a.gated || a.noData || !a.horizons) return upsideLabel(a);
-    const z1 = a.horizons.find((z) => z.h === 1), z8 = a.horizons.find((z) => z.h === 8);
-    return `<span class="ups-v ups-${z1.scen}">📈 1h +${z1.lo}–${z1.hi}%</span> <span class="mut">·</span> <span class="ups-v ups-${z8.scen}">8h +${z8.lo}–${z8.hi}%</span> <span class="ups-s ups-${a.scen}">${L(SCEN[a.scen][0], SCEN[a.scen][1])}</span>`;
+    const z1 = a.horizons.find((z) => z.h === 1), z8 = a.horizons.find((z) => z.h === 8 && !z.hidden) || a.horizons.find((z) => z.h === 3);   // v8.34: < 6 h old -> 3 h
+    return `<span class="ups-v ups-${z1.scen}">📈 1h +${z1.lo}–${z1.hi}%</span> <span class="mut">·</span> <span class="ups-v ups-${z8.scen}">${z8.label.replace(' ', '')} +${z8.lo}–${z8.hi}%</span> <span class="ups-s ups-${a.scen}">${L(SCEN[a.scen][0], SCEN[a.scen][1])}</span>`;
   }
   function verdictHtml(a) { return `<span class="verd verd-${a.verdict}">${L(VERD[a.verdict][0], VERD[a.verdict][1])}</span>`; }
   function prosConsHtml(a) {
@@ -1410,6 +1425,7 @@
       <button type="button" class="upbig" data-upinfo>${upsideLabel(a)} <span class="mut" style="font-size:11px">ⓘ ${L('jak liczone', 'how')}</span></button>
       ${!a.gated && !a.noData ? `<div class="mut" style="font-size:11.5px;margin:4px 0 8px">${L('Siła sygnału', 'Signal strength')} ${Math.round(a.G * 100)}/100 · ${L('ryzyko spadku zawsze do −100%', 'downside always up to −100%')}</div>` : ''}
       ${horizonsHtml(a)}
+      ${!a.gated && !a.noData ? `<div class="exith" style="font-size:12px;margin-top:8px"><b>🎯 ${L('Wyjście', 'Exit')}:</b> ${L('Sprzedaj ½ na x2, resztę trailing −30%', 'Sell ½ at 2x, trail the rest −30%')} · ${L('stop −40% przed x2', 'stop −40% before 2x')}</div>` : ''}
       <div class="upx-h" style="margin-top:12px">${L('Dlaczego tu jest', 'Why it\u2019s here')}</div>
       ${ext && ext.good ? `<div class="mut" style="font-size:11.5px;margin-bottom:4px">${ext.good.ok ? L('Przeszedł 3 bramki Good Coins:', 'Passed all 3 Good Coins gates:') : L('Bramki Good Coins:', 'Good Coins gates:')}</div>${gatesHtml(ext.good)}` : ''}
       <ul class="why-l">${a.why.map((x) => `<li>${x}</li>`).join('')}</ul>

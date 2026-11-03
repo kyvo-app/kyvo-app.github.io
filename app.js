@@ -1,4 +1,4 @@
-/* KYVO_LIVE_v8_33 — v8.33: ⚡ Wczesny Runner (push na starcie pompy, tools/early_runner.py) · jedna reguła wiarygodnej ceny wejścia (pairs.js entryCheck: watchlista z samonaprawą, GTA „od dodania”, Wyniki, statystyki) — koniec „>+99 999%” · nagłówek „2 h 47 min temu” + odświeżanie po powrocie z tła (timeout 20 s) · v8.32: v8.32: 🎮 GTA 6 „📈 od dodania” (ile % poszedł każdy GTA coin od kiedy Kyvo go wykryło / od pusha 🎮 GTA, max od tego czasu, kiedy dodany; plik data/gta_added.json z tools/gta_push.py) · v8.31: 🔔 nowe powiadomienia 🎮 GTA 6 (za darmo, przełącznik „🎮 GTA 6” w Powiadomieniach, domyślnie włączone): nowy GTA coin, który naprawdę rośnie (MC ≥ $25K, prawdziwy wolumen i płynność), i ważne newsy GTA 6 (każdy post Rockstar Games o GTA VI, konta fanowskie tylko trailer / data premiery / opóźnienie); max 1 na 10 min, 15 dziennie.
+/* KYVO_LIVE_v8_34 — v8.34: 🚀 nowa zakładka Runner 2.0 (obok Runnera i w Więcej): tylko coiny z Runnera / ⚡ Wczesnego, które przeszły filtry v8.34 (coin ≥ 1 h — młody sprawdzany ponownie po 30–60 min i tylko gdy cena ≥ 0,9× ceny z oznaczenia; bez +100% w 1 h; wolumen 1 h ≤ 1,5× MC), % od wejścia do Runner 2.0, podpowiedź „Sprzedaj ½ na x2, resztę trailing −30%” · osobne powiadomienia 🚀 Runner 2.0 (przełącznik w Powiadomieniach, domyślnie włączone) · 🏃 Runner, jego pushe, ⚡ Wczesny i Gold bez zmian · realniejsze przewidywania (niższy scenariusz bazowy, bez 6–8 h dla coinów < 6 h, „Większość takich coinów oddaje wzrost w 1–3 h”) · przewidywanie zapisywane w Wynikach · v8.33: ⚡ Wczesny Runner (push na starcie pompy, tools/early_runner.py) · jedna reguła wiarygodnej ceny wejścia (pairs.js entryCheck: watchlista z samonaprawą, GTA „od dodania”, Wyniki, statystyki) — koniec „>+99 999%” · nagłówek „2 h 47 min temu” + odświeżanie po powrocie z tła (timeout 20 s) · v8.32: v8.32: 🎮 GTA 6 „📈 od dodania” (ile % poszedł każdy GTA coin od kiedy Kyvo go wykryło / od pusha 🎮 GTA, max od tego czasu, kiedy dodany; plik data/gta_added.json z tools/gta_push.py) · v8.31: 🔔 nowe powiadomienia 🎮 GTA 6 (za darmo, przełącznik „🎮 GTA 6” w Powiadomieniach, domyślnie włączone): nowy GTA coin, który naprawdę rośnie (MC ≥ $25K, prawdziwy wolumen i płynność), i ważne newsy GTA 6 (każdy post Rockstar Games o GTA VI, konta fanowskie tylko trailer / data premiery / opóźnienie); max 1 na 10 min, 15 dziennie.
    KYVO_LIVE_v8_30 — v8.30: 🎮 nowa zakładka GTA 6 (za darmo dla wszystkich): nowe GTA coiny, GTA coiny co rosną (runnery GTA), największe GTA coiny i tweety o GTA (Rockstar Games, GTA 6 Countdown, Rockstar INTEL + każdy śledzony tweet o GTA, 72 h). Strona coina jak wszędzie.
    KYVO_LIVE_v8_29 — v8.29: 📈 strona coina nie przeładowuje się co 45 s (wykres DexScreener nie kręci się w kółko, statystyki i Cena aktualizowane na miejscu, Cena zgodna z MC), mniej zapytań GeckoTerminal przy otwartym coinie, 🧠 smart money z serwera na żywo (stare >72 h ukryte), Viral → New Tweet gdy dane z X są stare.
    KYVO_LIVE_v8_28 — v8.28: 🔔 krótkie powiadomienia (typ + $SYM + jedna liczba, bez dopisków), wyłączenie typu (🥇 Gold, nowy 👀 Smart money…) naprawdę zatrzymuje push („Zapisano” dopiero po zapisie w OneSignal).
@@ -1402,6 +1402,59 @@
     const n = items.coins.concat(items.tweets).filter((x) => !seenK[x.key]).length;
     $$('[data-runner-count]').forEach((el) => { el.textContent = n ? String(n) : ''; el.style.display = n ? '' : 'none'; });
   }
+  /* v8.34 🚀 Runner 2.0 — data/runner2.json (tools/runner2.py, written by the server loop after every Runner scan): Runner / ⚡ Early
+     coins that passed the v8.34 filters (age ≥ 1 h — young ones re-checked 30–60 min later and kept only at ≥ 0.9× the flag price;
+     ≤ +100% in 1 h; vol 1 h ≤ 1.5× MC). % since it entered Runner 2.0 through the shared entry rule (pctE / pairs.js entryCheck).
+     Gate = the Runner tab's: 🏃 Runners plan (incl. promo / free hour) sees all; others see the Runners they have open + anything > 24 h. */
+  let r2Doc = null, r2At = 0, r2Busy = false;
+  async function loadRunner2() {
+    if (r2Busy || (r2Doc && Date.now() - r2At < 60e3)) return r2Doc;
+    r2Busy = true;
+    try { const r = await fetch('data/runner2.json?t=' + Math.floor(Date.now() / 60000), { cache: 'no-store' }); r2Doc = r.ok ? await r.json() : r2Doc || { coins: [] }; } catch (e) { r2Doc = r2Doc || { coins: [] }; }
+    r2At = Date.now(); r2Busy = false;
+    return r2Doc;
+  }
+  function renderRunner2() {
+    document.body.classList.remove('pulse-on');
+    $('#pulseDesk').innerHTML = '';
+    const en = window.KyvoI18n && window.KyvoI18n.isEn();
+    const L2 = (pl, e) => (en ? e : pl);
+    const box = $('#listBody');
+    if (!r2Doc) { box.innerHTML = `<div class="loading"><div class="spin"></div>${L2('Ładuję Runner 2.0…', 'Loading Runner 2.0…')}</div>`; loadRunner2().then(() => { if (view === 'runner2') renderRunner2(); }); return; }
+    if (Date.now() - r2At > 60e3) loadRunner2().then(() => { if (view === 'runner2') renderRunner2(); });
+    const all = ((r2Doc && r2Doc.coins) || []).filter((e) => e && e.k && Date.now() - e.at < 72 * 3.6e6 && (activeChain === 'all' || !activeChain || e.chain === activeChain)).sort((a, b) => b.at - a.at);
+    const prem = isRunnersUser(), paid = isPremiumUser();
+    let openK = null; if (!prem) { try { openK = (RunnerGate.openKeys() || []).map((k) => String(k).replace(/^leg2:/, '')); } catch (e) { openK = []; } }
+    const isOpen = (e) => prem || Date.now() - e.at > 24 * 3.6e6 || (openK || []).includes(e.k);
+    const ago = (ms) => { const m = Math.max(1, Math.round((Date.now() - ms) / 60e3)); return m < 60 ? L2(m + ' min temu', m + ' min ago') : m < 48 * 60 ? L2(Math.floor(m / 60) + ' h ' + (m % 60) + ' min temu', Math.floor(m / 60) + ' h ' + (m % 60) + ' min ago') : L2(Math.round(m / 1440) + ' d temu', Math.round(m / 1440) + ' d ago'); };
+    const srcL = (e) => (e.src === 'early' ? '⚡ ' + L2('Wczesny', 'Early') : e.src === 'leg2' ? '🔁 ' + L2('Kolejna fala', 'Second leg') : e.src === 'kol' ? '👑 KOL' : e.src === 'moon' ? '🚀 Moon' : e.src === 'big' ? '📈 ' + L2('Duży', 'Big') : e.src === 'tweet' ? '🐦 Tweet' : '🏃 Runner');
+    const ok = (v) => v != null && isFinite(v) && v < 5000;
+    const pcts = (e) => { const c = kolCoinOf(e), live = Number(c && c.priceUsd) > 0 ? Number(c.priceUsd) : e.last; const nowP = pctE(live, e); const maxP = pctE(Math.max(e.max || 0, live || 0), e); return { c, nowP, maxP }; };
+    const res = all.map((e) => Object.assign({ e }, pcts(e)));
+    const done = res.filter((r) => ok(r.nowP));
+    const med = (a) => { a = a.slice().sort((x, y) => x - y); return a.length ? a[Math.floor(a.length / 2)] : null; };
+    const hit2x = res.filter((r) => ok(r.maxP) && r.maxP >= 100).length;
+    const row = (r) => {
+      const e = r.e;
+      const rt = `<div class="rt td-rt">${ok(r.nowP) ? `<b class="${pctClass(r.nowP)}">${fmtPct(r.nowP)}</b><small class="mut">${L2('od wejścia', 'since entry')}</small>` : '<span class="mut">—</span>'}${ok(r.maxP) ? `<small class="mut">max ${fmtPct(Math.max(0, r.maxP))}</small>` : ''}</div>`;
+      if (!isOpen(e)) return `<div class="row td-row rlock" role="button" tabindex="0" data-unlock translate="no"><div class="rlock-ic" aria-hidden="true">🔒</div><div class="nm"><b>🚀 Runner 2.0 <span class="mut" style="font-weight:600">· ${esc(ago(e.at))}</span></b><div class="rlock-bars" aria-hidden="true"><i style="width:58%"></i><i style="width:40%"></i></div><small class="rlock-t">🔒 ${paid ? L2('Wszystkie — plan 🏃 Runners', 'All — 🏃 Runners plan') : L2('Premium (3/dzień) lub 🏃 Runners (wszystkie)', 'Premium (3/day) or 🏃 Runners (all)')}</small></div>${rt}</div>`;
+      const c = r.c;
+      return `<div class="row td-row r2-row" data-key="${esc(e.k)}" role="button" tabindex="0" translate="no">${imgTag(c)}<div class="nm"><b><span class="cbadge c-${esc(e.chain || 'solana')}">${esc(chainBadge(c))}</span> ${esc(e.name || e.sym || '')} <span class="mut" style="font-weight:600">$${esc(e.sym || '')}</span></b>
+        <small class="td-sub">${esc(ago(e.at))} · ${esc(srcL(e))} · MC ${fmtUsd(e.mc0)} → ${fmtUsd((c && c.mcap) || e.mcNow || e.mc0)}</small>
+        <small class="r2-why mut">${esc(e.why || '')}${e.how && /^recheck/.test(e.how) ? ' · ' + L2('sprawdzony ponownie', 're-checked') : ''}</small>
+        <small class="r2-exit">🎯 ${L2('Sprzedaj ½ na x2, resztę trailing −30%', 'Sell ½ at 2x, trail the rest −30%')}</small></div>${rt}</div>`;
+    };
+    box.innerHTML = `<div class="h">🚀 <span class="chrome">Runner 2.0</span> <span class="badge live">LIVE</span></div>
+      <div class="r2-hero" translate="no"><div class="r2-t">${L2('Ostrzejszy Runner — tylko coiny, które przeszły dodatkowe filtry', 'A stricter Runner — only coins that passed extra filters')}</div>
+        <div class="r2-chips"><span class="gta-chip">⏱ ${L2('coin ≥ 1 h', 'coin ≥ 1 h old')}</span><span class="gta-chip">🔥 ${L2('≤ +100% w 1 h', '≤ +100% in 1 h')}</span><span class="gta-chip">📊 ${L2('wolumen 1 h ≤ 1,5× MC', '1 h volume ≤ 1.5× MC')}</span><span class="gta-chip">🔁 ${L2('młody: ponownie po 30–60 min', 'young: re-checked after 30–60 min')}</span></div>
+        <div class="r2-s">🎯 ${L2('Wyjście: sprzedaj ½ na x2, resztę trailing −30% (stop −40% przed x2). W teście 72 h tylko to wyjście dawało zysk po opłatach.', 'Exit: sell ½ at 2x, trail the rest −30% (stop −40% before 2x). In the 72 h test it was the only exit in profit after fees.')}</div>
+        ${res.length ? `<div class="r2-s mut">${L2('72 h', '72 h')}: ${res.length} ${L2('coinów', 'coins')} · ${L2('mediana teraz', 'median now')} ${done.length ? fmtPct(med(done.map((r) => r.nowP))) : '—'} · ${L2('doszło do x2', 'reached 2x')}: ${hit2x}</div>` : ''}</div>
+      ${prem ? '' : `<div class="rplan" translate="no"><div class="rplan-t"><b>${paid ? L2('Premium: Twoje odblokowane Runnery', 'Premium: your unlocked Runners') : L2('Plan darmowy', 'Free plan')}</b><small>${L2('Runner 2.0 odblokowuje się tak samo jak Runner: coiny odblokowane w 🏃 Runner i wszystkie starsze niż 24 h. Wszystkie od razu — plan 🏃 Runners.', 'Runner 2.0 unlocks like Runner: coins unlocked in 🏃 Runner and everything older than 24 h. All of them right away — 🏃 Runners plan.')}</small></div><button type="button" class="rplan-cta" data-unlock>🏃 ${L2('Zobacz plany', 'See plans')}</button></div>`}
+      ${res.length ? `<div class="card td-card" style="padding:4px 10px">${res.map(row).join('')}</div>` : `<div class="empty" translate="no">${L2('Jeszcze żaden coin nie przeszedł filtrów Runner 2.0. Lista odświeża się po każdym skanie (~90 s).', 'No coin has passed the Runner 2.0 filters yet. The list refreshes after every scan (~90 s).')} <a href="#runner">🏃 Runner →</a></div>`}
+      <div class="foot" translate="no">${L2('Runner 2.0 to spekulacja, nie porada finansowa — memecoiny mogą spaść do zera. % liczone od ceny w chwili wejścia do Runner 2.0.', 'Runner 2.0 is speculation, not financial advice — memecoins can go to zero. % is measured from the price when the coin entered Runner 2.0.')}</div>`;
+    wireRows(box);
+    $$('#listBody [data-unlock]').forEach((el) => { el.onclick = (ev) => { ev.stopPropagation(); openPremium(); }; el.onkeydown = (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openPremium(); } }; });
+  }
   function renderRunner() {
     document.body.classList.remove('pulse-on');
     $('#pulseDesk').innerHTML = '';
@@ -2598,6 +2651,7 @@
       <div class="h">Więcej</div>
       <div class="more-grid">
         ${mtile('#premium', 'gem', 'Kyvo Premium', 'Premium i Runners · cena startowa -50%', true)}
+        <a class="more-tile hl" href="#runner2"><i class="mti" style="font-size:16px;font-style:normal">🚀</i><b>Runner 2.0</b><small>Ostrzejszy Runner: coin ≥ 1 h, bez przegrzania · % od wejścia · ½ na x2 + trailing</small></a>
         <a class="more-tile hl" href="#gta"><i class="mti" style="font-size:16px;font-style:normal">🎮</i><b>GTA 6</b><small>Nowe GTA coiny, te co rosną, runnery i tweety Rockstar — za darmo</small></a>
         ${mtile('#login', S ? 'users' : 'lock', S ? 'Konto' : 'Zaloguj się', S ? 'Jesteś zalogowany' : 'Portfel lub Google — albo bez logowania')}
         ${mtile('#help', 'book', 'Jak korzystać', 'Zakładki, filtry, PnL, FAQ')}
@@ -2652,7 +2706,7 @@
     $$('.scr').forEach((s) => s.classList.remove('on'));
     const map = {
       pulse: 's-list', hot: 's-list', good: 's-list', new: 's-list', stretch: 's-list',
-      migrated: 's-list', boosted: 's-list', search: 's-list', runner: 's-list', track: 's-list', viral: 's-viral', tweets: 's-tweets', more: 's-more', coin: 's-coin',
+      migrated: 's-list', boosted: 's-list', search: 's-list', runner: 's-list', runner2: 's-list', track: 's-list', viral: 's-viral', tweets: 's-tweets', more: 's-more', coin: 's-coin',
       rank: 's-rank', trader: 's-trader', tracker: 's-tracker', journal: 's-journal', profil: 's-profil', watch: 's-watch', gold: 's-gold', gta: 's-gta',
       help: 's-help', legal: 's-legal', login: 's-login', premium: 's-premium', kontakt: 's-kontakt',
     };
@@ -2660,7 +2714,7 @@
     $('#' + (map[which] || 's-list')).classList.add('on');
     $$('#seg button').forEach((b) => b.classList.toggle('on', b.dataset.view === (which === 'coin' ? view : which === 'trader' || which === 'tracker' ? 'rank' : which === 'search' ? 'hot' : which)));
     if (which === 'gta') { const gb = document.querySelector('#seg button[data-view="gta"]'); try { if (gb) gb.scrollIntoView({ inline: 'center', block: 'nearest' }); } catch (e) {} }   // v8.30: the 🎮 GTA 6 button sits off-screen on a phone
-    const tabMap = { gold: 'gold', runner: 'runner', gta: 'hot', track: 'hot', pulse: 'hot', hot: 'hot', good: 'hot', new: 'hot', stretch: 'hot', migrated: 'hot', boosted: 'hot', search: 'search', viral: 'viral', tweets: 'viral', watch: 'hot', more: 'profil', rank: 'rank', trader: 'rank', tracker: 'rank', journal: 'profil', profil: 'profil', help: 'profil', legal: 'profil', login: 'profil', premium: 'profil', kontakt: 'profil' };
+    const tabMap = { gold: 'gold', runner: 'runner', runner2: 'runner', gta: 'hot', track: 'hot', pulse: 'hot', hot: 'hot', good: 'hot', new: 'hot', stretch: 'hot', migrated: 'hot', boosted: 'hot', search: 'search', viral: 'viral', tweets: 'viral', watch: 'hot', more: 'profil', rank: 'rank', trader: 'rank', tracker: 'rank', journal: 'profil', profil: 'profil', help: 'profil', legal: 'profil', login: 'profil', premium: 'profil', kontakt: 'profil' };
     $$('.tb button').forEach((b) => b.classList.toggle('on', b.dataset.tab === (tabMap[which] || 'hot')));
   }
 
@@ -2760,6 +2814,11 @@
       location.hash = 'pulse';
       if (isDesktopPulse()) renderPulseDesktop();
       else renderPulseMobile();
+      return;
+    }
+    if (v === 'runner2') {   // v8.34 🚀 Runner 2.0
+      renderRunner2();
+      location.hash = 'runner2';
       return;
     }
     if (v === 'runner') {
@@ -2871,7 +2930,7 @@
       runSearch(decodeURIComponent(b));
       return;
     }
-    if (['pulse', 'hot', 'good', 'new', 'stretch', 'migrated', 'boosted', 'viral', 'tweets', 'more', 'rank', 'tracker', 'profil', 'watch', 'runner', 'track', 'gta'].includes(a)) {
+    if (['pulse', 'hot', 'good', 'new', 'stretch', 'migrated', 'boosted', 'viral', 'tweets', 'more', 'rank', 'tracker', 'profil', 'watch', 'runner', 'runner2', 'track', 'gta'].includes(a)) {
       setView(a);
       return;
     }
@@ -3020,7 +3079,7 @@
   }
   window.addEventListener('kyvo-premium-change', () => { // v8.11: owner unlock / entitlement change → re-render gated views
     try { if (view === 'gold' && window.KyvoGold) window.KyvoGold.render(); } catch (e) {}
-    try { if (view === 'runner') keepUi(() => renderRunner()); else if (view === 'track') renderTrack(); else if (view === 'tweets') keepUi(() => renderTweets()); } catch (e) {}
+    try { if (view === 'runner') keepUi(() => renderRunner()); else if (view === 'runner2') keepUi(() => renderRunner2()); else if (view === 'track') renderTrack(); else if (view === 'tweets') keepUi(() => renderTweets()); } catch (e) {}
   });
   if (window.KyvoInsights) window.KyvoInsights.init({ vl, esc, fmtUsd, fmtPct, pctClass, toast, keyOf, getUniverse: allUniverse, consensus: consensusOf, tabsFor, tweetsFor, topicFor, imgTag, getViral: () => viral, boostRank, onShape: () => { clearTimeout(shapeT); shapeT = setTimeout(() => { if (view === 'runner') renderRunner(); }, 1500); } });
   /* v8.30 🎮 GTA 6 tab (gta.js): DexScreener search for GTA queries (only while the tab is open) + coins already loaded */
@@ -3065,7 +3124,7 @@
   document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - lastFetch > REFRESH_MS) refresh(); });
   window.addEventListener('pageshow', (ev) => { if (ev.persisted && Date.now() - lastFetch > REFRESH_MS) refresh(); });
   document.addEventListener('visibilitychange', () => { if (!document.hidden && navigator.serviceWorker && navigator.serviceWorker.getRegistration) navigator.serviceWorker.getRegistration().then((r) => r && r.update()).catch(() => {}); });
-  document.addEventListener('visibilitychange', () => { if (!document.hidden && lastFetch && ['pulse', 'hot', 'good', 'new', 'stretch', 'migrated', 'boosted', 'runner'].includes(view)) keepUi(() => setView(view)); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && lastFetch && ['pulse', 'hot', 'good', 'new', 'stretch', 'migrated', 'boosted', 'runner', 'runner2'].includes(view)) keepUi(() => setView(view)); });
   // v8.2: re-check the X snapshot every 10 min while Kyvo is open -> "new important tweet" notification
   setInterval(async () => {
     try {
@@ -3100,7 +3159,7 @@
       const sig = ((kolLive && kolLive.items) || []).map((e) => e.k + ':' + (e.lastAt || e.at)).join(',');
       if (sig === kolSig) return;
       kolSig = sig;
-      if (view === 'runner') keepUi(() => renderRunner()); else if (view === 'tweets') keepUi(() => renderTweets()); else updateRunnerBadge();
+      if (view === 'runner') keepUi(() => renderRunner()); else if (view === 'runner2') keepUi(() => renderRunner2()); else if (view === 'tweets') keepUi(() => renderTweets()); else updateRunnerBadge();
     } catch (e) {}
   }, 60e3);
   if (window.KyvoNotify) window.KyvoNotify.init({ toast, keyOf, fmtUsd });

@@ -43,7 +43,7 @@ def get(url: str):
     return None
 
 # ---------------- v8.25 merge helpers (shared with tools/git_sync.py) ----------------
-FIRST = ("k", "sym", "name", "chain", "addr", "img", "at", "px0", "mc0", "stage0")          # identity + first-flag snapshot
+FIRST = ("k", "sym", "name", "chain", "addr", "img", "at", "px0", "mc0", "stage0", "pred")          # identity + first-flag snapshot
 PERF = ("pair", "max", "maxAt", "maxV", "maxLive", "maxLiveAt", "p1", "p8", "ohAt", "ohFinal")   # candle-based performance
 LIVE = ("last", "lastAt", "mcNow")                                                               # latest live price
 HIST_DAYS = 7
@@ -62,6 +62,7 @@ def new_item(f: dict) -> dict:
     e = {x: f.get(x) for x in ("k", "sym", "name", "chain", "addr", "pair", "img", "at", "px0", "mc0")}
     e.update({"kinds": {}, "max": f["px0"], "maxAt": f["at"], "last": f["px0"], "mcNow": f["mc0"], "lastAt": f["at"]})
     if f.get("src") and f["src"] != "loop": e["src0"] = f["src"]
+    if isinstance(f.get("pred"), dict): e["pred"] = f["pred"]   # v8.34: prediction at the first flag (discord_calls.attach_predictions)
     return e
 
 def merge_flags(items: dict, flags: list[dict], src: str = "loop") -> int:
@@ -74,6 +75,7 @@ def merge_flags(items: dict, flags: list[dict], src: str = "loop") -> int:
             items[nk] = e = new_item(dict(f, src=f.get("src") or src)); new += 1
         elif f["at"] < e["at"]:                                      # an earlier flag arrived later (e.g. worker) -> it becomes the first
             for x in ("at", "px0", "mc0"): e[x] = f[x]
+            if isinstance(f.get("pred"), dict): e["pred"] = f["pred"]
         kinds = e.setdefault("kinds", {})
         kind = f.get("kind") or "runner"
         if kind not in kinds or f["at"] < kinds[kind]: kinds[kind] = f["at"]

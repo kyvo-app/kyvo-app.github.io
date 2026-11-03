@@ -317,6 +317,19 @@ def good_rule(inputs: list[dict], mode: str = "--good") -> list[dict] | None:
     except Exception:
         return None
 
+def attach_predictions(flags: list[dict]) -> None:
+    """v8.34: the coin-page prediction (estimateUpside) at flag time -> f["pred"] = {G, scen, sc (score), as (score assumed), h: {"1": [lo, hi, base, conf], ...}}.
+       tools/track_record.py keeps the FIRST flag's pred, so accuracy can be measured later. Node missing -> no pred (flags unchanged)."""
+    todo = [f for f in flags if isinstance(f.get("_pin"), dict)]
+    ins = [{k: v for k, v in f["_pin"].items() if k != "_assumed"} for f in todo]
+    res = good_rule(ins, "--estimate") if ins else None
+    for f, r in zip(todo, res if isinstance(res, list) and len(res) == len(todo) else [None] * len(todo)):
+        pin = f.pop("_pin", None) or {}
+        if not isinstance(r, dict) or r.get("gated") or r.get("noData"): continue
+        f["pred"] = {"G": round(r.get("G") or 0, 3), "scen": r.get("scen"), "sc": pin.get("score"), "as": bool(pin.get("_assumed")),
+                     "h": {str(z["h"]): [z.get("lo"), z.get("hi"), z.get("base"), z.get("conf")] + ([1] if z.get("hidden") else []) for z in r.get("horizons") or []}}
+    for f in flags: f.pop("_pin", None)
+
 def outlook_text(res: dict) -> str:
     hz = {z["h"]: z for z in res["est"]["horizons"]}
     z8 = hz[8]
@@ -512,11 +525,14 @@ def main() -> int:
     flags: list[dict] = []
     early_hits: list[dict] = []   # v8.24 shadow test of earlyRunnerRule (no Discord post, no push)
     audit: list[dict] = []        # v8.25 per-scan prefilter summary -> --audit-out -> data/flag_history.json "scans"
-    def flag(c: dict, kind: str, ov: dict | None = None):
+    def flag(c: dict, kind: str, ov: dict | None = None, score: int | None = None, checks: list | None = None):
         if c.get("price") and c.get("mcap"):
             f = {"k": f"{c['chain']}:{c['address']}", "sym": c["symbol"], "name": c["name"], "chain": c["chain"], "addr": c["address"],
                  "pair": c.get("pair") or "", "img": c.get("image"), "kind": kind, "at": int(time.time() * 1000), "px0": c["price"], "mc0": c["mcap"],
-                 "h1": c.get("h1"), "m5": c.get("m5"), "age_h": round(c["age_h"], 3) if c.get("age_h") is not None else None}   # v8.24: push shows the real 1 h move
+                 "h1": c.get("h1"), "m5": c.get("m5"), "age_h": round(c["age_h"], 3) if c.get("age_h") is not None else None,   # v8.24: push shows the real 1 h move
+                 "vol1h": c.get("vol1h")}   # v8.34: push filter (vol 1h / MC)
+            # v8.34: estimateUpside input at flag time -> "pred" (computed in one node call before --flags-out is written, saved in the track record)
+            f["_pin"] = dict(rule_input(c, score if score is not None else 75, checks or [], None), _assumed=score is None)
             if ov and ov.get("badge"):   # v8.8 override: no thresholds stored, only what the app shows
                 f.update({"badge": ov["badge"], "kol": ov.get("handle") if ov["badge"] == "kol" else None, "top_pct": ov.get("top_pct"),
                           "top_is": ov.get("top_is"), "concentrated": ov.get("concentrated"), "evidence": ov.get("evidence") or [],
@@ -603,7 +619,7 @@ def main() -> int:
                 score, checks = kyvo_check(c, coins)
                 why = early_runner.safety(score, checks, contract_facts(c))
                 if why or not c.get("price"): print(f"  ⚡ early ${c['symbol']} blocked: {why or 'price'}"); continue
-                flag(c, "early"); flags[-1]["snap"] = early_snap(c)
+                flag(c, "early", None, score, checks); flags[-1]["snap"] = early_snap(c)
                 print(f"  ⚡ early runner ${c['symbol']} MC {fmt_usd(c['mcap'])} +{c.get('m5')}% 5m vol5m {fmt_usd(c.get('vol5m'))}")
                 early_hits.append(dict(early_log(c), runner_same_scan=c["address"] in runner_now))
             if ec: print(f"  [{chain}] early: {len(ec)} passed the market rule")
@@ -674,6 +690,7 @@ def main() -> int:
     if not a.dry_run:
         a.state.parent.mkdir(parents=True, exist_ok=True); a.state.write_text(json.dumps(st))
     if a.flags_out:
+        attach_predictions(flags)
         a.flags_out.parent.mkdir(parents=True, exist_ok=True); a.flags_out.write_text(json.dumps(flags))
         print(f"flags -> {a.flags_out}: {len(flags)}")
     if a.kol_out: write_kol_feed(a.kol_out, [f for f in flags if f.get("badge")], dry=a.dry_run)

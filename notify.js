@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   const SKEY = 'kyvo_notif_v1', GKEY = 'kyvo_seen_good_v1', TKEY = 'kyvo_seen_tw_v1';
-  const DEF = { good: true, tweets: true, runner: true, gold: true, smart: true, vip: true, gta: true, minScore: 75 }; // v8.28: + 👀 smart · v8.31: + 🎮 gta (default ON)
+  const DEF = { good: true, tweets: true, runner: true, gold: true, smart: true, vip: true, gta: true, runner2: true, minScore: 75 }; // v8.28: + 👀 smart · v8.31: + 🎮 gta (default ON) · v8.34: + 🚀 runner2 (default ON)
   let D = null;
   const T = (x) => (window.KyvoI18n ? window.KyvoI18n.t(x) : x);
   const EN = () => !!(window.KyvoI18n && window.KyvoI18n.isEn());
@@ -165,6 +165,7 @@
     return `<div class="card nset" data-nset>
       <div class="h" style="font-size:14px;margin:0 0 6px">🔔 ${L('Powiadomienia', 'Notifications')}</div>
       <label class="nrow"><input type="checkbox" data-nt="runner" ${S.runner !== false ? 'checked' : ''}><span><b>🏃 Runner</b><small>${L('najmocniejsze sygnały: ogromny rosnący wolumen, tysiące transakcji, super-ważne tweety (kilka–kilkanaście dziennie)', 'strongest signals: huge rising volume, thousands of txns, super-important tweets (a handful to ~20 a day)')}</small></span></label>
+      <label class="nrow"><input type="checkbox" data-nt="runner2" ${S.runner2 !== false ? 'checked' : ''}><span><b>🚀 Runner 2.0</b><small>${L('ostrzejszy Runner: coin ≥ 1 h, bez przegrzania (≤ +100% w 1 h) i bez sztucznego wolumenu · osobno od 🏃 Runner', 'a stricter Runner: coin ≥ 1 h old, not overheated (≤ +100% in 1 h), no fake volume · separate from 🏃 Runner')}</small></span></label>
       <label class="nrow"><input type="checkbox" data-nt="gta" ${S.gta !== false ? 'checked' : ''}><span><b>🎮 GTA 6</b><small>${L('nowy coin GTA, który naprawdę rośnie, i ważne newsy GTA 6 (Rockstar, trailer, data premiery) · max 15 dziennie · za darmo dla wszystkich', 'a new GTA coin that is really running and big GTA 6 news (Rockstar, trailer, release date) · max 15 a day · free for everyone')}</small></span></label>
       <label class="nrow"><input type="checkbox" data-nt="gold" ${S.gold !== false ? 'checked' : ''}><span><b>🥇 Gold</b><small>${L('wszystkie alerty 🥇 Gold / 🟡 Gamble / 🧛 Vamp: cena ±15–20%, kopia powyżej $500K MC, nowy artykuł, skaner nowych coinów · Premium', 'every 🥇 Gold / 🟡 Gamble / 🧛 Vamp alert: price ±15–20%, a copy above $500K MC, a new article, the new-coin scanner · Premium')}</small></span></label>
       <label class="nrow"><input type="checkbox" data-nt="smart" ${S.smart !== false ? 'checked' : ''}><span><b>👀 Smart money</b><small>${L('kilku top traderów z Rankingu kupiło ten sam coin w 30 min · 🏃 Runners · w tygodniu z darmowym Premium dla wszystkich', 'several top Ranking traders bought the same coin within 30 min · 🏃 Runners · free for everyone during the free Premium week')}</small></span></label>
@@ -217,8 +218,9 @@
   'use strict';
   let started = false;
   let ready = null;            // v8.28: resolves true once OneSignal.init + optIn + addTags really finished (false on error)
-  const TAGS_V = '3', TVKEY = 'kyvo_push_tags_v', DIRTY = 'kyvo_push_tags_dirty';
-  /* v8.31: TAGS_V '3' = + gta tag (🎮 GTA 6 push toggle) -> every subscriber re-sends its tags once */
+  const TAGS_V = '4', TVKEY = 'kyvo_push_tags_v', DIRTY = 'kyvo_push_tags_dirty';
+  /* v8.31: TAGS_V '3' = + gta tag (🎮 GTA 6 push toggle) -> every subscriber re-sends its tags once
+     v8.34: TAGS_V '4' = + runner2 tag (🚀 Runner 2.0 push toggle; '0' = off, missing = on) */
   const setDirty = (v) => { try { if (v) localStorage.setItem(DIRTY, '1'); else localStorage.removeItem(DIRTY); } catch (e) {} };
   const isDirty = () => { try { return localStorage.getItem(DIRTY) === '1' || localStorage.getItem(TVKEY) !== TAGS_V; } catch (e) { return false; } };
   function canPush() {
@@ -230,7 +232,7 @@
   function loadScript(src) { return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.async = true; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
   function tags() {
     const S = (window.KyvoNotify && window.KyvoNotify.settings()) || {};
-    return { good: S.good ? '1' : '0', tweets: S.tweets ? '1' : '0', runner: S.runner !== false ? '1' : '0', gold: S.gold !== false ? '1' : '0', smart: S.smart !== false ? '1' : '0', vip: S.vip !== false ? '1' : '0', gta: S.gta !== false ? '1' : '0', premium: curTier() !== 'free' ? '1' : '0', tier: curTier(), lang: window.KyvoI18n ? window.KyvoI18n.lang : 'pl', tv: TAGS_V };
+    return { good: S.good ? '1' : '0', tweets: S.tweets ? '1' : '0', runner: S.runner !== false ? '1' : '0', gold: S.gold !== false ? '1' : '0', smart: S.smart !== false ? '1' : '0', vip: S.vip !== false ? '1' : '0', gta: S.gta !== false ? '1' : '0', runner2: S.runner2 !== false ? '1' : '0', premium: curTier() !== 'free' ? '1' : '0', tier: curTier(), lang: window.KyvoI18n ? window.KyvoI18n.lang : 'pl', tv: TAGS_V };
   }
   function withOS(fn) {
     if (!started || !window.OneSignalDeferred) return Promise.resolve(false);

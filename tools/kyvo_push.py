@@ -102,6 +102,38 @@ PROMO_ALL = os.environ.get("KYVO_PROMO_ALL", "1") == "1"   # v8.25: ON by defaul
 MAX_FAILS = 3   # v8.25: an item OneSignal rejects 3x ("not subscribed", HTTP error …) is dropped instead of retried forever
 RUNNER_PUSH_SOURCE = os.environ.get("RUNNER_PUSH_SOURCE", "github").strip().lower() or "github"   # v8.25: github | worker (Cloudflare)
 PUSH_LOG_MAX = 300
+# v8.34 🚀 Runner 2.0 (data/runner2.json from tools/runner2.py): stricter Runner signal, own type 'runner2' / tag runner2 (toggle '🚀 Runner 2.0',
+# missing tag = ON, "0" = off). Always sent by THIS loop (not 'plain' -> never skipped by RUNNER_PUSH_SOURCE=worker). Once per coin; may
+# follow a 🏃 Runner / ⚡ Early push of the same coin, but never within R2_GAP_S of it (waits, then sends). Same plan routing as 🏃 Runner.
+R2_MAX_AGE_S = 20 * 60     # only coins that entered Runner 2.0 in the last 20 min push (older -> list only)
+R2_GAP_S = 10 * 60         # no 2 pushes for one coin within 10 min
+R2_PER_RUN = 2
+R2_SEED_V = 1
+R2_EXIT = {"pl": "Sprzedaj ½ na x2, resztę trailing −30%", "en": "Sell ½ at 2x, trail the rest −30%"}
+
+def runner2_items(a, st: dict, sent: dict, now: float, seeding: bool, items_now: list[dict]) -> list[dict]:
+    doc = load(a.runner2, {}) if a.runner2 else {}
+    r2seed = seeding or st.get("r2_seeded_v") != R2_SEED_V
+    out = []
+    busy = {it["id"].split(":", 1)[1] for it in items_now if it.get("kind") == "runner" and ":" in it["id"]}   # a Runner push for it goes out now
+    for c in sorted(doc.get("coins") or [], key=lambda c: c.get("at") or 0):
+        k = str(c.get("k", "")).lower(); kid = "r2:" + k
+        if not k or kid in sent: continue
+        if r2seed or now - (c.get("at") or 0) / 1000 > R2_MAX_AGE_S: sent[kid] = now; continue
+        other = max([sent.get(p + k, 0) for p in ("run:", "early:", "kol:", "moon:", "big:", "twr:")] + [0])
+        if k in busy or now - other < R2_GAP_S:
+            print(f"- {kid}: 🚀 Runner 2.0 waits ({int(now - other) if other else 0}s since the Runner push < {R2_GAP_S}s)"); continue
+        if len(out) >= R2_PER_RUN: continue
+        h1 = c.get("h1"); mv = f" +{round(h1)}% 1h" if isinstance(h1, (int, float)) and 0 < h1 < 100000 else ""
+        it = {"id": kid, "kind": "runner2", "topic": kid, "hash": "#coin/" + urllib.parse.quote(c["k"], safe=""),
+              "title_pl": f"🚀 Runner 2.0 · ${c.get('sym') or '?'}{mv} · sprawdzony", "title_en": f"🚀 Runner 2.0 · ${c.get('sym') or '?'}{mv} · confirmed"}
+        for lang, base in (("pl", f"MC {fmt_usd(c.get('mc0'))} · ostrzejszy sygnał"), ("en", f"MC {fmt_usd(c.get('mc0'))} · stricter signal")):
+            hint = f"MC {fmt_usd(c.get('mc0'))} · {R2_EXIT[lang]}"
+            it["body_" + lang] = hint if len(hint) <= 110 else base
+        if c.get("img"): it["icon"] = it["image"] = c["img"]
+        out.append(it)
+    if r2seed: st["r2_seeded_v"] = R2_SEED_V; print(f"Runner 2.0: first v{R2_SEED_V} run -> seeded, nothing sent")
+    return out
 DEF_KW = ["crypto", "bitcoin", "btc", "doge", "dogecoin", "memecoin", "coin", "token", "tariff", "tariffs", "fed", "interest rates",
           "rate cut", "war", "ban", "etf", "launch", "buy", "sec", "executive order"]
 CASHTAG = re.compile(r"(?<![\w$])\$[A-Za-z][A-Za-z0-9]{1,9}\b")
@@ -300,7 +332,7 @@ def tiers_for(it: dict, st: dict) -> list[str]:
     if PROMO_ALL and promo_on(): return ["free", "premium", "runners"]   # v8.23 opt-in: whole push = top tier for everyone
     if it.get("smart"): return ["runners"]
     if k == "gold": return (["free"] if GOLD_FREE_PUSH and free_left else []) + ["premium", "runners"]
-    if k == "runner":
+    if k in ("runner", "runner2"):                                     # v8.34 🚀 Runner 2.0 = same plan routing + daily counters as 🏃 Runner
         out = ["free"] if free_left and st.get("free_runner_n", 0) < FREE_RUNNERS else []
         if st.get("prem_runner_n", 0) < PREMIUM_RUNNERS: out.append("premium")
         return out + ["runners"]
@@ -431,6 +463,7 @@ def main() -> int:
     ap.add_argument("--state", type=Path, default=Path(".kyvo_push/sent.json"))
     ap.add_argument("--gold", type=Path, default=Path(".kyvo_push/gold_alerts.json"), help="v8.12 Gold alerts written by tools/gold.py")
     ap.add_argument("--smart", type=Path, default=Path(".kyvo_push/smart_alerts.json"), help="v8.14 Tracker cluster-buy alerts (tools/pump_tracker.py)")
+    ap.add_argument("--runner2", type=Path, default=None, help="v8.34 🚀 Runner 2.0 list (tools/runner2.py -> data/runner2.json)")
     ap.add_argument("--gta", type=Path, default=Path(".kyvo_push/gta_alerts.json"), help="v8.31 🎮 GTA coins running now (tools/gta_push.py)")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--full", action="store_true", help="dry run: print the whole payload (pretty)")
@@ -566,6 +599,7 @@ def main() -> int:
         items.append({"id": kid, "kind": "gold", "smart": True, "topic": kid, "hash": g.get("hash") or "#tracker",
                       "title_pl": g["title_pl"], "title_en": g["title_en"], "body_pl": g["body_pl"], "body_en": g["body_en"]})
     items += gta_items(a, st, sent, now, day, seeding)                    # v8.31 🎮 GTA 6
+    items += runner2_items(a, st, sent, now, seeding, items)              # v8.34 🚀 Runner 2.0 (own type / tag, loop-sent)
     if seeding: print(f"first run: seeded {len(sent)} existing items, nothing sent")
     items.sort(key=lambda it: 0 if it["title_en"].startswith(("👑", "🚀", "🐦", "⭐", "📣", "🎮")) else 1)
     if RUNNER_PUSH_SOURCE == "worker":   # v8.25: the Cloudflare worker pushes plain Runners -> never twice
@@ -582,8 +616,8 @@ def main() -> int:
         def count():                         # quota counters (Europe/Warsaw day)
             if "free" in tiers and it["kind"] not in ("vip", "gta") and not (PROMO_ALL and promo_on()):
                 st["free_n"] = st.get("free_n", 0) + 1
-                if it["kind"] == "runner": st["free_runner_n"] = st.get("free_runner_n", 0) + 1; st["free_runner_id"] = it["id"]
-            if "premium" in tiers and it["kind"] == "runner" and not it.get("smart"):
+                if it["kind"] in ("runner", "runner2"): st["free_runner_n"] = st.get("free_runner_n", 0) + 1; st["free_runner_id"] = it["id"]
+            if "premium" in tiers and it["kind"] in ("runner", "runner2") and not it.get("smart"):
                 st["prem_runner_n"] = st.get("prem_runner_n", 0) + 1
             if it["kind"] == "vip":                                    # v8.23 VIP: mark every grouped post + gap / day counters
                 for x in it["ids"]: sent[x] = now
