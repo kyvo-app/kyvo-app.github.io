@@ -119,13 +119,14 @@ def main() -> int:
         if bundled(k): q.pop(k, None); skipped["bundle"] = skipped.get("bundle", 0) + 1; return
         if not hold_ok(k):
             if k in hp and k not in q:   # v8.35: waiting for holder data -> queue it (due on the next scan, re-checked live like a young coin)
-                q[k] = {"t": int(now - F["recheckMinS"]), "px0": px, "mc0": mc, "f": {x: f.get(x) for x in ("k", "sym", "name", "chain", "addr", "pair", "img", "at", "px0")}, "src": f.get("src") or src_of(f), "hw": 1}
+                q[k] = {"t": int(now - F["recheckMinS"]), "px0": px, "mc0": mc, "f": {x: f.get(x) for x in ("k", "sym", "name", "chain", "addr", "pair", "img", "at", "px0", "pd")}, "src": f.get("src") or src_of(f), "hw": 1}
             return
         coins[k] = {"k": f["k"], "sym": f.get("sym"), "name": f.get("name"), "chain": f.get("chain"), "addr": f.get("addr"), "pair": f.get("pair") or "",
                     "img": f.get("img"), "src": f.get("src") or src_of(f), "at": nowms, "px0": px, "mc0": mc, "flagAt": f.get("at"), "flagPx": f.get("px0"),
                     "how": how, "why": why_txt(age_h, h1, vol1h, mc), "h1": h1, "ageH": round(age_h, 2) if age_h is not None else None,
                     "last": px, "lastAt": nowms, "mcNow": mc, "max": px, "maxAt": nowms,
-                    "hold": {x: H[k].get(x) for x in ("h", "t10", "t1")} if k in H else None}
+                    "hold": {x: H[k].get(x) for x in ("h", "t10", "t1")} if k in H else None,
+                    "pd": f.get("pd") if isinstance(f.get("pd"), dict) else None}   # v8.38 ⚠️ po dumpie (badge only)
         q.pop(k, None); hp.pop(k, None); added.append(coins[k])
     # 1) this scan's flags
     for f in sorted(flags, key=lambda f: 0 if f.get("kind") != "early" else 1):
@@ -139,7 +140,7 @@ def main() -> int:
         if why is None and qe and qe.get("px0") and px and px < F["recheckMinPx"] * qe["px0"]: why = "dumped"   # was young: must hold 0.9× of its first flag
         if why is None: add(k, f, px, mc, h1, age_h, vol1h, "scan"); continue
         if why == "young" and not qe:
-            q[k] = {"t": int(now), "px0": px, "mc0": mc, "f": {x: f.get(x) for x in ("k", "sym", "name", "chain", "addr", "pair", "img", "at", "px0")}, "src": src_of(f)}; queued += 1
+            q[k] = {"t": int(now), "px0": px, "mc0": mc, "f": {x: f.get(x) for x in ("k", "sym", "name", "chain", "addr", "pair", "img", "at", "px0", "pd")}, "src": src_of(f)}; queued += 1
         skipped[why] = skipped.get(why, 0) + 1
     # 2) young queue: re-check 30–60 min after the first flag with live data
     for k in [k for k, v in q.items() if now - v["t"] > F["recheckMaxS"] + 600 or k in coins]: q.pop(k, None)

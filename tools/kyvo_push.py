@@ -136,6 +136,7 @@ def runner2_items(a, st: dict, sent: dict, now: float, seeding: bool, items_now:
             hint = f"MC {fmt_usd(c.get('mc0'))} · {R2_EXIT[lang]}"
             it["body_" + lang] = hint if len(hint) <= 110 else base
         if c.get("img"): it["icon"] = it["image"] = c["img"]
+        if isinstance(c.get("pd"), dict): it["pd"] = c["pd"]                 # v8.38 ⚠️ po dumpie tag (pd_tag)
         out.append(it)
     if r2seed: st["r2_seeded_v"] = R2_SEED_V; print(f"Runner 2.0: first v{R2_SEED_V} run -> seeded, nothing sent")
     return out
@@ -164,6 +165,28 @@ def hold_tag(items: list[dict]) -> None:
             lb = hold_label(h, lang)
             if lb and lb not in it["body_" + lang]: it["body_" + lang] = f"{lb} · {it['body_' + lang]}"
         if hold_label(h, "en"): it["hold"] = h.get("w")
+
+def pd_label(pd: dict | None, lang: str) -> str:
+    """v8.38: '⚠️ po dumpie −61% od ATH' for a coin flagged ≥ 30% under its all-time high ('' = not post-dump / unknown)."""
+    if not isinstance(pd, dict) or not pd.get("w") or not isinstance(pd.get("b"), (int, float)): return ""
+    return f"⚠️ po dumpie −{round(pd['b'])}% od ATH" if lang == "pl" else f"⚠️ post-dump −{round(pd['b'])}% from ATH"
+
+def pd_tag(items: list[dict], flags: list[dict]) -> None:
+    """v8.38: Runner-family / Runner 2.0 pushes for a post-dump coin still go out, but the title ends with '⚠️ po dumpie' and the
+       body starts with '⚠️ po dumpie −X% od ATH · …' (the coin is never dropped)."""
+    fp = {}
+    for f in flags:
+        if f.get("kind") in ("runner", "early") and isinstance(f.get("pd"), dict): fp.setdefault(str(f.get("k", "")).lower(), f["pd"])
+    for it in items:
+        if it.get("kind") not in ("runner", "runner2") or it.get("smart") or ":" not in it["id"]: continue
+        pd = it.get("pd") or fp.get(it["id"].split(":", 1)[1])
+        if not pd_label(pd, "en"): continue
+        for lang in ("pl", "en"):
+            lb = pd_label(pd, lang)
+            if lb not in it["body_" + lang]: it["body_" + lang] = f"{lb} · {it['body_' + lang]}"
+            t = "⚠️ po dumpie" if lang == "pl" else "⚠️ post-dump"
+            if t not in it["title_" + lang]: it["title_" + lang] = f"{it['title_' + lang]} · {t}"
+        it["pd"] = pd
 
 DEF_KW = ["crypto", "bitcoin", "btc", "doge", "dogecoin", "memecoin", "coin", "token", "tariff", "tariffs", "fed", "interest rates",
           "rate cut", "war", "ban", "etf", "launch", "buy", "sec", "executive order"]
@@ -637,6 +660,7 @@ def main() -> int:
     items += gta_items(a, st, sent, now, day, seeding)                    # v8.31 🎮 GTA 6
     items += runner2_items(a, st, sent, now, seeding, items)              # v8.34 🚀 Runner 2.0 (own type / tag, loop-sent)
     hold_tag(items)                                                       # v8.35 ⚠️ few holders / concentration tag
+    pd_tag(items, _flags)                                                 # v8.38 ⚠️ po dumpie tag (badge only, push still sent)
     if seeding: print(f"first run: seeded {len(sent)} existing items, nothing sent")
     items.sort(key=lambda it: 0 if it["title_en"].startswith(("👑", "🚀", "🐦", "⭐", "📣", "🎮")) else 1)
     if RUNNER_PUSH_SOURCE == "worker":   # v8.25: the Cloudflare worker pushes plain Runners -> never twice

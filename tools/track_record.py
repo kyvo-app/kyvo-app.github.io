@@ -62,6 +62,7 @@ def new_item(f: dict) -> dict:
     e = {x: f.get(x) for x in ("k", "sym", "name", "chain", "addr", "pair", "img", "at", "px0", "mc0")}
     e.update({"kinds": {}, "max": f["px0"], "maxAt": f["at"], "last": f["px0"], "mcNow": f["mc0"], "lastAt": f["at"]})
     if f.get("src") and f["src"] != "loop": e["src0"] = f["src"]
+    if isinstance(f.get("pd"), dict): e["pd"] = f["pd"]       # v8.38 ⚠️ po dumpie at the first Runner / Early flag
     if isinstance(f.get("pred"), dict): e["pred"] = f["pred"]   # v8.34: prediction at the first flag (discord_calls.attach_predictions)
     return e
 
@@ -80,6 +81,7 @@ def merge_flags(items: dict, flags: list[dict], src: str = "loop") -> int:
         kind = f.get("kind") or "runner"
         if kind not in kinds or f["at"] < kinds[kind]: kinds[kind] = f["at"]
         if f.get("badge") and not e.get("badge"): e["badge"] = f["badge"]; e["kol"] = f.get("kol")   # v8.8 👑 / 🚀
+        if isinstance(f.get("pd"), dict) and kind in ("runner", "early") and not e.get("pd"): e["pd"] = f["pd"]   # v8.38
     return new
 
 def merge_item(a: dict, b: dict) -> dict:
@@ -101,7 +103,7 @@ def merge_item(a: dict, b: dict) -> dict:
         for k, t in (e.get("kinds") or {}).items():
             if k not in kinds or (t or 0) < kinds[k]: kinds[k] = t
     out["kinds"] = kinds
-    for k in ("badge", "kol", "src0"):
+    for k in ("badge", "kol", "src0", "pd"):
         v = first.get(k) or other.get(k)
         if v: out[k] = v
     return out

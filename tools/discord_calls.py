@@ -48,6 +48,12 @@ RUNNER_CAP = int(os.environ.get("KYVO_RUNNER_CAP", "15"))   # v8.25: coins per c
 LEG2_CAP = int(os.environ.get("KYVO_LEG2_CAP", "6"))        # v8.25 🔁 server-side Kolejna fala: coins per chain checked
 LEG2_SHAPES = int(os.environ.get("KYVO_LEG2_SHAPES", "3"))  # v8.25: ≤ 3 GeckoTerminal candle reads per chain per scan (10-min cache)
 LEG2_CACHE = Path(os.environ.get("KYVO_LEG2_CACHE", ".kyvo_calls/leg2_shapes.json"))
+# v8.38 ⚠️ po dumpie: a Runner / ⚡ Early flag on a coin that is already ≥ PD_BELOW % under its all-time high (max 15-min close of the
+# last 48 h, GeckoTerminal) gets a badge — the coin is NEVER hidden or skipped, the app and the push only show "⚠️ po dumpie −X% od ATH".
+# 72 h backtest of the real Runner flags (100 coins): ≥ 30% below ATH = 8 coins, −$374 at $100 each, win 12% (rest 92: win 23%).
+PD_BELOW = float(os.environ.get("KYVO_PD_BELOW", "30"))
+PD_READS = int(os.environ.get("KYVO_PD_READS", "6"))      # ≤ 6 GeckoTerminal reads per scan (10-min cache; free tier ~30 req/min)
+PD_CACHE = Path(os.environ.get("KYVO_PD_CACHE", ".kyvo_calls/post_dump.json"))
 # v8.9: quote / stable tokens that top the volume lists (never a "coin" for Kyvo)
 QUOTE_TOKENS = {"so11111111111111111111111111111111111111112", "epjfwdd5aufqssqem2qn1xzybapc8g4weggkzwytdt1v", "es9vmfrzacermjfrf4h2fyd4kconky11mcce8benwnyb",
                 "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c", "0x55d398326f99059ff775485246999027b3197955", "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
@@ -462,6 +468,37 @@ def candle_shape(ol: list) -> dict | None:
     return {"pumpX": hi / low_before if low_before > 0 else None, "belowHigh": (1 - px / hi) * 100 if hi > 0 else None,
             "coolRatio": min(quiet) / peak if quiet and peak > 0 else 1}
 
+def ath_close(ol: list) -> float | None:
+    """v8.38: highest 15-min close (single-candle bad prints > 3x both neighbours dropped)."""
+    cl = [float(r[4]) for r in sorted(ol, key=lambda r: r[0]) if len(r) >= 5 and r[4]]
+    if len(cl) < 4: return None
+    ok = [x for i, x in enumerate(cl) if not (0 < i < len(cl) - 1 and x > 3 * cl[i - 1] and x > 3 * cl[i + 1])]
+    return max(ok) if ok else None
+
+def post_dump(flags: list[dict]) -> None:
+    """v8.38: flags of kind runner / early -> f["pd"] = {"b": % below ATH, "ath": ATH as MC, "w": True if ≥ PD_BELOW}. Badge only."""
+    now = time.time()
+    try: cache = {k: v for k, v in json.loads(PD_CACHE.read_text()).items() if now - v.get("t", 0) < 600}
+    except Exception: cache = {}
+    reads = 0
+    for f in flags:
+        if f.get("kind") not in ("runner", "early") or not f.get("pair") or not f.get("px0") or "pd" in f: continue
+        k = f"{f['chain']}:{f['pair']}"
+        if k in cache: ath = cache[k].get("ath")
+        elif reads < PD_READS and f["chain"] in CHAINS:
+            reads += 1
+            d = get(f"{GT}/networks/{CHAINS[f['chain']]['gt']}/pools/{f['pair']}/ohlcv/minute?aggregate=15&limit=192&currency=usd&token={f['addr']}")
+            time.sleep(2.1)
+            ol = (((d or {}).get("data") or {}).get("attributes") or {}).get("ohlcv_list") or []
+            ath = ath_close(ol); cache[k] = {"t": now, "ath": ath}
+        else: continue
+        if not ath: continue
+        ath = max(ath, f["px0"]); b = (1 - f["px0"] / ath) * 100
+        f["pd"] = {"b": round(b), "ath": round(f["mc0"] * ath / f["px0"]), "w": b >= PD_BELOW}
+        if f["pd"]["w"]: print(f"  ⚠️ po dumpie ${f['sym']} ({f['kind']}): MC {fmt_usd(f['mc0'])} = −{round(b)}% from ATH {fmt_usd(f['pd']['ath'])} (badge only, not hidden)")
+    try: PD_CACHE.parent.mkdir(parents=True, exist_ok=True); PD_CACHE.write_text(json.dumps(cache))
+    except Exception: pass
+
 def leg2_scan(chain: str, coins: list[dict], brank: dict, flag, skip: set) -> dict:
     now = time.time()
     try: cache = {k: v for k, v in json.loads(LEG2_CACHE.read_text()).items() if now - v.get("t", 0) < 600}
@@ -690,6 +727,8 @@ def main() -> int:
     if not a.dry_run:
         a.state.parent.mkdir(parents=True, exist_ok=True); a.state.write_text(json.dumps(st))
     if a.flags_out:
+        try: post_dump(flags)                                        # v8.38 ⚠️ po dumpie badge (never hides a coin)
+        except Exception as e: print(f"  post-dump check error: {type(e).__name__}")
         attach_predictions(flags)
         a.flags_out.parent.mkdir(parents=True, exist_ok=True); a.flags_out.write_text(json.dumps(flags))
         print(f"flags -> {a.flags_out}: {len(flags)}")
