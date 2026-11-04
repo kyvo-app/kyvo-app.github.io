@@ -329,6 +329,7 @@ def runner_style(items: list[dict], flags: list[dict]) -> None:
         if not f: continue
         h1 = f.get("h1") if f.get("h1") is not None else (f.get("snap") or {}).get("h1")
         if it["id"].startswith("twr:") and (f.get("tweet") or {}).get("chg") is not None: h1 = None   # title already has the % after the tweet
+        if it["id"].startswith("stv:"): h1 = None   # v8.43 👤 bystevenr: title stays '🏃 Runner · 👤 bystevenr · $SYM'
         nm = clip(f.get("name") or "", 18)
         mv = f" +{round(h1)}%" if isinstance(h1, (int, float)) and 0 < h1 < 100000 else ""
         for k in ("title_pl", "title_en"):                             # v8.28: title '🏃 Runner · $SYM +86%' (1 h move, real data)
@@ -597,6 +598,16 @@ def main() -> int:
             continue
         if f.get("kind") != "runner": continue
         kid = "run:" + f["k"].lower()
+        if f.get("badge") == "steven":   # v8.43 👤 bystevenr — copy of @bystevenr's buy (tools/steven.py, seconds after his tx); no Runner rules
+            sid = "stv:" + f["k"].lower()        # own id: pushes even if the coin was a 🏃 Runner before; once per coin (3 days)
+            if sid in sent or any(x["id"] == sid for x in items): continue
+            if seeding: sent[sid] = now; continue
+            sv = f.get("steven") or {}
+            usd = f" · kupił za {fmt_usd(sv['usd'])}" if sv.get("usd") else ""; usde = f" · bought {fmt_usd(sv['usd'])}" if sv.get("usd") else ""
+            items.append({"id": sid, "kind": "runner", "topic": sid, "hash": "#coin/" + f["k"],
+                          "title_pl": f"🏃 Runner · 👤 bystevenr · ${f['sym']}", "title_en": f"🏃 Runner · 👤 bystevenr · ${f['sym']}",
+                          "body_pl": f"MC {fmt_usd(f.get('mc0'))}{usd} · kopia jego zakupu", "body_en": f"MC {fmt_usd(f.get('mc0'))}{usde} · copy of his buy"})
+            continue
         if kid in sent and not f.get("tweet"): continue
         if seeding:
             sent[kid] = now
@@ -747,5 +758,14 @@ def main() -> int:
         a.state.parent.mkdir(parents=True, exist_ok=True); a.state.write_text(json.dumps(st))
     return 0
 
+def locked_main() -> int:
+    """v8.43: one push run at a time (the 👤 bystevenr poller pushes from its own process) -> sent.json / caps never race."""
+    import fcntl
+    st = sys.argv[sys.argv.index("--state") + 1] if "--state" in sys.argv[:-1] else ".kyvo_push/sent.json"
+    lp = Path(st).parent / "push.lock"; lp.parent.mkdir(parents=True, exist_ok=True)
+    with open(lp, "w") as fh:
+        fcntl.flock(fh, fcntl.LOCK_EX)
+        return main()
+
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(locked_main())

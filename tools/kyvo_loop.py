@@ -33,6 +33,9 @@ v8.41 (pushes were slow — measured 04.11: flag -> push median 96 s, max 108 s;
     waiting for the other chain + tweet runners + post-dump + predictions. sent.json dedupe = the final push never repeats them.
   * gold / GTA / tracker / tweet results are pushed the moment they finish, no longer after the blocking scan (was up to ~4 min).
   * the loop polls every 2 s while anything runs.
+v8.43 👤 bystevenr: tools/steven.py runs next to everything for the whole run — @bystevenr's Solana wallet polled every 2 s on a free
+  public RPC; each new buy is pushed by the poller itself (kyvo_push.py --flags .kyvo_push/steven_flags.json, one push run at a
+  time via a lock) and lands in data/steven_live.json (🏃 Runner tab, badge 👤 bystevenr) + the track record (🎯 / 📈 line).
 The steps run as child processes (same scripts as before), so a crash in one step never stops the loop.
 Local test:  python3 tools/kyvo_loop.py --max-min 4 --dry-run --no-git
 """
@@ -45,7 +48,7 @@ FEEDS = ["data/x_live.json", "data/kol_live.json", "data/gold.json", "data/pf_so
          "data/early_shadow.json",   # v8.24 early-rule shadow log (rides along with the normal feed commits, never its own commit)
          "data/track_record.json", "data/flag_history.json",
          "data/gta_added.json",
-         "data/runner2.json", "data/holders.json", "data/coin_checks.json"]   # v8.34 🚀 Runner 2.0 list (tools/runner2.py after every scan; runtime file, rides along with the feed commits)   # v8.32 🎮 GTA '📈 od dodania' reference (runtime file, rides along with the feed commits)   # v8.25: every flag saved right after the scan (git_sync merges races)
+         "data/runner2.json", "data/holders.json", "data/coin_checks.json", "data/steven_live.json"]   # v8.34 🚀 Runner 2.0 list (tools/runner2.py after every scan; runtime file, rides along with the feed commits)   # v8.32 🎮 GTA '📈 od dodania' reference (runtime file, rides along with the feed commits)   # v8.25: every flag saved right after the scan (git_sync merges races)
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import git_sync  # noqa: E402  v8.25 conflict-safe commits (JSON merge for track_record / flag_history)
 
@@ -119,6 +122,7 @@ def main() -> int:
     ap.add_argument("--heartbeat", type=float, default=1800, help="commit refreshed metrics at least this often (s) even without new items")
     ap.add_argument("--state-dir", default=".kyvo_push")
     ap.add_argument("--dry-run", action="store_true", help="push step prints payloads, nothing is sent; no git")
+    ap.add_argument("--no-steven", dest="steven", action="store_false", help="v8.43: no 👤 bystevenr poller")
     ap.add_argument("--no-git", action="store_true")
     a = ap.parse_args()
     sd = ROOT / a.state_dir; sd.mkdir(parents=True, exist_ok=True)
@@ -144,6 +148,11 @@ def main() -> int:
     gt = None; n_gt = 0; next_gt = time.time() + 20      # v8.31 🎮 GTA detector (~5 s, DexScreener only)
     cc = None; n_cc = 0                                  # v8.36 🧪 coin checks (background, ≤ ~45 s, public RPC)
     next_pf = time.time() + 75                  # v8.14: after the first scan + gold start
+    stv_feed = sd / "steven_live.json" if a.dry_run else ROOT / "data/steven_live.json"; stv_seen = 0.0   # v8.43 👤 bystevenr
+    sv = Bg([py, "tools/steven.py", "--state-dir", a.state_dir, "--feed", str(stv_feed), "--max-s", str(max(60, a.max_min * 60 - 30)), "--"] + push_cmd,
+            max_s=a.max_min * 60) if a.steven else None
+    try: stv_seen = stv_feed.stat().st_mtime
+    except OSError: pass
     def busy() -> bool:
         return any(x is not None for x in (sc, tw, gd, pf, tk, gt, cc))
     while time.time() < end - 20 or busy():
@@ -156,6 +165,14 @@ def main() -> int:
             run([py, "tools/holders.py", "--flags", f"{a.state_dir}/flags_partial.json", "--out", hold_out],
                 env_extra={"KYVO_FACT_CACHE": f"{a.state_dir}/facts", "KYVO_HOLD_MAX_NEW": "4"}, timeout=40)   # this chain's new flags come first; ≤ 4 RugCheck calls
             run(push_part, timeout=120)
+        try: sm = stv_feed.stat().st_mtime
+        except OSError: sm = 0
+        if sm > stv_seen:        # v8.43 a new 👤 bystevenr buy (already pushed by the poller) -> track record (🎯 / 📈) + commit soon
+            stv_seen = sm; pending.append("steven buys")
+            run([py, "tools/track_record.py", "--merge-only", "--flags", f"{a.state_dir}/steven_flags.json", "--out", "data/track_record.json",
+                 "--history", "data/flag_history.json", "--audit", f"{a.state_dir}/audit.json"], timeout=60)
+        if sv is not None and sv.done():
+            sv.result(); sv = None
         if cc is not None and cc.done():
             o = cc.result(); cc = None
             if o.get("checks_new") == "true" and not pending and time.time() - last_commit > 900: pending.append("coin checks")
@@ -233,6 +250,11 @@ def main() -> int:
         elif busy(): wait = min(wait, 3)
         if wait > 0: time.sleep(min(wait, max(1, end - time.time())))
         if time.time() >= end - 20 and not busy(): break
+    if sv is not None:
+        sv.p.terminate()
+        try: sv.p.wait(10)
+        except Exception: sv.p.kill()
+        sv.result()
     log(f"loop done: {n_scan} scans ({n_part} early per-chain pushes), {n_tw} tweet reads, {n_gold} gold runs, {n_pf} pump.fun reads, {n_tk} tracker reads, {n_gt} gta reads, {len(commits)} commits in the last hour, pending={pending}")
     if use_git and pending and len(commits) < a.commit_max_h + 1:   # leave nothing important uncommitted for the next run
         if commit_feeds("feeds: " + ", ".join(dict.fromkeys(pending)) + " [kyvo-loop]"): commits.append(time.time()); last_commit = time.time()
