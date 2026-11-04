@@ -1,6 +1,6 @@
 {
  "source": "FxTwitter public API (api.fxtwitter.com) — unofficial X mirror, no key; coins via DexScreener, candles via GeckoTerminal",
- "updated_at": "2026-11-04T06:39:27Z",
+ "updated_at": "2026-11-04T06:54:02Z",
  "accounts_read": 50,
  "accounts": [
   "orangie",
@@ -83,14 +83,14 @@
    "created_at": "2026-11-04T06:34:10Z",
    "ts": 1793774050,
    "metrics": {
-    "likes": 56,
-    "reposts": 10,
-    "replies": 23,
-    "quotes": 2,
-    "bookmarks": 1,
-    "views": 17350
+    "likes": 127,
+    "reposts": 13,
+    "replies": 49,
+    "quotes": 5,
+    "bookmarks": 5,
+    "views": 24939
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793774263,
@@ -123,14 +123,14 @@
    "created_at": "2026-11-04T06:30:53Z",
    "ts": 1793773853,
    "metrics": {
-    "likes": 17,
-    "reposts": 1,
+    "likes": 30,
+    "reposts": 2,
     "replies": 1,
     "quotes": 0,
-    "bookmarks": 0,
-    "views": 6979
+    "bookmarks": 1,
+    "views": 9385
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793773869,
@@ -163,14 +163,14 @@
    "created_at": "2026-11-04T06:30:25Z",
    "ts": 1793773825,
    "metrics": {
-    "likes": 10,
+    "likes": 16,
     "reposts": 0,
-    "replies": 1,
+    "replies": 2,
     "quotes": 0,
     "bookmarks": 2,
-    "views": 2145
+    "views": 3524
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793773869,
@@ -206,14 +206,14 @@
    "created_at": "2026-11-04T06:19:32Z",
    "ts": 1793773172,
    "metrics": {
-    "likes": 332,
-    "reposts": 42,
-    "replies": 46,
-    "quotes": 4,
-    "bookmarks": 11,
-    "views": 13446
+    "likes": 594,
+    "reposts": 69,
+    "replies": 68,
+    "quotes": 8,
+    "bookmarks": 18,
+    "views": 18025
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793773703,
@@ -241,14 +241,14 @@
    "created_at": "2026-11-04T06:16:53Z",
    "ts": 1793773013,
    "metrics": {
-    "likes": 177,
-    "reposts": 19,
-    "replies": 59,
+    "likes": 239,
+    "reposts": 22,
+    "replies": 71,
     "quotes": 5,
-    "bookmarks": 2,
-    "views": 10638
+    "bookmarks": 4,
+    "views": 13713
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793773703,
@@ -276,16 +276,45 @@
    "created_at": "2026-11-04T06:13:26Z",
    "ts": 1793772806,
    "metrics": {
-    "likes": 27344,
-    "reposts": 2006,
-    "replies": 5062,
-    "quotes": 786,
-    "bookmarks": 875,
-    "views": 1067936
+    "likes": 45009,
+    "reposts": 3132,
+    "replies": 7286,
+    "quotes": 1169,
+    "bookmarks": 1438,
+    "views": 1626050
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
-   "coin_match": "none",
-   "coins": [],
+   "metrics_at": "2026-11-04T06:53:23+00:00",
+   "coin_match": "related",
+   "coins": [
+    {
+     "chain": "solana",
+     "address": "DHnKtoHE39FkSD8At4fhy9Wnv36LUzeGtw9BQXgNtwVE",
+     "symbol": "DEI",
+     "name": "Didnt Earn It",
+     "image": null,
+     "mcap": 18080,
+     "liquidity": 23971.73,
+     "price_usd": 1.807e-05,
+     "change_h24": 124,
+     "volume_h24": 1028963.43,
+     "pair": "3fpwDxW8yjR1pfMxoTzri3KXzLQNE3imTFwk3fkSxihB",
+     "dex": "meteora",
+     "pair_created_at": 1793774680000,
+     "dexscreener": "https://dexscreener.com/solana/3fpwdxw8yjr1pfmxotzri3kxzlqne3imtfwk3fksxihb",
+     "kyvo": true,
+     "rel": "related",
+     "kw": "didn",
+     "match": "related",
+     "alts": 1,
+     "pumping": true,
+     "pre_launch": true,
+     "px_at_launch": 8.075243862536026e-06,
+     "vol_after": 1046254,
+     "hours_after": 0.67,
+     "measured_at": 1793775137,
+     "chg_since_launch": 123.8
+    }
+   ],
    "first_seen": 1793772736,
    "kw": [
     "guess",
@@ -313,14 +342,14 @@
    "created_at": "2026-11-04T06:12:13Z",
    "ts": 1793772733,
    "metrics": {
-    "likes": 19493,
-    "reposts": 1658,
-    "replies": 2825,
-    "quotes": 514,
-    "bookmarks": 626,
-    "views": 871968
+    "likes": 30117,
+    "reposts": 2376,
+    "replies": 3762,
+    "quotes": 713,
+    "bookmarks": 932,
+    "views": 1234989
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793772736,
@@ -363,14 +392,14 @@
    "created_at": "2026-11-04T05:45:27Z",
    "ts": 1793771127,
    "metrics": {
-    "likes": 203,
-    "reposts": 22,
-    "replies": 73,
+    "likes": 223,
+    "reposts": 26,
+    "replies": 79,
     "quotes": 5,
-    "bookmarks": 2,
-    "views": 21169
+    "bookmarks": 3,
+    "views": 22948
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "named",
    "coins": [
     {
@@ -379,11 +408,11 @@
      "symbol": "USELESS",
      "name": "USELESS COIN",
      "image": "https://cdn.dexscreener.com/cms/images/4f8af59f26d45252fb4379d4b1a1e61d0b419fd34dab2ec9f3ba77585d1783cb?width=800&height=800&quality=95&format=auto",
-     "mcap": 139071425,
-     "liquidity": 3655831.54,
-     "price_usd": 0.139,
-     "change_h24": 14.96,
-     "volume_h24": 753571.3,
+     "mcap": 141036515,
+     "liquidity": 3680818.15,
+     "price_usd": 0.141,
+     "change_h24": 17.75,
+     "volume_h24": 766815.58,
      "pair": "Q2sPHPdUWFMg7M7wwrQKLrn619cAucfRsmhVJffodSp",
      "dex": "raydium",
      "pair_created_at": 1746886996000,
@@ -394,10 +423,10 @@
      "mention": "$USELESS",
      "px_at_tweet": 0.1361723756018837,
      "vol_1h_before": 99904,
-     "vol_after": 82626,
-     "hours_after": 0.86,
-     "measured_at": 1793774073,
-     "chg_since_tweet": 2.1,
+     "vol_after": 96438,
+     "hours_after": 1.07,
+     "measured_at": 1793774885,
+     "chg_since_tweet": 3.5,
      "pumping": false
     }
    ],
@@ -426,14 +455,14 @@
    "created_at": "2026-11-04T05:44:33Z",
    "ts": 1793771073,
    "metrics": {
-    "likes": 34,
+    "likes": 36,
     "reposts": 0,
     "replies": 4,
     "quotes": 0,
     "bookmarks": 1,
-    "views": 3944
+    "views": 4361
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793771077,
@@ -463,14 +492,14 @@
    "created_at": "2026-11-04T05:41:05Z",
    "ts": 1793770865,
    "metrics": {
-    "likes": 197,
-    "reposts": 9,
+    "likes": 210,
+    "reposts": 10,
     "replies": 24,
     "quotes": 5,
     "bookmarks": 2,
-    "views": 9040
+    "views": 9986
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793771077,
@@ -506,14 +535,14 @@
    "created_at": "2026-11-04T05:23:44Z",
    "ts": 1793769824,
    "metrics": {
-    "likes": 56,
+    "likes": 61,
     "reposts": 1,
-    "replies": 34,
+    "replies": 35,
     "quotes": 4,
     "bookmarks": 4,
-    "views": 6589
+    "views": 7265
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793770009,
@@ -547,14 +576,14 @@
    "created_at": "2026-11-04T05:22:28Z",
    "ts": 1793769748,
    "metrics": {
-    "likes": 666,
-    "reposts": 57,
+    "likes": 701,
+    "reposts": 59,
     "replies": 10,
-    "quotes": 2,
-    "bookmarks": 72,
-    "views": 15909
+    "quotes": 3,
+    "bookmarks": 80,
+    "views": 16995
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793770009,
@@ -587,14 +616,14 @@
    "created_at": "2026-11-04T05:12:18Z",
    "ts": 1793769138,
    "metrics": {
-    "likes": 2030,
-    "reposts": 152,
-    "replies": 354,
-    "quotes": 31,
-    "bookmarks": 44,
-    "views": 248178
+    "likes": 2177,
+    "reposts": 162,
+    "replies": 369,
+    "quotes": 32,
+    "bookmarks": 45,
+    "views": 260185
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793769232,
@@ -627,14 +656,14 @@
    "created_at": "2026-11-04T05:09:51Z",
    "ts": 1793768991,
    "metrics": {
-    "likes": 1854,
-    "reposts": 181,
-    "replies": 391,
-    "quotes": 28,
-    "bookmarks": 91,
-    "views": 230208
+    "likes": 2044,
+    "reposts": 196,
+    "replies": 416,
+    "quotes": 29,
+    "bookmarks": 101,
+    "views": 245930
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793769232,
@@ -670,14 +699,14 @@
    "created_at": "2026-11-04T05:07:35Z",
    "ts": 1793768855,
    "metrics": {
-    "likes": 562,
-    "reposts": 100,
-    "replies": 79,
+    "likes": 598,
+    "reposts": 106,
+    "replies": 83,
     "quotes": 8,
-    "bookmarks": 40,
-    "views": 27838
+    "bookmarks": 44,
+    "views": 29060
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793768881,
@@ -704,14 +733,14 @@
    "created_at": "2026-11-04T05:03:28Z",
    "ts": 1793768608,
    "metrics": {
-    "likes": 328,
-    "reposts": 54,
-    "replies": 63,
-    "quotes": 7,
+    "likes": 352,
+    "reposts": 61,
+    "replies": 65,
+    "quotes": 8,
     "bookmarks": 7,
-    "views": 23474
+    "views": 24436
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793768643,
@@ -751,14 +780,14 @@
    "created_at": "2026-11-04T04:56:16Z",
    "ts": 1793768176,
    "metrics": {
-    "likes": 5830,
-    "reposts": 759,
-    "replies": 339,
-    "quotes": 213,
-    "bookmarks": 320,
-    "views": 432245
+    "likes": 6317,
+    "reposts": 835,
+    "replies": 360,
+    "quotes": 228,
+    "bookmarks": 350,
+    "views": 467717
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793768457,
@@ -788,14 +817,14 @@
    "created_at": "2026-11-04T04:56:03Z",
    "ts": 1793768163,
    "metrics": {
-    "likes": 25,
+    "likes": 28,
     "reposts": 0,
     "replies": 0,
     "quotes": 1,
     "bookmarks": 0,
-    "views": 13351
+    "views": 13833
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793768457,
@@ -872,14 +901,14 @@
    "created_at": "2026-11-04T04:11:04Z",
    "ts": 1793765464,
    "metrics": {
-    "likes": 1953,
-    "reposts": 263,
-    "replies": 234,
-    "quotes": 31,
+    "likes": 2010,
+    "reposts": 266,
+    "replies": 241,
+    "quotes": 32,
     "bookmarks": 65,
-    "views": 36799
+    "views": 37730
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793765595,
@@ -918,14 +947,14 @@
    "created_at": "2026-11-04T04:03:35Z",
    "ts": 1793765015,
    "metrics": {
-    "likes": 23618,
-    "reposts": 2904,
-    "replies": 813,
-    "quotes": 546,
-    "bookmarks": 912,
-    "views": 957311
+    "likes": 24275,
+    "reposts": 2970,
+    "replies": 824,
+    "quotes": 557,
+    "bookmarks": 933,
+    "views": 990436
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793765137,
@@ -961,14 +990,14 @@
    "created_at": "2026-11-04T04:00:06Z",
    "ts": 1793764806,
    "metrics": {
-    "likes": 57,
+    "likes": 62,
     "reposts": 3,
-    "replies": 24,
+    "replies": 25,
     "quotes": 1,
     "bookmarks": 2,
-    "views": 16188
+    "views": 16553
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793765137,
@@ -998,14 +1027,14 @@
    "created_at": "2026-11-04T03:54:14Z",
    "ts": 1793764454,
    "metrics": {
-    "likes": 921,
-    "reposts": 95,
+    "likes": 968,
+    "reposts": 97,
     "replies": 8,
     "quotes": 25,
-    "bookmarks": 11,
-    "views": 35635
+    "bookmarks": 12,
+    "views": 37074
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793764525,
@@ -1036,14 +1065,14 @@
    "created_at": "2026-11-04T03:51:52Z",
    "ts": 1793764312,
    "metrics": {
-    "likes": 36,
+    "likes": 37,
     "reposts": 0,
     "replies": 0,
     "quotes": 0,
     "bookmarks": 1,
-    "views": 15242
+    "views": 15783
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793764290,
@@ -1083,9 +1112,9 @@
     "replies": 18,
     "quotes": 1,
     "bookmarks": 1,
-    "views": 3619
+    "views": 3688
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793763451,
@@ -1112,14 +1141,14 @@
    "created_at": "2026-11-04T03:18:45Z",
    "ts": 1793762325,
    "metrics": {
-    "likes": 93,
+    "likes": 94,
     "reposts": 6,
     "replies": 6,
     "quotes": 7,
     "bookmarks": 9,
-    "views": 12042
+    "views": 12293
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793763068,
@@ -1150,14 +1179,14 @@
    "created_at": "2026-11-04T03:18:44Z",
    "ts": 1793762324,
    "metrics": {
-    "likes": 2515,
-    "reposts": 199,
+    "likes": 2686,
+    "reposts": 206,
     "replies": 29,
     "quotes": 1,
-    "bookmarks": 96,
-    "views": 32607
+    "bookmarks": 98,
+    "views": 34370
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793763068,
@@ -1186,14 +1215,14 @@
    "created_at": "2026-11-04T03:15:39Z",
    "ts": 1793762139,
    "metrics": {
-    "likes": 445,
+    "likes": 457,
     "reposts": 10,
     "replies": 142,
-    "quotes": 6,
+    "quotes": 7,
     "bookmarks": 10,
-    "views": 30379
+    "views": 30984
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793763068,
@@ -1221,14 +1250,14 @@
    "created_at": "2026-11-04T03:06:47Z",
    "ts": 1793761607,
    "metrics": {
-    "likes": 455,
+    "likes": 459,
     "reposts": 28,
-    "replies": 116,
+    "replies": 117,
     "quotes": 2,
-    "bookmarks": 69,
-    "views": 45600
+    "bookmarks": 70,
+    "views": 46582
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793761648,
@@ -1261,14 +1290,14 @@
    "created_at": "2026-11-04T03:06:46Z",
    "ts": 1793761606,
    "metrics": {
-    "likes": 53,
-    "reposts": 14,
+    "likes": 56,
+    "reposts": 15,
     "replies": 1,
     "quotes": 0,
-    "bookmarks": 4,
-    "views": 14909
+    "bookmarks": 6,
+    "views": 15230
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793761648,
@@ -1298,14 +1327,14 @@
    "created_at": "2026-11-04T02:58:39Z",
    "ts": 1793761119,
    "metrics": {
-    "likes": 420,
+    "likes": 424,
     "reposts": 8,
     "replies": 59,
     "quotes": 4,
     "bookmarks": 10,
-    "views": 28118
+    "views": 28593
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793761230,
@@ -1337,14 +1366,14 @@
    "created_at": "2026-11-04T02:51:44Z",
    "ts": 1793760704,
    "metrics": {
-    "likes": 9,
+    "likes": 10,
     "reposts": 2,
     "replies": 3,
     "quotes": 1,
     "bookmarks": 0,
-    "views": 3762
+    "views": 3812
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793760687,
@@ -1377,14 +1406,14 @@
    "created_at": "2026-11-04T02:42:39Z",
    "ts": 1793760159,
    "metrics": {
-    "likes": 162,
+    "likes": 165,
     "reposts": 12,
     "replies": 46,
     "quotes": 2,
-    "bookmarks": 29,
-    "views": 40506
+    "bookmarks": 32,
+    "views": 41166
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793760294,
@@ -1419,9 +1448,9 @@
     "replies": 2,
     "quotes": 0,
     "bookmarks": 0,
-    "views": 4739
+    "views": 4787
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793759908,
@@ -1456,9 +1485,9 @@
     "replies": 2,
     "quotes": 0,
     "bookmarks": 0,
-    "views": 5243
+    "views": 5295
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793759908,
@@ -1488,14 +1517,14 @@
    "created_at": "2026-11-04T02:35:40Z",
    "ts": 1793759740,
    "metrics": {
-    "likes": 489,
+    "likes": 494,
     "reposts": 7,
-    "replies": 48,
+    "replies": 49,
     "quotes": 0,
     "bookmarks": 7,
-    "views": 26618
+    "views": 27153
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793759908,
@@ -1527,14 +1556,14 @@
    "created_at": "2026-11-04T02:27:42Z",
    "ts": 1793759262,
    "metrics": {
-    "likes": 72,
+    "likes": 74,
     "reposts": 8,
     "replies": 19,
     "quotes": 0,
     "bookmarks": 0,
-    "views": 15915
+    "views": 16129
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793759908,
@@ -1570,14 +1599,14 @@
    "created_at": "2026-11-04T02:25:18Z",
    "ts": 1793759118,
    "metrics": {
-    "likes": 156,
+    "likes": 157,
     "reposts": 5,
     "replies": 36,
     "quotes": 4,
     "bookmarks": 28,
-    "views": 59189
+    "views": 59566
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793759908,
@@ -1616,14 +1645,14 @@
    "created_at": "2026-11-04T02:17:00Z",
    "ts": 1793758620,
    "metrics": {
-    "likes": 209,
+    "likes": 210,
     "reposts": 2,
     "replies": 52,
     "quotes": 0,
     "bookmarks": 1,
-    "views": 20145
+    "views": 20354
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793758697,
@@ -1652,14 +1681,14 @@
    "created_at": "2026-11-04T02:16:01Z",
    "ts": 1793758561,
    "metrics": {
-    "likes": 168,
+    "likes": 170,
     "reposts": 2,
     "replies": 53,
     "quotes": 0,
     "bookmarks": 1,
-    "views": 22855
+    "views": 23067
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793758697,
@@ -1692,14 +1721,14 @@
    "created_at": "2026-11-04T02:14:39Z",
    "ts": 1793758479,
    "metrics": {
-    "likes": 3578,
-    "reposts": 191,
-    "replies": 40,
+    "likes": 3679,
+    "reposts": 195,
+    "replies": 41,
     "quotes": 11,
-    "bookmarks": 319,
-    "views": 73449
+    "bookmarks": 329,
+    "views": 75784
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "related",
    "coins": [
     {
@@ -1761,14 +1790,14 @@
    "created_at": "2026-11-04T02:13:09Z",
    "ts": 1793758389,
    "metrics": {
-    "likes": 52,
+    "likes": 53,
     "reposts": 10,
     "replies": 8,
     "quotes": 3,
     "bookmarks": 4,
-    "views": 16958
+    "views": 17258
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793758460,
@@ -1806,9 +1835,9 @@
     "replies": 1,
     "quotes": 4,
     "bookmarks": 1,
-    "views": 17028
+    "views": 17219
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "related",
    "coins": [
     {
@@ -1867,14 +1896,14 @@
    "created_at": "2026-11-04T01:59:17Z",
    "ts": 1793757557,
    "metrics": {
-    "likes": 442,
-    "reposts": 12,
+    "likes": 454,
+    "reposts": 13,
     "replies": 104,
-    "quotes": 3,
+    "quotes": 4,
     "bookmarks": 10,
-    "views": 95575
+    "views": 97305
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793757655,
@@ -1918,9 +1947,9 @@
     "replies": 1,
     "quotes": 1,
     "bookmarks": 1,
-    "views": 15741
+    "views": 15928
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793756982,
@@ -1961,9 +1990,9 @@
     "replies": 17,
     "quotes": 1,
     "bookmarks": 0,
-    "views": 2421
+    "views": 2447
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793756824,
@@ -1990,14 +2019,14 @@
    "created_at": "2026-11-04T01:30:07Z",
    "ts": 1793755807,
    "metrics": {
-    "likes": 280,
-    "reposts": 15,
+    "likes": 295,
+    "reposts": 16,
     "replies": 11,
     "quotes": 12,
-    "bookmarks": 9,
-    "views": 32812
+    "bookmarks": 10,
+    "views": 34177
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "related",
    "coins": [
     {
@@ -2063,9 +2092,9 @@
     "replies": 0,
     "quotes": 0,
     "bookmarks": 6,
-    "views": 18111
+    "views": 18382
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793756824,
@@ -2099,14 +2128,14 @@
    "created_at": "2026-11-04T01:15:10Z",
    "ts": 1793754910,
    "metrics": {
-    "likes": 344,
+    "likes": 347,
     "reposts": 72,
     "replies": 40,
     "quotes": 3,
     "bookmarks": 9,
-    "views": 21853
+    "views": 22086
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793755039,
@@ -2147,14 +2176,14 @@
    "created_at": "2026-11-04T01:12:31Z",
    "ts": 1793754751,
    "metrics": {
-    "likes": 1591,
-    "reposts": 102,
+    "likes": 1638,
+    "reposts": 106,
     "replies": 31,
     "quotes": 5,
-    "bookmarks": 147,
-    "views": 47227
+    "bookmarks": 148,
+    "views": 49031
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793755039,
@@ -2267,14 +2296,14 @@
    "created_at": "2026-11-04T01:03:05Z",
    "ts": 1793754185,
    "metrics": {
-    "likes": 653,
-    "reposts": 116,
-    "replies": 71,
+    "likes": 667,
+    "reposts": 118,
+    "replies": 72,
     "quotes": 18,
     "bookmarks": 33,
-    "views": 28455
+    "views": 28788
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793754175,
@@ -2312,9 +2341,9 @@
     "replies": 1,
     "quotes": 0,
     "bookmarks": 4,
-    "views": 20503
+    "views": 20720
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793753669,
@@ -2350,14 +2379,14 @@
    "created_at": "2026-11-04T00:49:49Z",
    "ts": 1793753389,
    "metrics": {
-    "likes": 822,
-    "reposts": 189,
-    "replies": 69,
-    "quotes": 9,
-    "bookmarks": 41,
-    "views": 25850
+    "likes": 843,
+    "reposts": 196,
+    "replies": 71,
+    "quotes": 10,
+    "bookmarks": 42,
+    "views": 26232
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793753669,
@@ -2387,14 +2416,14 @@
    "created_at": "2026-11-04T00:47:18Z",
    "ts": 1793753238,
    "metrics": {
-    "likes": 67,
+    "likes": 69,
     "reposts": 4,
-    "replies": 64,
+    "replies": 67,
     "quotes": 4,
     "bookmarks": 3,
-    "views": 11745
+    "views": 11932
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793753669,
@@ -2432,9 +2461,9 @@
     "replies": 14,
     "quotes": 1,
     "bookmarks": 1,
-    "views": 6109
+    "views": 6173
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793753669,
@@ -2470,14 +2499,14 @@
    "created_at": "2026-11-04T00:43:59Z",
    "ts": 1793753039,
    "metrics": {
-    "likes": 204,
-    "reposts": 2,
+    "likes": 207,
+    "reposts": 3,
     "replies": 9,
     "quotes": 8,
     "bookmarks": 4,
-    "views": 27490
+    "views": 27935
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793753669,
@@ -2513,14 +2542,14 @@
    "created_at": "2026-11-04T00:43:01Z",
    "ts": 1793752981,
    "metrics": {
-    "likes": 659,
+    "likes": 663,
     "reposts": 21,
-    "replies": 190,
-    "quotes": 15,
+    "replies": 191,
+    "quotes": 14,
     "bookmarks": 14,
-    "views": 103127
+    "views": 104152
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793753669,
@@ -2556,14 +2585,14 @@
    "created_at": "2026-11-04T00:37:44Z",
    "ts": 1793752664,
    "metrics": {
-    "likes": 455,
-    "reposts": 79,
-    "replies": 43,
+    "likes": 471,
+    "reposts": 81,
+    "replies": 44,
     "quotes": 4,
     "bookmarks": 26,
-    "views": 26626
+    "views": 27073
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793753669,
@@ -2593,14 +2622,14 @@
    "created_at": "2026-11-04T00:27:37Z",
    "ts": 1793752057,
    "metrics": {
-    "likes": 464,
+    "likes": 469,
     "reposts": 18,
     "replies": 140,
     "quotes": 5,
     "bookmarks": 6,
-    "views": 89463
+    "views": 90268
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "related",
    "coins": [
     {
@@ -2609,11 +2638,11 @@
      "symbol": "BLUE",
      "name": "Blue Wave",
      "image": null,
-     "mcap": 5269,
-     "liquidity": 4409.31,
-     "price_usd": 5.536e-06,
-     "change_h24": -84.54,
-     "volume_h24": 99142.21,
+     "mcap": 5393,
+     "liquidity": 4470.01,
+     "price_usd": 5.666e-06,
+     "change_h24": -84.18,
+     "volume_h24": 99150.76,
      "pair": "4CLtM1Dwa2wMmg9bmUkfTNo5PFLpeXn5XBPU6pgMxY3M",
      "dex": "pumpswap",
      "pair_created_at": 1793754343000,
@@ -2628,7 +2657,7 @@
      "vol_after": 96814,
      "hours_after": 5.59,
      "measured_at": 1793772103,
-     "chg_since_launch": -84.2,
+     "chg_since_launch": -83.8,
      "pumping": false
     }
    ],
@@ -2663,9 +2692,9 @@
     "replies": 19,
     "quotes": 1,
     "bookmarks": 0,
-    "views": 4996
+    "views": 5044
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793753669,
@@ -2693,14 +2722,14 @@
    "created_at": "2026-11-04T00:26:28Z",
    "ts": 1793751988,
    "metrics": {
-    "likes": 2383,
-    "reposts": 161,
-    "replies": 184,
+    "likes": 2419,
+    "reposts": 163,
+    "replies": 185,
     "quotes": 25,
     "bookmarks": 58,
-    "views": 408398
+    "views": 411192
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "related",
    "coins": [
     {
@@ -2762,14 +2791,14 @@
    "created_at": "2026-11-04T00:19:43Z",
    "ts": 1793751583,
    "metrics": {
-    "likes": 160,
+    "likes": 161,
     "reposts": 16,
-    "replies": 54,
+    "replies": 57,
     "quotes": 0,
     "bookmarks": 8,
-    "views": 47505
+    "views": 48262
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793753669,
@@ -2805,14 +2834,14 @@
    "created_at": "2026-11-04T00:07:37Z",
    "ts": 1793750857,
    "metrics": {
-    "likes": 374,
+    "likes": 385,
     "reposts": 80,
     "replies": 46,
     "quotes": 7,
     "bookmarks": 19,
-    "views": 24752
+    "views": 25051
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793750803,
@@ -2863,14 +2892,14 @@
    "created_at": "2026-11-03T23:55:04Z",
    "ts": 1793750104,
    "metrics": {
-    "likes": 5615,
-    "reposts": 1001,
-    "replies": 1587,
-    "quotes": 74,
-    "bookmarks": 145,
-    "views": 242898
+    "likes": 5694,
+    "reposts": 1020,
+    "replies": 1625,
+    "quotes": 76,
+    "bookmarks": 150,
+    "views": 246985
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793750592,
@@ -2903,14 +2932,14 @@
    "created_at": "2026-11-03T23:48:35Z",
    "ts": 1793749715,
    "metrics": {
-    "likes": 65,
-    "reposts": 5,
-    "replies": 53,
+    "likes": 66,
+    "reposts": 6,
+    "replies": 54,
     "quotes": 2,
     "bookmarks": 4,
-    "views": 8101
+    "views": 8168
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793750592,
@@ -2940,14 +2969,14 @@
    "created_at": "2026-11-03T23:37:16Z",
    "ts": 1793749036,
    "metrics": {
-    "likes": 523,
+    "likes": 529,
     "reposts": 22,
-    "replies": 111,
+    "replies": 112,
     "quotes": 4,
     "bookmarks": 13,
-    "views": 67432
+    "views": 68313
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793753669,
@@ -2984,9 +3013,9 @@
     "replies": 71,
     "quotes": 9,
     "bookmarks": 10,
-    "views": 40748
+    "views": 41069
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793750592,
@@ -3022,14 +3051,14 @@
    "created_at": "2026-11-03T23:33:50Z",
    "ts": 1793748830,
    "metrics": {
-    "likes": 959,
-    "reposts": 162,
-    "replies": 36,
+    "likes": 971,
+    "reposts": 166,
+    "replies": 38,
     "quotes": 6,
-    "bookmarks": 25,
-    "views": 43704
+    "bookmarks": 26,
+    "views": 44412
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793750592,
@@ -3065,14 +3094,14 @@
    "created_at": "2026-11-03T23:15:46Z",
    "ts": 1793747746,
    "metrics": {
-    "likes": 1535,
+    "likes": 1536,
     "reposts": 362,
     "replies": 116,
     "quotes": 33,
     "bookmarks": 28,
-    "views": 36940
+    "views": 37121
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793747884,
@@ -3108,14 +3137,14 @@
    "created_at": "2026-11-03T23:10:42Z",
    "ts": 1793747442,
    "metrics": {
-    "likes": 2887,
-    "reposts": 213,
+    "likes": 2947,
+    "reposts": 214,
     "replies": 29,
     "quotes": 10,
-    "bookmarks": 235,
-    "views": 50706
+    "bookmarks": 241,
+    "views": 51719
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793747375,
@@ -3151,14 +3180,14 @@
    "created_at": "2026-11-03T23:02:39Z",
    "ts": 1793746959,
    "metrics": {
-    "likes": 611,
+    "likes": 614,
     "reposts": 116,
-    "replies": 227,
+    "replies": 230,
     "quotes": 41,
     "bookmarks": 15,
-    "views": 124174
+    "views": 124658
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793747375,
@@ -3187,14 +3216,14 @@
    "created_at": "2026-11-03T23:00:37Z",
    "ts": 1793746837,
    "metrics": {
-    "likes": 91,
+    "likes": 92,
     "reposts": 4,
     "replies": 35,
     "quotes": 1,
     "bookmarks": 3,
-    "views": 9451
+    "views": 9572
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793747375,
@@ -3224,14 +3253,14 @@
    "created_at": "2026-11-03T22:56:53Z",
    "ts": 1793746613,
    "metrics": {
-    "likes": 217,
+    "likes": 218,
     "reposts": 16,
-    "replies": 87,
+    "replies": 88,
     "quotes": 6,
     "bookmarks": 12,
-    "views": 18228
+    "views": 18431
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793747375,
@@ -3267,14 +3296,14 @@
    "created_at": "2026-11-03T22:48:05Z",
    "ts": 1793746085,
    "metrics": {
-    "likes": 7992,
-    "reposts": 2379,
-    "replies": 735,
-    "quotes": 131,
+    "likes": 8043,
+    "reposts": 2387,
+    "replies": 743,
+    "quotes": 132,
     "bookmarks": 315,
-    "views": 239887
+    "views": 242263
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793747375,
@@ -3304,14 +3333,14 @@
    "created_at": "2026-11-03T22:25:01Z",
    "ts": 1793744701,
    "metrics": {
-    "likes": 752,
+    "likes": 753,
     "reposts": 53,
     "replies": 392,
     "quotes": 27,
     "bookmarks": 9,
-    "views": 84392
+    "views": 84865
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793744770,
@@ -3342,14 +3371,14 @@
    "created_at": "2026-11-03T22:25:00Z",
    "ts": 1793744700,
    "metrics": {
-    "likes": 159,
+    "likes": 160,
     "reposts": 10,
     "replies": 72,
     "quotes": 9,
     "bookmarks": 22,
-    "views": 56103
+    "views": 56456
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793744770,
@@ -3385,14 +3414,14 @@
    "created_at": "2026-11-03T22:21:38Z",
    "ts": 1793744498,
    "metrics": {
-    "likes": 1005,
+    "likes": 1008,
     "reposts": 202,
     "replies": 77,
     "quotes": 3,
     "bookmarks": 17,
-    "views": 15257
+    "views": 15377
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793744551,
@@ -3425,14 +3454,14 @@
    "created_at": "2026-11-03T22:11:13Z",
    "ts": 1793743873,
    "metrics": {
-    "likes": 1568,
+    "likes": 1576,
     "reposts": 287,
-    "replies": 98,
+    "replies": 99,
     "quotes": 12,
     "bookmarks": 24,
-    "views": 26614
+    "views": 26992
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793743964,
@@ -3465,14 +3494,14 @@
    "created_at": "2026-11-03T22:10:16Z",
    "ts": 1793743816,
    "metrics": {
-    "likes": 8698,
-    "reposts": 445,
+    "likes": 8798,
+    "reposts": 448,
     "replies": 71,
     "quotes": 9,
-    "bookmarks": 768,
-    "views": 238980
+    "bookmarks": 778,
+    "views": 242948
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793743964,
@@ -3502,14 +3531,14 @@
    "created_at": "2026-11-03T21:50:45Z",
    "ts": 1793742645,
    "metrics": {
-    "likes": 59123,
-    "reposts": 5789,
-    "replies": 4516,
-    "quotes": 846,
-    "bookmarks": 762,
-    "views": 2099029
+    "likes": 59505,
+    "reposts": 5817,
+    "replies": 4550,
+    "quotes": 857,
+    "bookmarks": 776,
+    "views": 2153369
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793743964,
@@ -3534,14 +3563,14 @@
    "created_at": "2026-11-03T21:47:58Z",
    "ts": 1793742478,
    "metrics": {
-    "likes": 59,
+    "likes": 3,
     "reposts": 0,
     "replies": 1,
     "quotes": 0,
     "bookmarks": 0,
-    "views": 3326
+    "views": 3337
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793742572,
@@ -3585,9 +3614,9 @@
     "replies": 14,
     "quotes": 0,
     "bookmarks": 4,
-    "views": 27661
+    "views": 27751
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793742348,
@@ -3617,14 +3646,14 @@
    "created_at": "2026-11-03T21:40:57Z",
    "ts": 1793742057,
    "metrics": {
-    "likes": 769,
+    "likes": 774,
     "reposts": 31,
     "replies": 167,
     "quotes": 4,
     "bookmarks": 19,
-    "views": 48823
+    "views": 49079
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793742348,
@@ -3656,14 +3685,14 @@
    "created_at": "2026-11-03T21:39:54Z",
    "ts": 1793741994,
    "metrics": {
-    "likes": 448,
+    "likes": 451,
     "reposts": 30,
     "replies": 89,
     "quotes": 9,
     "bookmarks": 18,
-    "views": 50517
+    "views": 50946
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793742348,
@@ -3698,9 +3727,9 @@
     "replies": 107,
     "quotes": 9,
     "bookmarks": 8,
-    "views": 39392
+    "views": 39567
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793741774,
@@ -3733,14 +3762,14 @@
    "created_at": "2026-11-03T21:32:04Z",
    "ts": 1793741524,
    "metrics": {
-    "likes": 2253,
+    "likes": 2259,
     "reposts": 350,
     "replies": 105,
     "quotes": 11,
-    "bookmarks": 25,
-    "views": 32606
+    "bookmarks": 26,
+    "views": 32803
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793741774,
@@ -3814,14 +3843,14 @@
    "created_at": "2026-11-03T21:15:42Z",
    "ts": 1793740542,
    "metrics": {
-    "likes": 1337,
-    "reposts": 83,
+    "likes": 1352,
+    "reposts": 85,
     "replies": 13,
     "quotes": 1,
-    "bookmarks": 97,
-    "views": 30536
+    "bookmarks": 99,
+    "views": 30860
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793740627,
@@ -3872,14 +3901,14 @@
    "created_at": "2026-11-03T21:14:48Z",
    "ts": 1793740488,
    "metrics": {
-    "likes": 4534,
-    "reposts": 1017,
-    "replies": 656,
+    "likes": 4550,
+    "reposts": 1020,
+    "replies": 660,
     "quotes": 40,
-    "bookmarks": 77,
-    "views": 198693
+    "bookmarks": 78,
+    "views": 200111
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793740627,
@@ -3912,14 +3941,14 @@
    "created_at": "2026-11-03T20:56:52Z",
    "ts": 1793739412,
    "metrics": {
-    "likes": 7476,
-    "reposts": 880,
-    "replies": 3061,
-    "quotes": 283,
-    "bookmarks": 1409,
-    "views": 2363431
+    "likes": 7576,
+    "reposts": 889,
+    "replies": 3077,
+    "quotes": 284,
+    "bookmarks": 1423,
+    "views": 2414101
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793739497,
@@ -3957,9 +3986,9 @@
     "replies": 2,
     "quotes": 1,
     "bookmarks": 5,
-    "views": 9265
+    "views": 9314
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793738967,
@@ -3995,14 +4024,14 @@
    "created_at": "2026-11-03T20:48:01Z",
    "ts": 1793738881,
    "metrics": {
-    "likes": 527,
-    "reposts": 33,
+    "likes": 530,
+    "reposts": 34,
     "replies": 59,
     "quotes": 2,
     "bookmarks": 14,
-    "views": 26649
+    "views": 26798
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793738967,
@@ -4033,14 +4062,14 @@
    "created_at": "2026-11-03T20:46:18Z",
    "ts": 1793738778,
    "metrics": {
-    "likes": 131,
+    "likes": 132,
     "reposts": 12,
     "replies": 3,
     "quotes": 1,
     "bookmarks": 1,
-    "views": 9026
+    "views": 9068
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793738723,
@@ -4076,14 +4105,14 @@
    "created_at": "2026-11-03T20:36:54Z",
    "ts": 1793738214,
    "metrics": {
-    "likes": 7411,
-    "reposts": 1705,
-    "replies": 624,
+    "likes": 7440,
+    "reposts": 1710,
+    "replies": 626,
     "quotes": 68,
-    "bookmarks": 223,
-    "views": 213551
+    "bookmarks": 222,
+    "views": 214756
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793738447,
@@ -4119,14 +4148,14 @@
    "created_at": "2026-11-03T20:34:44Z",
    "ts": 1793738084,
    "metrics": {
-    "likes": 137,
-    "reposts": 1,
+    "likes": 139,
+    "reposts": 2,
     "replies": 40,
     "quotes": 2,
     "bookmarks": 9,
-    "views": 17879
+    "views": 17985
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "related",
    "coins": [
     {
@@ -4191,14 +4220,14 @@
    "created_at": "2026-11-03T20:32:00Z",
    "ts": 1793737920,
    "metrics": {
-    "likes": 372,
-    "reposts": 40,
+    "likes": 377,
+    "reposts": 41,
     "replies": 92,
     "quotes": 8,
-    "bookmarks": 56,
-    "views": 26735
+    "bookmarks": 57,
+    "views": 27084
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793737902,
@@ -4268,14 +4297,14 @@
    "created_at": "2026-11-03T20:30:30Z",
    "ts": 1793737830,
    "metrics": {
-    "likes": 598,
-    "reposts": 30,
+    "likes": 600,
+    "reposts": 31,
     "replies": 431,
     "quotes": 54,
     "bookmarks": 14,
-    "views": 122996
+    "views": 123606
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793737902,
@@ -4324,14 +4353,14 @@
    "created_at": "2026-11-03T20:23:28Z",
    "ts": 1793737408,
    "metrics": {
-    "likes": 5067,
-    "reposts": 1145,
-    "replies": 1045,
+    "likes": 5078,
+    "reposts": 1149,
+    "replies": 1051,
     "quotes": 59,
-    "bookmarks": 100,
-    "views": 163765
+    "bookmarks": 101,
+    "views": 164598
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793737390,
@@ -4364,14 +4393,14 @@
    "created_at": "2026-11-03T20:18:57Z",
    "ts": 1793737137,
    "metrics": {
-    "likes": 206,
+    "likes": 207,
     "reposts": 3,
     "replies": 71,
     "quotes": 0,
     "bookmarks": 24,
-    "views": 31478
+    "views": 31711
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793737390,
@@ -4406,9 +4435,9 @@
     "replies": 38,
     "quotes": 0,
     "bookmarks": 13,
-    "views": 18003
+    "views": 18054
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793737390,
@@ -4449,14 +4478,14 @@
    "created_at": "2026-11-03T20:12:46Z",
    "ts": 1793736766,
    "metrics": {
-    "likes": 2172,
+    "likes": 2189,
     "reposts": 112,
     "replies": 23,
     "quotes": 3,
     "bookmarks": 83,
-    "views": 32981
+    "views": 33166
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "related",
    "coins": [
     {
@@ -4482,8 +4511,8 @@
      "pre_launch": true,
      "px_at_launch": 0.0001119091180116189,
      "vol_after": 85304,
-     "hours_after": 9.97,
-     "measured_at": 1793772550,
+     "hours_after": 10.58,
+     "measured_at": 1793774722,
      "chg_since_launch": -98.5,
      "pumping": false
     }
@@ -4518,14 +4547,14 @@
    "created_at": "2026-11-03T20:09:51Z",
    "ts": 1793736591,
    "metrics": {
-    "likes": 261,
+    "likes": 263,
     "reposts": 17,
-    "replies": 181,
+    "replies": 182,
     "quotes": 9,
     "bookmarks": 7,
-    "views": 36612
+    "views": 36796
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793736727,
@@ -4561,14 +4590,14 @@
    "created_at": "2026-11-03T20:08:00Z",
    "ts": 1793736480,
    "metrics": {
-    "likes": 202,
+    "likes": 203,
     "reposts": 16,
     "replies": 110,
     "quotes": 7,
     "bookmarks": 13,
-    "views": 60609
+    "views": 60842
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793736727,
@@ -4684,14 +4713,14 @@
    "created_at": "2026-11-03T19:40:40Z",
    "ts": 1793734840,
    "metrics": {
-    "likes": 3554,
+    "likes": 3561,
     "reposts": 189,
     "replies": 40,
-    "quotes": 10,
-    "bookmarks": 469,
-    "views": 118557
+    "quotes": 11,
+    "bookmarks": 472,
+    "views": 119013
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793735184,
@@ -4764,14 +4793,14 @@
    "created_at": "2026-11-03T19:32:02Z",
    "ts": 1793734322,
    "metrics": {
-    "likes": 7333,
-    "reposts": 1632,
-    "replies": 521,
+    "likes": 7371,
+    "reposts": 1639,
+    "replies": 524,
     "quotes": 76,
-    "bookmarks": 251,
-    "views": 209807
+    "bookmarks": 252,
+    "views": 210659
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793734496,
@@ -4842,9 +4871,9 @@
     "replies": 3,
     "quotes": 0,
     "bookmarks": 1,
-    "views": 3013
+    "views": 3017
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793734062,
@@ -4875,14 +4904,14 @@
    "created_at": "2026-11-03T19:24:20Z",
    "ts": 1793733860,
    "metrics": {
-    "likes": 297,
-    "reposts": 25,
+    "likes": 299,
+    "reposts": 26,
     "replies": 66,
     "quotes": 5,
     "bookmarks": 16,
-    "views": 55053
+    "views": 55351
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793734062,
@@ -4917,9 +4946,9 @@
     "replies": 2,
     "quotes": 0,
     "bookmarks": 2,
-    "views": 3899
+    "views": 3902
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793734062,
@@ -4957,9 +4986,9 @@
     "replies": 26,
     "quotes": 1,
     "bookmarks": 3,
-    "views": 9318
+    "views": 9349
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793733433,
@@ -4987,14 +5016,14 @@
    "created_at": "2026-11-03T19:16:46Z",
    "ts": 1793733406,
    "metrics": {
-    "likes": 551,
-    "reposts": 133,
+    "likes": 552,
+    "reposts": 134,
     "replies": 73,
     "quotes": 6,
     "bookmarks": 7,
-    "views": 52109
+    "views": 52453
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793733433,
@@ -5062,14 +5091,14 @@
    "created_at": "2026-11-03T19:16:08Z",
    "ts": 1793733368,
    "metrics": {
-    "likes": 294,
+    "likes": 297,
     "reposts": 8,
     "replies": 38,
     "quotes": 1,
     "bookmarks": 19,
-    "views": 31012
+    "views": 31194
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793733433,
@@ -5105,14 +5134,14 @@
    "created_at": "2026-11-03T19:15:33Z",
    "ts": 1793733333,
    "metrics": {
-    "likes": 2721,
-    "reposts": 597,
-    "replies": 285,
+    "likes": 2730,
+    "reposts": 600,
+    "replies": 286,
     "quotes": 16,
     "bookmarks": 54,
-    "views": 158604
+    "views": 159252
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "related",
    "coins": [
     {
@@ -5138,9 +5167,9 @@
      "pumping": false,
      "pre_launch": true,
      "px_at_launch": 0.0007254965757234338,
-     "vol_after": 207256,
-     "hours_after": 10.35,
-     "measured_at": 1793770448,
+     "vol_after": 207305,
+     "hours_after": 11.64,
+     "measured_at": 1793775137,
      "chg_since_launch": -99.8
     }
    ],
@@ -5177,14 +5206,14 @@
    "created_at": "2026-11-03T19:09:54Z",
    "ts": 1793732994,
    "metrics": {
-    "likes": 693,
-    "reposts": 180,
+    "likes": 701,
+    "reposts": 183,
     "replies": 93,
     "quotes": 15,
-    "bookmarks": 45,
-    "views": 35341
+    "bookmarks": 46,
+    "views": 35505
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793732990,
@@ -5228,9 +5257,9 @@
     "replies": 15,
     "quotes": 0,
     "bookmarks": 6,
-    "views": 10536
+    "views": 10557
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "named",
    "coins": [
     {
@@ -5243,7 +5272,7 @@
      "liquidity": 36311964.45,
      "price_usd": 1.74,
      "change_h24": -0.01,
-     "volume_h24": 310201.55,
+     "volume_h24": 310212.71,
      "pair": "GXxUt1aceYTr6ZzMZbwtEtwLAK3ZgnRJYEsXAGrseaUX",
      "dex": "raydium",
      "pair_created_at": 1793130521000,
@@ -5504,9 +5533,9 @@
     "replies": 14,
     "quotes": 0,
     "bookmarks": 2,
-    "views": 6881
+    "views": 6898
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793732779,
@@ -5816,14 +5845,14 @@
    "created_at": "2026-11-03T19:05:02Z",
    "ts": 1793732702,
    "metrics": {
-    "likes": 569,
-    "reposts": 91,
+    "likes": 570,
+    "reposts": 92,
     "replies": 157,
     "quotes": 48,
     "bookmarks": 22,
-    "views": 85980
+    "views": 86429
    },
-   "metrics_at": "2026-11-04T06:38:48+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
    "first_seen": 1793732779,
@@ -6160,706 +6189,614 @@
    ]
   },
   {
-   "id": "2117691003419205932",
-   "url": "https://x.com/realDonaldTrump/status/2117691003419205932",
-   "handle": "realDonaldTrump",
-   "author_name": "Donald J. Trump",
-   "avatar": "https://pbs.twimg.com/profile_images/874276197357596672/kUuht00m_200x200.jpg",
-   "author_followers": 111856515,
+   "id": "2117686177775907313",
+   "url": "https://x.com/GTAVI_Countdown/status/2117686177775907313",
+   "handle": "GTAVI_Countdown",
+   "author_name": "GTA 6 Countdown ⏳",
+   "avatar": "https://pbs.twimg.com/profile_images/2067718703601352704/q-GdKYN7_200x200.jpg",
+   "author_followers": 524866,
    "verified": true,
-   "role": "celebrity",
+   "role": "gta",
    "wallet_id": null,
-   "text": "Congressman Greg Murphy, M.D., is a Tremendous Champion for the incredible people of North Carolina’s 3rd Congressional District!\n \nA distinguished Surgeon and Member of the House Veterans' Affairs Committee, Greg knows the Wisdom and Courage required to Defend our Country, Support our Brave Military/Veterans, and Ensure PEACE THROUGH STRENGTH. In Congress, Greg is working hard to Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Champion American Energy DOMINANCE, Keep our Border SECURE, and Protect our always under siege Second Amendment.\n \nGreg’s opponent, Raymond Smith, is a Radical Left Democrat who is opposed to NO TAX ON TIPS, NO TAX ON OVERTIME, and NO TAX ON SOCIAL SECURITY and, if he and the Dumocrats ever got in, all of these things will be terminated. He wants massive Tax Increases, Open Borders, Men playing in Women’s Sports, and Transgender Mutilization of your Children. Raymond Smith is Reckless, Radical, and Dangerous! \n \nDr. Greg Murphy has my Complete and Total Endorsement for Re-Election. GET OUT AND VOTE FOR GREG — HE WILL NEVER LET YOU DOWN!",
+   "text": "GTA 6 vs real life (Watson Island)",
    "is_reply": false,
    "reply_to": null,
-   "vip": true,
+   "vip": false,
    "quote": null,
-   "media": [],
-   "created_at": "2026-11-03T18:50:54Z",
-   "ts": 1793731854,
+   "media": [
+    {
+     "type": "photo",
+     "url": "https://pbs.twimg.com/media/HWOIT8aWgAA2wLG.jpg?name=orig",
+     "alt": ""
+    }
+   ],
+   "created_at": "2026-11-03T18:31:44Z",
+   "ts": 1793730704,
    "metrics": {
-    "likes": 974,
-    "reposts": 226,
-    "replies": 83,
-    "quotes": 6,
-    "bookmarks": 8,
-    "views": 350024
+    "likes": 8716,
+    "reposts": 349,
+    "replies": 73,
+    "quotes": 17,
+    "bookmarks": 718,
+    "views": 208417
    },
-   "metrics_at": "2026-11-03T19:15:54+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
-   "first_seen": 1793732202,
+   "first_seen": 1793774885,
    "kw": [
-    "greg",
-    "tax",
-    "peace",
-    "strength"
+    "watson",
+    "island",
+    "watsonisland",
+    "real"
    ]
   },
   {
-   "id": "2117690969592414602",
-   "url": "https://x.com/realDonaldTrump/status/2117690969592414602",
-   "handle": "realDonaldTrump",
-   "author_name": "Donald J. Trump",
-   "avatar": "https://pbs.twimg.com/profile_images/874276197357596672/kUuht00m_200x200.jpg",
-   "author_followers": 111856515,
+   "id": "2117635860707373253",
+   "url": "https://x.com/GTAVI_Countdown/status/2117635860707373253",
+   "handle": "GTAVI_Countdown",
+   "author_name": "GTA 6 Countdown ⏳",
+   "avatar": "https://pbs.twimg.com/profile_images/2067718703601352704/q-GdKYN7_200x200.jpg",
+   "author_followers": 524868,
    "verified": true,
-   "role": "celebrity",
+   "role": "gta",
    "wallet_id": null,
-   "text": "It is my Great Honor to endorse Carlos De La Cruz, a fantastic America First Candidate running to be the next Congressman from Texas’ 35th Congressional District!\n \nA Brave, 20 Year Air Force Veteran, and now, as a successful Businessman, Carlos has a Proven Record of Success — He is a WINNER! In Congress, Carlos will work tirelessly to Grow the Economy, Promote our Amazing Farmers and Ranchers, Cut Taxes and Regulations, Champion MADE IN THE U.S.A., Advance American Energy DOMINANCE, Keep our Border SECURE, Strengthen our Military/Veterans, Ensure LAW AND ORDER, Advocate for Election Integrity, and Protect our always under siege Second Amendment.\n \nCarlos’s opponent, Johnny Garcia, is a Radical Left Democrat who is opposed to NO TAX ON TIPS, NO TAX ON OVERTIME, and NO TAX ON SOCIAL SECURITY and, if he and the Dumocrats ever got in, all of these things will be terminated. He wants massive Tax Increases, Open Borders, Men playing in Women’s Sports, and Transgender Mutilization of your Children. Johnny Garcia is Reckless, Radical, and Dangerous! \n \nCarlos De La Cruz has my Complete and Total Endorsement to be the next Representative from Texas’ 35th Congressional District. GET OUT AND VOTE FOR CARLOS DE LA CRUZ — HE WILL NEVER LET YOU DOWN!",
+   "text": "Rockstar just dropped a new GTA 6 screenshot and confirmed the game requires 212GB with pre-loading beginning earlier than expected on November 10th:\n\n- Pre-loading begins at midnight for each region on PlayStation\n- On Xbox, pre-loading begins globally on November 10 at 12am GMT\n- Launch will be at midnight local on all consoles on November 19th\n- A printable Leonida map and cover art poster will be available as a free digital download on the official site at launch\n- A double-sided physical version of this poster will be available after launch from the Rockstar Store for $1 on its own or as a free gift with any purchase\n\n(Source: https://www.rockstargames.com/newswire/article/k4ak9okk485712/grand-theft-auto-vi-pre-load-begins-on-november-10?utm_source=twitter&utm_medium=o_social&utm_campaign=gtavi_announcement_pre-load-20261103)",
    "is_reply": false,
    "reply_to": null,
-   "vip": true,
+   "vip": false,
    "quote": null,
-   "media": [],
-   "created_at": "2026-11-03T18:50:46Z",
-   "ts": 1793731846,
+   "media": [
+    {
+     "type": "photo",
+     "url": "https://pbs.twimg.com/media/HWNaSo4XcAATy57.jpg?name=orig",
+     "alt": ""
+    }
+   ],
+   "created_at": "2026-11-03T15:11:47Z",
+   "ts": 1793718707,
    "metrics": {
-    "likes": 612,
-    "reposts": 151,
-    "replies": 46,
-    "quotes": 2,
-    "bookmarks": 6,
-    "views": 196991
+    "likes": 7299,
+    "reposts": 514,
+    "replies": 65,
+    "quotes": 18,
+    "bookmarks": 809,
+    "views": 339850
    },
-   "metrics_at": "2026-11-03T19:01:26+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
-   "first_seen": 1793732202,
+   "first_seen": 1793775137,
    "kw": [
-    "carlos",
-    "tax",
-    "cruz",
-    "winner"
+    "pre",
+    "november",
+    "gmt",
+    "rockstar"
    ]
   },
   {
-   "id": "2117690939145683080",
-   "url": "https://x.com/realDonaldTrump/status/2117690939145683080",
-   "handle": "realDonaldTrump",
-   "author_name": "Donald J. Trump",
-   "avatar": "https://pbs.twimg.com/profile_images/874276197357596672/kUuht00m_200x200.jpg",
-   "author_followers": 111856515,
+   "id": "2117631870967984130",
+   "url": "https://x.com/RockstarGames/status/2117631870967984130",
+   "handle": "RockstarGames",
+   "author_name": "Rockstar Games",
+   "avatar": "https://pbs.twimg.com/profile_images/2067600885417488384/FFmuUM_W_200x200.jpg",
+   "author_followers": 23666866,
    "verified": true,
-   "role": "celebrity",
+   "role": "gta",
    "wallet_id": null,
-   "text": "It is my Great Honor to endorse America First Patriot, Eric Flores, who is running to represent the wonderful people of Texas’ 34th Congressional District.\n \nA Brave U.S. Army Veteran, and former Criminal Prosecutor, Eric knows the Wisdom and Courage it takes to Ensure LAW AND ORDER, Strongly Support our Great Heroes in Law Enforcement, and Champion our Military and Veterans. In Congress, Eric will fight tirelessly to Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Advance American Energy DOMINANCE, Keep our now very Secure Border, SECURE, Stop Migrant Crime, and Protect our always under siege Second Amendment.\n \nHis opponent, Vicente Gonzalez, voted against NO TAX ON TIPS, NO TAX ON OVERTIME, and NO TAX ON SOCIAL SECURITY and, if he and the Dumocrats ever got in, all of these things would be terminated. He wants massive Tax Increases, Open Borders, Men playing in Women’s Sports, and Transgender for Everybody. Vicente Gonzalez is Reckless, Radical, and Dangerous!\n \nEric Flores has my Complete and Total Endorsement to be the next Congressman from Texas’ 34th Congressional District. GET OUT AND VOTE FOR ERIC — HE WILL NEVER LET YOU DOWN!",
+   "text": "Grand Theft Auto VI pre-load begins on November 10. There’s still time to pre-order and ensure you're able to experience Grand Theft Auto VI when it launches on November 19.\n\nDetails: https://rsg.ms/a647560",
    "is_reply": false,
    "reply_to": null,
-   "vip": true,
+   "vip": false,
    "quote": null,
-   "media": [],
-   "created_at": "2026-11-03T18:50:39Z",
-   "ts": 1793731839,
+   "media": [
+    {
+     "type": "photo",
+     "url": "https://pbs.twimg.com/media/HWNW9nPXQAEDy47.jpg?name=orig",
+     "alt": "Vice City in the daytime, featuring boats in the water, a beach resort, a highway, and the Vice City skyline."
+    }
+   ],
+   "created_at": "2026-11-03T14:55:56Z",
+   "ts": 1793717756,
    "metrics": {
-    "likes": 569,
-    "reposts": 136,
-    "replies": 36,
-    "quotes": 2,
-    "bookmarks": 4,
-    "views": 180553
+    "likes": 146170,
+    "reposts": 14589,
+    "replies": 3365,
+    "quotes": 2469,
+    "bookmarks": 8837,
+    "views": 7531571
    },
-   "metrics_at": "2026-11-03T19:01:26+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
-   "first_seen": 1793732202,
+   "first_seen": 1793775137,
    "kw": [
-    "tax",
-    "eric",
-    "law",
-    "secure"
+    "grand",
+    "theft",
+    "auto",
+    "november"
    ]
   },
   {
-   "id": "2117690908791677266",
-   "url": "https://x.com/realDonaldTrump/status/2117690908791677266",
-   "handle": "realDonaldTrump",
-   "author_name": "Donald J. Trump",
-   "avatar": "https://pbs.twimg.com/profile_images/874276197357596672/kUuht00m_200x200.jpg",
-   "author_followers": 111856515,
+   "id": "2117617820640977013",
+   "url": "https://x.com/RockstarGames/status/2117617820640977013",
+   "handle": "RockstarGames",
+   "author_name": "Rockstar Games",
+   "avatar": "https://pbs.twimg.com/profile_images/2067600885417488384/FFmuUM_W_200x200.jpg",
+   "author_followers": 23666866,
    "verified": true,
-   "role": "celebrity",
+   "role": "gta",
    "wallet_id": null,
-   "text": "It is my Great Honor to endorse America First Patriot, Tano Tijerina, who is running to represent the wonderful people of Texas’ 28th Congressional District.\n \nA Great and Highly Respected Hispanic Judge, very successful Businessman, and Rancher, Tano Tijerina has dedicated his life to serving his Community. In Congress, he will fight tirelessly to Grow our Economy, Promote our Amazing Farmers and Ranchers, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Champion American Energy DOMINANCE, Keep our now very Secure Border, SECURE, Stop Migrant Crime, Ensure LAW AND ORDER, Strengthen our Military/Veterans, and Protect our always under siege Second Amendment.\n \nHis opponent, Henry Cuellar, voted against NO TAX ON TIPS, NO TAX ON OVERTIME, and NO TAX ON SOCIAL SECURITY and, if he and the Dumocrats ever got in, all of these things would be terminated. He wants massive Tax Increases, Open Borders, Men playing in Women’s Sports, and Transgender for Everybody. Henry Cuellar is Reckless, Radical, and Dangerous!\n \nTano Tijerina has my Complete and Total Endorsement to be the next Representative from Texas’ 28th Congressional District. GET OUT AND VOTE FOR TANO — HE WILL NEVER LET YOU DOWN!",
+   "text": "Celebrate prosperity in the land of opportunity by transforming raw animal hides into currency. All Trader Sales in Red Dead Online pay out 3X RDO$, XP, and Role XP.\n\nAssemble the Pittman Outfit, get 3X Rewards in the Trade Route Free Roam Event, and more: https://rsg.ms/f02450d",
    "is_reply": false,
    "reply_to": null,
-   "vip": true,
+   "vip": false,
    "quote": null,
-   "media": [],
-   "created_at": "2026-11-03T18:50:32Z",
-   "ts": 1793731832,
+   "media": [
+    {
+     "type": "photo",
+     "url": "https://pbs.twimg.com/media/HWNKLsSXYAABwND.jpg?name=orig",
+     "alt": "Red Dead Online Trader Bonuses poster featuring artwork of a hunter with a turkey slung over their shoulder. "
+    }
+   ],
+   "created_at": "2026-11-03T14:00:06Z",
+   "ts": 1793714406,
    "metrics": {
-    "likes": 558,
-    "reposts": 146,
-    "replies": 34,
-    "quotes": 2,
-    "bookmarks": 3,
-    "views": 187837
+    "likes": 3622,
+    "reposts": 196,
+    "replies": 366,
+    "quotes": 39,
+    "bookmarks": 85,
+    "views": 619126
    },
-   "metrics_at": "2026-11-03T19:01:26+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
-   "first_seen": 1793732202,
+   "first_seen": 1793775137,
    "kw": [
-    "tax",
-    "tano",
-    "secure",
-    "tijerina"
+    "rdo",
+    "red",
+    "dead",
+    "online"
    ]
   },
   {
-   "id": "2117690870602625298",
-   "url": "https://x.com/realDonaldTrump/status/2117690870602625298",
-   "handle": "realDonaldTrump",
-   "author_name": "Donald J. Trump",
-   "avatar": "https://pbs.twimg.com/profile_images/874276197357596672/kUuht00m_200x200.jpg",
-   "author_followers": 111856515,
+   "id": "2117495774506324419",
+   "url": "https://x.com/GTAVI_Countdown/status/2117495774506324419",
+   "handle": "GTAVI_Countdown",
+   "author_name": "GTA 6 Countdown ⏳",
+   "avatar": "https://pbs.twimg.com/profile_images/2067718703601352704/q-GdKYN7_200x200.jpg",
+   "author_followers": 524868,
    "verified": true,
-   "role": "celebrity",
+   "role": "gta",
    "wallet_id": null,
-   "text": "It is my Great Honor to endorse America First Patriot Alex Mealer, who is running to represent the incredible people of Texas’ 9th Congressional District.\n \nA West Point Graduate, and Combat Decorated Army Bomb Squad Officer, Alex knows the Wisdom and Courage required to Defend our Country, Support our Military/Veterans, and Ensure PEACE THROUGH STRENGTH. A Graduate of Harvard Business School and Harvard Law School, Alex is also a successful Business Executive who knows the America First Policies necessary to Create GREAT Jobs, Cut Taxes and Regulations, Unleash Innovation, Promote MADE IN THE U.S.A., and Ensure American Energy DOMINANCE. In Congress, she will work hard to Keep our Border SECURE, Stop Migrant Crime, Ensure LAW AND ORDER, Safeguard our Elections, and Defend our always under siege Second Amendment.\n \nAlex’s opponent, Leticia Gutierrez, is a Radical Left Democrat who is opposed to NO TAX ON TIPS, NO TAX ON OVERTIME, and NO TAX ON SOCIAL SECURITY and, if she and the Dumocrats ever got in, all of these things will be terminated. She wants massive Tax Increases, Open Borders, Men playing in Women’s Sports, and Transgender Mutilization of your Children. Leticia Gutierrez is Reckless, Radical, and Dangerous! \n \nAlex Mealer has my Complete and Total Endorsement to be the next Representative from Texas’ 9th Congressional District. GET OUT AND VOTE FOR ALEX MEALER — SHE WILL NEVER LET YOU DOWN!",
+   "text": "9 days left until the GTA 6 pre-loading officially begins.\n\n16 days left until launch ⏳",
    "is_reply": false,
    "reply_to": null,
-   "vip": true,
+   "vip": false,
    "quote": null,
-   "media": [],
-   "created_at": "2026-11-03T18:50:23Z",
-   "ts": 1793731823,
+   "media": [
+    {
+     "type": "photo",
+     "url": "https://pbs.twimg.com/media/HWLbAZPXsAA4rF4.jpg?name=orig",
+     "alt": ""
+    }
+   ],
+   "created_at": "2026-11-03T05:55:08Z",
+   "ts": 1793685308,
    "metrics": {
-    "likes": 547,
-    "reposts": 140,
-    "replies": 46,
-    "quotes": 3,
-    "bookmarks": 4,
-    "views": 186323
-   },
-   "metrics_at": "2026-11-03T19:01:26+00:00",
-   "coin_match": "none",
-   "coins": [],
-   "first_seen": 1793732202,
-   "kw": [
-    "alex",
-    "tax",
-    "mealer",
-    "law"
-   ]
-  },
-  {
-   "id": "2117690784082518125",
-   "url": "https://x.com/realDonaldTrump/status/2117690784082518125",
-   "handle": "realDonaldTrump",
-   "author_name": "Donald J. Trump",
-   "avatar": "https://pbs.twimg.com/profile_images/874276197357596672/kUuht00m_200x200.jpg",
-   "author_followers": 111858185,
-   "verified": true,
-   "role": "celebrity",
-   "wallet_id": null,
-   "text": "It is my Great Honor to endorse America First Patriot, Scott Singer, who is running to represent the incredible people of Florida’s 25th Congressional District!\n \nA Proven Leader, Scott has served his Community as the Highly Respected Mayor of Boca Raton, and as a very successful Businessman, prior to running for Congress. His opponent, Jared Moskowitz, voted against NO TAX ON TIPS, NO TAX ON OVERTIME, and NO TAX ON SOCIAL SECURITY and, if he and the Dumocrats ever got in, all of these things would be terminated. He wants massive Tax Increases, Open Borders, Men playing in Women’s Sports, and Transgender for Everybody. Jared Moskowitz is Reckless, Radical, and Dangerous!\n \nOn the other hand, as your next Congressman, Scott will work hard to Grow the Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Unleash American Energy DOMINANCE, Keep our Border SECURE, Stop Migrant Crime, Strengthen our Brave Military/Veterans, and Protect our always under siege Second Amendment.\n \nScott Singer has my Complete and Total Endorsement to be the next Representative from Florida’s 25th Congressional District. GET OUT AND VOTE FOR SCOTT — HE WILL NEVER LET YOU DOWN!",
-   "is_reply": false,
-   "reply_to": null,
-   "vip": true,
-   "quote": null,
-   "media": [],
-   "created_at": "2026-11-03T18:50:02Z",
-   "ts": 1793731802,
-   "metrics": {
-    "likes": 627,
-    "reposts": 161,
+    "likes": 1744,
+    "reposts": 128,
     "replies": 48,
     "quotes": 4,
-    "bookmarks": 4,
-    "views": 203252
+    "bookmarks": 73,
+    "views": 44609
    },
-   "metrics_at": "2026-11-03T19:01:26+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
-   "first_seen": 1793731771,
+   "first_seen": 1793775137,
    "kw": [
-    "tax",
-    "scott",
-    "tips",
-    "overtime"
+    "left",
+    "pre",
+    "begins",
+    "pic"
    ]
   },
   {
-   "id": "2117690743787811141",
-   "url": "https://x.com/realDonaldTrump/status/2117690743787811141",
-   "handle": "realDonaldTrump",
-   "author_name": "Donald J. Trump",
-   "avatar": "https://pbs.twimg.com/profile_images/874276197357596672/kUuht00m_200x200.jpg",
-   "author_followers": 111858185,
+   "id": "2117446557754937639",
+   "url": "https://x.com/GTAVI_Countdown/status/2117446557754937639",
+   "handle": "GTAVI_Countdown",
+   "author_name": "GTA 6 Countdown ⏳",
+   "avatar": "https://pbs.twimg.com/profile_images/2067718703601352704/q-GdKYN7_200x200.jpg",
+   "author_followers": 524868,
    "verified": true,
-   "role": "celebrity",
+   "role": "gta",
    "wallet_id": null,
-   "text": "It is my Great Honor to endorse America First Patriot, Casey Askar, who is running to represent the tremendous people of Florida’s 22nd Congressional District!\n \nA Brave U.S. Marine Corps Veteran, and now, as a successful Businessman, Casey has a Proven Record of Success — He is a WINNER! His opponent, Pia Dandiya, is a Radical Left Democrat who is opposed to NO TAX ON TIPS, NO TAX ON OVERTIME, and NO TAX ON SOCIAL SECURITY and, if she and the Dumocrats ever got in, all of these things will be terminated. She wants massive Tax Increases, Open Borders, Men playing in Women’s Sports, and Transgender Mutilizationof your Children. Pia Dandiya is Reckless, Radical, and Dangerous!\n \nOn the other hand, as your next Congressman, Casey will work tirelessly to Grow our Economy, Cut Taxes and Regulations, Unleash American Energy DOMINANCE, Promote MADE IN THE U.S.A., Strengthen our Incredible Military/Veterans, Keep our Border SECURE, Advance Election Integrity, and Defend our always under siege Second Amendment.\n \nCasey Askar has my Complete and Total Endorsement to be the next Representative from Florida’s 22nd Congressional District. GET OUT AND VOTE FOR CASEY — HE WILL NEVER LET YOU DOWN!",
+   "text": "Rockstar’s GTA 6 takeover in Toronto, Canada with 3 giant billboards.\n\n(via @TottiN835)",
    "is_reply": false,
    "reply_to": null,
-   "vip": true,
+   "vip": false,
    "quote": null,
-   "media": [],
-   "created_at": "2026-11-03T18:49:52Z",
-   "ts": 1793731792,
+   "media": [
+    {
+     "type": "video",
+     "url": "https://pbs.twimg.com/amplify_video_thumb/2117446297061822464/img/u52c5J-Cb__TEEjn.jpg",
+     "alt": ""
+    }
+   ],
+   "created_at": "2026-11-03T02:39:34Z",
+   "ts": 1793673574,
    "metrics": {
-    "likes": 585,
-    "reposts": 144,
-    "replies": 42,
-    "quotes": 3,
-    "bookmarks": 5,
-    "views": 194797
+    "likes": 9363,
+    "reposts": 880,
+    "replies": 82,
+    "quotes": 49,
+    "bookmarks": 889,
+    "views": 192036
    },
-   "metrics_at": "2026-11-03T19:01:26+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
-   "first_seen": 1793731771,
+   "first_seen": 1793775137,
    "kw": [
-    "tax",
-    "casey",
-    "winner",
-    "tips"
+    "toronto",
+    "canada",
+    "torontocanada",
+    "rockstar"
    ]
   },
   {
-   "id": "2117690709150998746",
-   "url": "https://x.com/realDonaldTrump/status/2117690709150998746",
-   "handle": "realDonaldTrump",
-   "author_name": "Donald J. Trump",
-   "avatar": "https://pbs.twimg.com/profile_images/874276197357596672/kUuht00m_200x200.jpg",
-   "author_followers": 111858185,
+   "id": "2117384901335130236",
+   "url": "https://x.com/GTAVI_Countdown/status/2117384901335130236",
+   "handle": "GTAVI_Countdown",
+   "author_name": "GTA 6 Countdown ⏳",
+   "avatar": "https://pbs.twimg.com/profile_images/2067718703601352704/q-GdKYN7_200x200.jpg",
+   "author_followers": 524868,
    "verified": true,
-   "role": "celebrity",
+   "role": "gta",
    "wallet_id": null,
-   "text": "It is my Great Honor to endorse America First Patriot, Sydney Gruters, the wife of our GREAT Chairman of the Republican National Committee, Joe Gruters, who is running to represent the Wonderful People of Florida's 16th Congressional District!\n \nA Highly Successful Civic Leader and Public Servant, Sydney has dedicated her life to serving her Community, and she and her family are fierce advocates for our Movement to, MAKE AMERICA GREAT AGAIN! As your next Congresswoman, Sydney will fight tirelessly to Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Unleash American Energy DOMINANCE, Keep our Border SECURE, Stop Migrant Crime, Support our Military/Veterans, Safeguard our Elections, Champion School Choice, and Defend our always under siege Second Amendment.\n \nSydney’s opponent, Kelly Kirschner, is a Radical Left Democrat who is opposed to NO TAX ON TIPS, NO TAX ON OVERTIME, and NO TAX ON SOCIAL SECURITY and, if he and the Dumocrats ever got in, all of these things will be terminated. He wants massive Tax Increases, Open Borders, Men playing in Women’s Sports, and Transgender Mutilization of your Children. Kelly Kirschner is Reckless, Radical, and Dangerous! \n \nSydney Gruters has my Complete and Total Endorsement to be the next Representative from Florida’s 16th Congressional District! GET OUT AND VOTE FOR SYDNEY — SHE WILL NEVER LET YOU DOWN!",
+   "text": "Update: Jerry (VoidOnly) has sadly passed away on October 29th as confirmed by his sister, due to an infection following the transplant surgery.\n\nRest in peace, Legend.",
    "is_reply": false,
    "reply_to": null,
-   "vip": true,
-   "quote": null,
-   "media": [],
-   "created_at": "2026-11-03T18:49:44Z",
-   "ts": 1793731784,
+   "vip": false,
+   "quote": {
+    "handle": "GTAVI_Countdown",
+    "text": "A GTA 6 fan preparing for a lung transplant shares an update after the community successfully raised the money needed to move forward with his urgent surgery.\n\nAfter recovering, he will livestream the game when it’s finally out in November."
+   },
+   "media": [
+    {
+     "type": "video",
+     "url": "https://pbs.twimg.com/amplify_video_thumb/2117383368211861504/img/4uPruZ3Fxp78TXw0.jpg",
+     "alt": ""
+    }
+   ],
+   "created_at": "2026-11-02T22:34:34Z",
+   "ts": 1793658874,
    "metrics": {
-    "likes": 547,
-    "reposts": 131,
-    "replies": 24,
+    "likes": 28663,
+    "reposts": 2215,
+    "replies": 520,
+    "quotes": 165,
+    "bookmarks": 2717,
+    "views": 785430
+   },
+   "metrics_at": "2026-11-04T06:53:23+00:00",
+   "coin_match": "none",
+   "coins": [],
+   "first_seen": 1793775137,
+   "kw": [
+    "voidonly",
+    "october",
+    "legend",
+    "hszeizztbh"
+   ]
+  },
+  {
+   "id": "2117347190985183660",
+   "url": "https://x.com/GTAVI_Countdown/status/2117347190985183660",
+   "handle": "GTAVI_Countdown",
+   "author_name": "GTA 6 Countdown ⏳",
+   "avatar": "https://pbs.twimg.com/profile_images/2067718703601352704/q-GdKYN7_200x200.jpg",
+   "author_followers": 524868,
+   "verified": true,
+   "role": "gta",
+   "wallet_id": null,
+   "text": "GTA 6 marketing continues to spread across many cities around the world:\n\n- Barcelona, Spain 🇪🇸\n- Edinburgh, Scotland (Rockstar’s home country) 🏴󠁧󠁢󠁳󠁣󠁴󠁿\n- Melbourne/Brisbane/Sydney, Australia 🇦🇺\n- Warsaw, Poland 🇵🇱\n- Mexico City, Mexico 🇲🇽\n- Tokyo, Japan 🇯🇵\n- Vienna, Austria 🇦🇹\n- Berlin/Munich, Germany 🇩🇪\n- Stockholm, Sweden 🇸🇪\n- Budapest, Hungary 🇭🇺\n- São Paulo, Brazil 🇧🇷\n- Seoul, South Korea 🇰🇷",
+   "is_reply": false,
+   "reply_to": null,
+   "vip": false,
+   "quote": null,
+   "media": [
+    {
+     "type": "video",
+     "url": "https://pbs.twimg.com/amplify_video_thumb/2117345790028865538/img/iEcGWFJTNJZQiNXe.jpg",
+     "alt": ""
+    }
+   ],
+   "created_at": "2026-11-02T20:04:43Z",
+   "ts": 1793649883,
+   "metrics": {
+    "likes": 6103,
+    "reposts": 510,
+    "replies": 84,
+    "quotes": 26,
+    "bookmarks": 833,
+    "views": 188673
+   },
+   "metrics_at": "2026-11-04T06:53:23+00:00",
+   "coin_match": "none",
+   "coins": [],
+   "first_seen": 1793775137,
+   "kw": [
+    "mexico",
+    "barcelona",
+    "spain",
+    "edinburgh"
+   ]
+  },
+  {
+   "id": "2117277165876019548",
+   "url": "https://x.com/GTAVI_Countdown/status/2117277165876019548",
+   "handle": "GTAVI_Countdown",
+   "author_name": "GTA 6 Countdown ⏳",
+   "avatar": "https://pbs.twimg.com/profile_images/2067718703601352704/q-GdKYN7_200x200.jpg",
+   "author_followers": 524868,
+   "verified": true,
+   "role": "gta",
+   "wallet_id": null,
+   "text": "Today marks 15 years since the first GTA 5 trailer was revealed by Rockstar Games.\n\nHere’s how the community analyzed it at first.",
+   "is_reply": false,
+   "reply_to": null,
+   "vip": false,
+   "quote": null,
+   "media": [
+    {
+     "type": "photo",
+     "url": "https://pbs.twimg.com/media/HWIUOz9WcAAbD7Q.jpg?name=orig",
+     "alt": ""
+    }
+   ],
+   "created_at": "2026-11-02T15:26:28Z",
+   "ts": 1793633188,
+   "metrics": {
+    "likes": 11011,
+    "reposts": 427,
+    "replies": 55,
+    "quotes": 23,
+    "bookmarks": 1014,
+    "views": 341462
+   },
+   "metrics_at": "2026-11-04T06:53:23+00:00",
+   "coin_match": "none",
+   "coins": [],
+   "first_seen": 1793775137,
+   "kw": [
+    "rockstar",
+    "games",
+    "rockstargames",
+    "marks"
+   ]
+  },
+  {
+   "id": "2117266581814169669",
+   "url": "https://x.com/GTAVI_Countdown/status/2117266581814169669",
+   "handle": "GTAVI_Countdown",
+   "author_name": "GTA 6 Countdown ⏳",
+   "avatar": "https://pbs.twimg.com/profile_images/2067718703601352704/q-GdKYN7_200x200.jpg",
+   "author_followers": 524868,
+   "verified": true,
+   "role": "gta",
+   "wallet_id": null,
+   "text": "A GTA 6 banner in Tokyo, Japan shows a new wider version of Jason and Lucia’s artwork.\n\n(via @pgpg_bai)",
+   "is_reply": false,
+   "reply_to": null,
+   "vip": false,
+   "quote": null,
+   "media": [
+    {
+     "type": "photo",
+     "url": "https://pbs.twimg.com/media/HWF04ZJasAA0UPZ.jpg?name=orig",
+     "alt": ""
+    }
+   ],
+   "created_at": "2026-11-02T14:44:24Z",
+   "ts": 1793630664,
+   "metrics": {
+    "likes": 2298,
+    "reposts": 162,
+    "replies": 19,
     "quotes": 2,
-    "bookmarks": 3,
-    "views": 200144
+    "bookmarks": 140,
+    "views": 44707
    },
-   "metrics_at": "2026-11-03T19:01:26+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
-   "first_seen": 1793731771,
+   "first_seen": 1793775137,
    "kw": [
-    "sydney",
-    "tax",
-    "gruters",
-    "dominance"
+    "tokyo",
+    "japan",
+    "jason",
+    "lucia"
    ]
   },
   {
-   "id": "2117690679640093046",
-   "url": "https://x.com/realDonaldTrump/status/2117690679640093046",
-   "handle": "realDonaldTrump",
-   "author_name": "Donald J. Trump",
-   "avatar": "https://pbs.twimg.com/profile_images/874276197357596672/kUuht00m_200x200.jpg",
-   "author_followers": 111858185,
+   "id": "2117245192583463198",
+   "url": "https://x.com/GTAVI_Countdown/status/2117245192583463198",
+   "handle": "GTAVI_Countdown",
+   "author_name": "GTA 6 Countdown ⏳",
+   "avatar": "https://pbs.twimg.com/profile_images/2067718703601352704/q-GdKYN7_200x200.jpg",
+   "author_followers": 524868,
    "verified": true,
-   "role": "celebrity",
+   "role": "gta",
    "wallet_id": null,
-   "text": "It is my Great Honor to endorse America First Patriot, Mike Beltran, who is running to represent the tremendous people of Florida’s 14th Congressional District!\n \nA Harvard Law School Graduate, and very successful Lawyer and Businessman, Mike knows the Wisdom and Courage required to uphold our Constitution, and promote LAW AND ORDER. His opponent, Kathy Castor, voted against NO TAX ON TIPS, NO TAX ON OVERTIME, and NO TAX ON SOCIAL SECURITY and, if she and the Dumocrats ever got in, all of these things would be terminated. She wants massive Tax Increases, Open Borders, Men playing in Women’s Sports, and Transgender for Everybody. Kathy Castor is Reckless, Radical, and Dangerous!\n \nOn the other hand, as your next Congressman, Mike will fight tirelessly to Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Champion American Energy DOMINANCE, Keep our Border SECURE, Strongly Support our incredible Law Enforcement, Military, and Veterans, and Protect our always under siege Second Amendment.\n \nMike Beltran has my Complete and Total Endorsement to be the next Representative from Florida’s 14th Congressional District. GET OUT AND VOTE FOR MIKE — HE WILL NEVER LET YOU DOWN!",
+   "text": "Same location, different era.\n\n(GTA 5 - 2013)              (GTA 6 - 2026)",
    "is_reply": false,
    "reply_to": null,
-   "vip": true,
+   "vip": false,
    "quote": null,
-   "media": [],
-   "created_at": "2026-11-03T18:49:37Z",
-   "ts": 1793731777,
+   "media": [
+    {
+     "type": "photo",
+     "url": "https://pbs.twimg.com/media/HWH3Il7XsAIgPho.jpg?name=orig",
+     "alt": ""
+    },
+    {
+     "type": "photo",
+     "url": "https://pbs.twimg.com/media/HWH3InhXEAAFlj7.jpg?name=orig",
+     "alt": ""
+    }
+   ],
+   "created_at": "2026-11-02T13:19:25Z",
+   "ts": 1793625565,
    "metrics": {
-    "likes": 590,
-    "reposts": 141,
-    "replies": 35,
-    "quotes": 2,
-    "bookmarks": 7,
-    "views": 223409
+    "likes": 73395,
+    "reposts": 5218,
+    "replies": 164,
+    "quotes": 120,
+    "bookmarks": 4602,
+    "views": 2000928
    },
-   "metrics_at": "2026-11-03T19:01:26+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
-   "first_seen": 1793731771,
+   "first_seen": 1793775137,
    "kw": [
-    "tax",
-    "mike",
-    "law",
-    "order"
+    "pic",
+    "different",
+    "era"
    ]
   },
   {
-   "id": "2117690643388469749",
-   "url": "https://x.com/realDonaldTrump/status/2117690643388469749",
-   "handle": "realDonaldTrump",
-   "author_name": "Donald J. Trump",
-   "avatar": "https://pbs.twimg.com/profile_images/874276197357596672/kUuht00m_200x200.jpg",
-   "author_followers": 111858185,
+   "id": "2117240735942820060",
+   "url": "https://x.com/GTAVI_Countdown/status/2117240735942820060",
+   "handle": "GTAVI_Countdown",
+   "author_name": "GTA 6 Countdown ⏳",
+   "avatar": "https://pbs.twimg.com/profile_images/2067718703601352704/q-GdKYN7_200x200.jpg",
+   "author_followers": 524868,
    "verified": true,
-   "role": "celebrity",
+   "role": "gta",
    "wallet_id": null,
-   "text": "Congresswoman Anna Paulina Luna is an America First Patriot and Tremendous Champion for the wonderful people of Florida's 13th Congressional District!\n \nA true MAGA Warrior, Anna is working tirelessly to Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Unleash American Energy DOMINANCE, Keep our Border SECURE, Stop Migrant Crime, Support our incredible Military/Veterans, Defend our always under siege Second Amendment, and Ensure PEACE THROUGH STRENGTH.\n \nAnna’s opponent, Leela Gray, is a Radical Left Democrat who is opposed to NO TAX ON TIPS, NO TAX ON OVERTIME, and NO TAX ON SOCIAL SECURITY and, if she and the Dumocrats ever got in, all of these things will be terminated. She wants massive Tax Increases, Open Borders, Men playing in Women’s Sports, and Transgender Mutilization of your Children. Leela Gray is Reckless, Radical, and Dangerous! \n \nAnna Paulina Luna has my Complete and Total Endorsement for Re-Election. GET OUT AND VOTE FOR ANNA — SHE WILL NEVER LET YOU DOWN!",
+   "text": "Update: The game now requires the new firmware update 14.22.00 that was just released today to prevent piracy.",
    "is_reply": false,
    "reply_to": null,
-   "vip": true,
-   "quote": null,
-   "media": [],
-   "created_at": "2026-11-03T18:49:28Z",
-   "ts": 1793731768,
-   "metrics": {
-    "likes": 700,
-    "reposts": 173,
-    "replies": 56,
-    "quotes": 5,
-    "bookmarks": 6,
-    "views": 214585
+   "vip": false,
+   "quote": {
+    "handle": "GTAVI_Countdown",
+    "text": "GTA 6 won’t be playable on jailbroken PS5s at launch, as it will require the latest firmware update 14.10.00 to run."
    },
-   "metrics_at": "2026-11-03T19:01:26+00:00",
-   "coin_match": "none",
-   "coins": [],
-   "first_seen": 1793731771,
-   "kw": [
-    "tax",
-    "anna",
-    "maga",
-    "dominance"
-   ]
-  },
-  {
-   "id": "2117690600933707855",
-   "url": "https://x.com/realDonaldTrump/status/2117690600933707855",
-   "handle": "realDonaldTrump",
-   "author_name": "Donald J. Trump",
-   "avatar": "https://pbs.twimg.com/profile_images/874276197357596672/kUuht00m_200x200.jpg",
-   "author_followers": 111858185,
-   "verified": true,
-   "role": "celebrity",
-   "wallet_id": null,
-   "text": "It is my Great Honor to endorse America First Patriot, Marty O'Donnell, who is running to represent the incredible people of Nevada’s 3rd Congressional District.\n \nMarty is running against Susie Lee, a true Radical Left Extremist who does not represent the Values of Southern Nevada. Susie Lee wants Open Borders, Men playing in Women’s Sports, Transgender for Everyone, Defund the Police, and she wants to take away your Second Amendment, meaning, your guns. She voted AGAINST the Biggest Tax Cut in History (including NO TAX ON TIPS!), and fought ferociously to knock out Rural Healthcare, a big factor in Nevada’s 3rd Congressional District.\n \nIn contrast, Marty O’Donnell is a World Class Composer and Entrepreneur who knows the America First Policies required to Create GREAT Jobs, Cut Taxes and Regulations, Promote NO TAX ON TIPS, Advance MADE IN THE U.S.A., Unleash American Energy DOMINANCE, and Champion our Nation’s Golden Age. As your next Congressman, Marty will fight tirelessly to Keep our Border SECURE, Stop Migrant Crime, Ensure LAW AND ORDER, Strengthen our Brave Military/Veterans, and Protect our always under siege Second Amendment.\n \nMarty O'Donnell has my Complete and Total Endorsement to be the next Representative from Nevada’s 3rd Congressional District. GET OUT AND VOTE FOR MARTY — HE WILL NEVER LET YOU DOWN!",
-   "is_reply": false,
-   "reply_to": null,
-   "vip": true,
-   "quote": null,
-   "media": [],
-   "created_at": "2026-11-03T18:49:18Z",
-   "ts": 1793731758,
+   "media": [
+    {
+     "type": "photo",
+     "url": "https://pbs.twimg.com/media/HWHy63kW4AAqiKC.jpg?name=orig",
+     "alt": ""
+    },
+    {
+     "type": "photo",
+     "url": "https://pbs.twimg.com/media/HWHy63iWYAAiqZE.jpg?name=orig",
+     "alt": ""
+    }
+   ],
+   "created_at": "2026-11-02T13:01:42Z",
+   "ts": 1793624502,
    "metrics": {
-    "likes": 628,
-    "reposts": 147,
-    "replies": 52,
-    "quotes": 1,
-    "bookmarks": 5,
-    "views": 215973
-   },
-   "metrics_at": "2026-11-03T19:01:26+00:00",
-   "coin_match": "none",
-   "coins": [],
-   "first_seen": 1793731771,
-   "kw": [
-    "marty",
-    "tax",
-    "nevada",
-    "tips"
-   ]
-  },
-  {
-   "id": "2117690559464673281",
-   "url": "https://x.com/realDonaldTrump/status/2117690559464673281",
-   "handle": "realDonaldTrump",
-   "author_name": "Donald J. Trump",
-   "avatar": "https://pbs.twimg.com/profile_images/874276197357596672/kUuht00m_200x200.jpg",
-   "author_followers": 111858185,
-   "verified": true,
-   "role": "celebrity",
-   "wallet_id": null,
-   "text": "It is my Great Honor to endorse Highly Respected State Senator, Carrie Buck, who is running to represent the fantastic people of Nevada’s 1st Congressional District.\n \nCarrie is running against a Career Politician named Dina Titus, who tried to raise Taxes by over 4 Trillion Dollars, and voted against all of our Tax Cuts, notably NO TAX ON TIPS for the Working Men and Women of Nevada! Dina Titus wants to abolish our Borders, stop deporting Criminal Illegal Aliens, and supports dangerous “Soft on Crime” Policies like cashless bail that let repeat Violent Criminals roam free on our streets. She voted to allow Men in Women’s Sports, is in favor of the transgender mutilization of children, and voted AGAINST Voter I.D., but in favor of allowing Illegal Aliens to vote in our Sacred Elections. She is Reckless, Radical, and Dangerous!\n \nIn contrast, a Successful School Principal and Civic Leader, prior to becoming a distinguished State Senator, Carrie Buck has dedicated her life to serving her Community. As your next Congresswoman, she will fight hard to Grow our Economy, Cut Taxes and Regulations, Promote NO TAX ON TIPS, Champion School Choice, Promote MADE IN THE U.S.A., Keep our Border SECURE, Stop Migrant Crime, Strengthen our Brave Military/Veterans, Ensure PEACE THROUGH STRENGTH, and Protect our always under siege Second Amendment.\n \nCarrie Buck has my Complete and Total Endorsement to be the next Representative from Nevada’s 1st Congressional District. GET OUT AND VOTE FOR CARRIE — SHE WILL NEVER LET YOU DOWN!",
-   "is_reply": false,
-   "reply_to": null,
-   "vip": true,
-   "quote": null,
-   "media": [],
-   "created_at": "2026-11-03T18:49:08Z",
-   "ts": 1793731748,
-   "metrics": {
-    "likes": 637,
-    "reposts": 139,
-    "replies": 40,
-    "quotes": 2,
-    "bookmarks": 3,
-    "views": 217728
-   },
-   "metrics_at": "2026-11-03T19:01:26+00:00",
-   "coin_match": "none",
-   "coins": [],
-   "first_seen": 1793731771,
-   "kw": [
-    "carrie",
-    "tax",
-    "tips",
-    "buck"
-   ]
-  },
-  {
-   "id": "2117690529152663906",
-   "url": "https://x.com/realDonaldTrump/status/2117690529152663906",
-   "handle": "realDonaldTrump",
-   "author_name": "Donald J. Trump",
-   "avatar": "https://pbs.twimg.com/profile_images/874276197357596672/kUuht00m_200x200.jpg",
-   "author_followers": 111858185,
-   "verified": true,
-   "role": "celebrity",
-   "wallet_id": null,
-   "text": "It is my Great Honor to endorse America First Patriot, “Captain” Mike Bouchard, who is running to represent the wonderful people of Michigan’s 10th Congressional District!\n \nA Third Generation Michigander, Brave U.S. Army Veteran, and Bronze Star Recipient, Mike has served his State and Nation with distinction, and will bring that same Fighting Spirit to the U.S. Congress. As your next Congressman, Mike will fight tirelessly to Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Unleash American Energy DOMINANCE, Keep our Border SECURE, Stop Migrant Crime, Strengthen our incredible Military/Veterans, Advance Election Integrity, and Defend our always under siege Second Amendment.\n \nMike’s opponent, Christina Hines, is a Radical Left Democrat who is opposed to NO TAX ON TIPS, NO TAX ON OVERTIME, and NO TAX ON SOCIAL SECURITY and, if she and the Dumocrats ever got in, all of these things will be terminated. She wants massive Tax Increases, Open Borders, Men playing in Women’s Sports, and Transgender Mutilization of your Children. Christina Hines is Reckless, Radical, and Dangerous! \n \nMike Bouchard has my Complete and Total Endorsement to be the next Representative from Michigan’s 10th Congressional District. GET OUT AND VOTE FOR MIKE — HE WILL NEVER LET YOU DOWN!",
-   "is_reply": false,
-   "reply_to": null,
-   "vip": true,
-   "quote": null,
-   "media": [],
-   "created_at": "2026-11-03T18:49:01Z",
-   "ts": 1793731741,
-   "metrics": {
-    "likes": 468,
-    "reposts": 109,
-    "replies": 26,
-    "quotes": 1,
-    "bookmarks": 2,
-    "views": 199696
-   },
-   "metrics_at": "2026-11-03T18:58:34+00:00",
-   "coin_match": "none",
-   "coins": [],
-   "first_seen": 1793731771,
-   "kw": [
-    "mike",
-    "tax",
-    "dominance",
-    "secure"
-   ]
-  },
-  {
-   "id": "2117690485326356987",
-   "url": "https://x.com/realDonaldTrump/status/2117690485326356987",
-   "handle": "realDonaldTrump",
-   "author_name": "Donald J. Trump",
-   "avatar": "https://pbs.twimg.com/profile_images/874276197357596672/kUuht00m_200x200.jpg",
-   "author_followers": 111858185,
-   "verified": true,
-   "role": "celebrity",
-   "wallet_id": null,
-   "text": "Congressman Tom Barrett is an incredible Representative for the Wonderful People of Michigan's 7th Congressional District!\n \nTom bravely served our Country as an Army Helicopter Pilot and, in Congress, he is fighting hard to Grow our Economy, Cut Taxes, Keep our Border SECURE, Support Law Enforcement, Stand with our Military/Vets, and Protect our always under siege Second Amendment. Together, we will ensure PEACE THROUGH STRENGTH.\n \nTom’s opponent, William Lawrence, is a Radical Left Democrat who is opposed to NO TAX ON TIPS, NO TAX ON OVERTIME, and NO TAX ON SOCIAL SECURITY and, if he and the Dumocrats ever got in, all of these things will be terminated. He wants massive Tax Increases, Open Borders, Men playing in Women’s Sports, and Transgender Mutilization of your Children. William Lawrence is Reckless, Radical, and Dangerous! \n \nTom Barrett has my Complete and Total Endorsement for Re-Election. GET OUT AND VOTE FOR TOM — HE WILL NEVER LET YOU DOWN!",
-   "is_reply": false,
-   "reply_to": null,
-   "vip": true,
-   "quote": null,
-   "media": [],
-   "created_at": "2026-11-03T18:48:51Z",
-   "ts": 1793731731,
-   "metrics": {
-    "likes": 464,
-    "reposts": 115,
-    "replies": 30,
-    "quotes": 0,
-    "bookmarks": 3,
-    "views": 206270
-   },
-   "metrics_at": "2026-11-03T18:58:34+00:00",
-   "coin_match": "none",
-   "coins": [],
-   "first_seen": 1793731771,
-   "kw": [
-    "tax",
-    "tom",
-    "secure",
-    "peace"
-   ]
-  },
-  {
-   "id": "2117690445899657375",
-   "url": "https://x.com/realDonaldTrump/status/2117690445899657375",
-   "handle": "realDonaldTrump",
-   "author_name": "Donald J. Trump",
-   "avatar": "https://pbs.twimg.com/profile_images/874276197357596672/kUuht00m_200x200.jpg",
-   "author_followers": 111858185,
-   "verified": true,
-   "role": "celebrity",
-   "wallet_id": null,
-   "text": "Congressman Bill Huizenga is a Tremendous Champion, and Highly Effective Representative, for the incredible people of Michigan's 4th Congressional District!\n \nAs a very successful Small Businessman, and Vice Chair of the House Financial Services Committee, Bill knows the America First Policies required to Grow our Economy, Create GREAT Jobs, Cut Taxes and Regulations, Champion our Great Farmers and Agriculture, Promote MADE IN THE U.S.A., and Unleash American Energy DOMINANCE. Additionally, Bill is fighting tirelessly to Keep our Border SECURE, Strengthen our Incredible Military/Vets, and Protect our always under siege Second Amendment.\n \nBill’s opponent, Sean McCann, is a Radical Left Democrat who is opposed to NO TAX ON TIPS, NO TAX ON OVERTIME, and NO TAX ON SOCIAL SECURITY and, if he and the Dumocrats ever got in, all of these things will be terminated. He wants massive Tax Increases, Open Borders, Men playing in Women’s Sports, and Transgender Mutilization of your Children. Sean McCann is Reckless, Radical, and Dangerous! \n \nBill Huizenga has my Complete and Total Endorsement for Re-Election. GET OUT AND VOTE FOR BILL — HE WILL NEVER LET YOU DOWN!",
-   "is_reply": false,
-   "reply_to": null,
-   "vip": true,
-   "quote": null,
-   "media": [],
-   "created_at": "2026-11-03T18:48:41Z",
-   "ts": 1793731721,
-   "metrics": {
-    "likes": 148,
-    "reposts": 32,
-    "replies": 16,
-    "quotes": 0,
-    "bookmarks": 1,
-    "views": 121180
-   },
-   "metrics_at": "2026-11-03T18:51:24+00:00",
-   "coin_match": "none",
-   "coins": [],
-   "first_seen": 1793731771,
-   "kw": [
-    "bill",
-    "tax",
-    "dominance",
-    "secure"
-   ]
-  },
-  {
-   "id": "2117690408587468946",
-   "url": "https://x.com/realDonaldTrump/status/2117690408587468946",
-   "handle": "realDonaldTrump",
-   "author_name": "Donald J. Trump",
-   "avatar": "https://pbs.twimg.com/profile_images/874276197357596672/kUuht00m_200x200.jpg",
-   "author_followers": 111858185,
-   "verified": true,
-   "role": "celebrity",
-   "wallet_id": null,
-   "text": "It is my Great Honor to endorse America First Patriot, Ralph Alvarado, M.D., who is running to represent the incredible people of Kentucky’s 6th Congressional District.\n \nA true friend to MAGA, Ralph was a featured Speaker at the 2016 Republican National Convention, and a Member of the National Hispanic Advisory Council for “TRUMP” – RALPH HAS BEEN WITH US FROM THE VERY BEGINNING! A very successful Family Physician, and former Kentucky State Senator, Ralph has dedicated his life to serving his Community. As your next Congressman, Ralph will fight tirelessly to Grow the Economy, Promote our Amazing Farmers and Ranchers, Unleash American Energy DOMINANCE, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Keep our Border SECURE, Stop Migrant Crime, Support our Brave Military/Veterans, and Protect our always under siege Second Amendment.\n \nRalph’s opponent, Zach Dembo, is a Radical Left Democrat who is opposed to NO TAX ON TIPS, NO TAX ON OVERTIME, and NO TAX ON SOCIAL SECURITY and, if he and the Dumocrats ever got in, all of these things will be terminated. He wants massive Tax Increases, Open Borders, Men playing in Women’s Sports, and Transgender Mutilization of your Children. Zach Dembo is Reckless, Radical, and Dangerous! \n \nDr. Ralph Alvarado has my Complete and Total Endorsement to be the next Representative from Kentucky’s 6th Congressional District. GET OUT AND VOTE FOR RALPH — HE WILL NEVER LET YOU DOWN!",
-   "is_reply": false,
-   "reply_to": null,
-   "vip": true,
-   "quote": null,
-   "media": [],
-   "created_at": "2026-11-03T18:48:32Z",
-   "ts": 1793731712,
-   "metrics": {
-    "likes": 183,
-    "reposts": 49,
-    "replies": 21,
-    "quotes": 1,
-    "bookmarks": 2,
-    "views": 154154
-   },
-   "metrics_at": "2026-11-03T18:51:24+00:00",
-   "coin_match": "none",
-   "coins": [],
-   "first_seen": 1793731771,
-   "kw": [
-    "ralph",
-    "tax",
-    "kentucky",
-    "maga"
-   ]
-  },
-  {
-   "id": "2117690360667197845",
-   "url": "https://x.com/realDonaldTrump/status/2117690360667197845",
-   "handle": "realDonaldTrump",
-   "author_name": "Donald J. Trump",
-   "avatar": "https://pbs.twimg.com/profile_images/874276197357596672/kUuht00m_200x200.jpg",
-   "author_followers": 111858185,
-   "verified": true,
-   "role": "celebrity",
-   "wallet_id": null,
-   "text": "It is my Great Honor to endorse America First Patriot, Rhett Marques, who is running to represent the wonderful people of Alabama’s 2nd Congressional District. Rhett is strongly supported by many of the Greatest MAGA Warriors in Alabama, including my friend, U.S. Senator Katie Britt, among others!\n \nA Highly Respected State Representative, Businessman, and Civic Leader, prior to running for Congress, Rhett has dedicated his life to serving his Community. As your next Congressman, he will fight tirelessly to Grow our Economy, Champion our Farmers and American Agriculture, Cut Taxes and Regulations, Unleash American Energy DOMINANCE, Promote MADE IN THE U.S.A., Keep our Border SECURE, Stop Migrant Crime, Strengthen our Military/Veterans, Advance Election Integrity, and Defend our always under siege Second Amendment.\n \nHis opponent, Shomari Figures, voted against NO TAX ON TIPS, NO TAX ON OVERTIME, and NO TAX ON SOCIAL SECURITY and, if he and the Dumocrats ever got in, all of these things would be terminated. He wants massive Tax Increases, Open Borders, Men playing in Women’s Sports, and Transgender for Everybody. Shomari Figures is Reckless, Radical, and Dangerous!\n \nRhett Marques has my Complete and Total Endorsement to be the next Representative from Alabama’s 2nd Congressional District. GET OUT AND VOTE FOR RHETT — HE WILL NEVER LET YOU DOWN!",
-   "is_reply": false,
-   "reply_to": null,
-   "vip": true,
-   "quote": null,
-   "media": [],
-   "created_at": "2026-11-03T18:48:21Z",
-   "ts": 1793731701,
-   "metrics": {
-    "likes": 154,
-    "reposts": 38,
-    "replies": 21,
-    "quotes": 0,
-    "bookmarks": 1,
-    "views": 139582
-   },
-   "metrics_at": "2026-11-03T18:51:24+00:00",
-   "coin_match": "none",
-   "coins": [],
-   "first_seen": 1793731771,
-   "kw": [
-    "tax",
-    "rhett",
-    "alabama",
-    "maga"
-   ]
-  },
-  {
-   "id": "2117690308297118169",
-   "url": "https://x.com/realDonaldTrump/status/2117690308297118169",
-   "handle": "realDonaldTrump",
-   "author_name": "Donald J. Trump",
-   "avatar": "https://pbs.twimg.com/profile_images/874276197357596672/kUuht00m_200x200.jpg",
-   "author_followers": 111858185,
-   "verified": true,
-   "role": "celebrity",
-   "wallet_id": null,
-   "text": "It is my Great Honor to endorse America First Patriot and Highly Respected Jenny Costa Honeycutt, who is running to represent the fantastic people of South Carolina’s 1st Congressional District!\n \nA very successful Business Owner, Attorney, Civic Leader, and Loving Wife and Mother, Jenny has dedicated her life to serving her Community. As your next Congresswoman, Jenny will fight tirelessly to Grow our Economy, Cut Taxes and Regulations, Create GREAT Jobs, Keep our Border SECURE, Support our Incredible Military/Veterans, Unleash American Energy DOMINANCE, Promote MADE IN THE U.S.A., and Defend our always under siege Second Amendment.\n \nJenny’s opponent, Nancy Lacore, is a Radical Left Democrat who is opposed to NO TAX ON TIPS, NO TAX ON OVERTIME, and NO TAX ON SOCIAL SECURITY and, if she and the Dumocrats ever got in, all of these things will be terminated. She wants massive Tax Increases, Open Borders, Men playing in Women’s Sports, and Transgender Mutilization of your Children. Nancy Lacore is Reckless, Radical, and Dangerous! \n \nJenny Costa Honeycutt has my Complete and Total Endorsement to be the next Representative from South Carolina’s 1st Congressional District. GET OUT AND VOTE FOR JENNY — SHE WILL NEVER LET YOU DOWN!",
-   "is_reply": false,
-   "reply_to": null,
-   "vip": true,
-   "quote": null,
-   "media": [],
-   "created_at": "2026-11-03T18:48:08Z",
-   "ts": 1793731688,
-   "metrics": {
-    "likes": 220,
-    "reposts": 53,
-    "replies": 21,
-    "quotes": 1,
-    "bookmarks": 4,
-    "views": 171943
-   },
-   "metrics_at": "2026-11-03T18:51:24+00:00",
-   "coin_match": "none",
-   "coins": [],
-   "first_seen": 1793731771,
-   "kw": [
-    "jenny",
-    "tax",
-    "secure",
-    "dominance"
-   ]
-  },
-  {
-   "id": "2117690270485750094",
-   "url": "https://x.com/realDonaldTrump/status/2117690270485750094",
-   "handle": "realDonaldTrump",
-   "author_name": "Donald J. Trump",
-   "avatar": "https://pbs.twimg.com/profile_images/874276197357596672/kUuht00m_200x200.jpg",
-   "author_followers": 111858185,
-   "verified": true,
-   "role": "celebrity",
-   "wallet_id": null,
-   "text": "Aaron Flint will be a tremendous Congressman for the amazing people of  Montana’s 1st Congressional District!\n \nA Fifth Generation Montanan, and distinguished Combat Veteran, Aaron has dedicated his life to serving his Great State and Country. Lieutenant Colonel Flint served our Nation with Honor in Iraq and Afghanistan, and was awarded two Bronze Stars for Bravery. Aaron has a wonderful wife, Jessica, and three beautiful children. As your next Congressman, Aaron will work tirelessly to Champion our Amazing Farmers and Ranchers, Grow the Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Unleash American Energy DOMINANCE, Keep our Border SECURE, Stop Migrant Crime, Support our Military/Veterans, Safeguard our Elections, and Defend our always under siege Second Amendment.\n \nAaron’s opponent, Sam Forstag, is a Radical Left Democrat who is opposed to NO TAX ON TIPS, NO TAX ON OVERTIME, and NO TAX ON SOCIAL SECURITY and, if he and the Dumocrats ever got in, all of these things will be terminated. He wants massive Tax Increases, Open Borders, Men playing in Women’s Sports, and Transgender Mutilization of your Children. Sam Forstag is Reckless, Radical, and Dangerous! \n \nAaron Flint has my Complete and Total Endorsement to be the next Representative from Montana’s 1st Congressional District. GET OUT AND VOTE FOR AARON — HE WILL NEVER LET YOU DOWN!",
-   "is_reply": false,
-   "reply_to": null,
-   "vip": true,
-   "quote": null,
-   "media": [],
-   "created_at": "2026-11-03T18:47:59Z",
-   "ts": 1793731679,
-   "metrics": {
-    "likes": 213,
-    "reposts": 43,
+    "likes": 2873,
+    "reposts": 118,
     "replies": 23,
-    "quotes": 1,
-    "bookmarks": 1,
-    "views": 194236
+    "quotes": 3,
+    "bookmarks": 127,
+    "views": 72817
    },
-   "metrics_at": "2026-11-03T18:51:24+00:00",
+   "metrics_at": "2026-11-04T06:53:23+00:00",
    "coin_match": "none",
    "coins": [],
-   "first_seen": 1793731771,
+   "first_seen": 1793775137,
    "kw": [
-    "aaron",
-    "tax",
-    "flint",
-    "dominance"
+    "ps5s",
+    "firmware",
+    "pic",
+    "game"
+   ]
+  },
+  {
+   "id": "2117116226543727049",
+   "url": "https://x.com/GTAVI_Countdown/status/2117116226543727049",
+   "handle": "GTAVI_Countdown",
+   "author_name": "GTA 6 Countdown ⏳",
+   "avatar": "https://pbs.twimg.com/profile_images/2067718703601352704/q-GdKYN7_200x200.jpg",
+   "author_followers": 524868,
+   "verified": true,
+   "role": "gta",
+   "wallet_id": null,
+   "text": "Live look at the Limited Edition GTA 6 DualSense from Thailand Game Show, coming November 19th and available to pre-order.\n\nBlack edition (PS Direct exclusive):\nhttps://prf.hn/l/W42lD1d/\n\nWhite edition (Amazon):\nhttps://link.amazon/B082mUdCZ #ad",
+   "is_reply": false,
+   "reply_to": null,
+   "vip": false,
+   "quote": null,
+   "media": [
+    {
+     "type": "video",
+     "url": "https://pbs.twimg.com/amplify_video_thumb/2117115542674784256/img/nRwOHtdmqb6uxVlM.jpg",
+     "alt": ""
+    }
+   ],
+   "created_at": "2026-11-02T04:46:57Z",
+   "ts": 1793594817,
+   "metrics": {
+    "likes": 2956,
+    "reposts": 177,
+    "replies": 43,
+    "quotes": 14,
+    "bookmarks": 408,
+    "views": 154540
+   },
+   "metrics_at": "2026-11-04T06:53:23+00:00",
+   "coin_match": "none",
+   "coins": [],
+   "first_seen": 1793775137,
+   "kw": [
+    "edition",
+    "amazon",
+    "limited",
+    "dualsense"
+   ]
+  },
+  {
+   "id": "2116896541700915604",
+   "url": "https://x.com/RockstarINTEL/status/2116896541700915604",
+   "handle": "RockstarINTEL",
+   "author_name": "Rockstar INTEL",
+   "avatar": "https://pbs.twimg.com/profile_images/2067684677079420928/bh9Uj4_-_200x200.jpg",
+   "author_followers": 17188,
+   "verified": false,
+   "role": "gta",
+   "wallet_id": null,
+   "text": "You only have today to get the Grotti Turismo Omaggio and Rockstar Motorsport Livery for FREE!\n\nLearn More 👇\nhttps://rockstarintel.com/how-to-get-a-free-supercar-and-rare-livery-in-gta-online-this-weekend/",
+   "is_reply": false,
+   "reply_to": null,
+   "vip": false,
+   "quote": null,
+   "media": [],
+   "created_at": "2026-11-01T14:14:00Z",
+   "ts": 1793542440,
+   "metrics": {
+    "likes": 10,
+    "reposts": 1,
+    "replies": 3,
+    "quotes": 0,
+    "bookmarks": 0,
+    "views": 1888
+   },
+   "metrics_at": "2026-11-04T06:53:23+00:00",
+   "coin_match": "none",
+   "coins": [],
+   "first_seen": 1793775137,
+   "kw": [
+    "free",
+    "freelearn",
+    "grotti",
+    "turismo"
    ]
   }
  ]
