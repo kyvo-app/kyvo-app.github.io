@@ -13,6 +13,8 @@ v8.25 — two writers, clear roles:
     (≤ 50 h after the flag, at most 25 pools per run), current price from DexScreener; it never adds coins.
   Both commit through tools/git_sync.py: on a push race the two JSON files are MERGED (merge_docs / merge_history), never
   overwritten, so neither workflow can drop the other's work.
+v8.40 📈 szczyt po oznaczeniu: merge mode also raises max / maxLive (and last / mcNow) from live prices it already has — later scan
+  flags of a known coin and the ✅ 10-min price — so the app's peak MC (mc0 × max / px0) moves between kyvo-calls candle updates.
 v8.39 ✅ trzyma się: in --merge-only mode (the loop, every scan) a 🏃 Runner coin whose Runner flag is 10–30 min old and has no check
   yet gets ONE live DexScreener price (batched, ≤ 30 coins / call, only when such coins exist): item h10 = {ok: price ≥ Runner flag
   price, x: price / flag price, at}. Badge only (the app shows '✅ trzyma się' when ok), nothing is hidden, no push.
@@ -82,6 +84,7 @@ def merge_flags(items: dict, flags: list[dict], src: str = "loop") -> int:
         elif f["at"] < e["at"]:                                      # an earlier flag arrived later (e.g. worker) -> it becomes the first
             for x in ("at", "px0", "mc0"): e[x] = f[x]
             if isinstance(f.get("pred"), dict): e["pred"] = f["pred"]
+        else: seen_live(e, f["px0"], f["mc0"], f["at"])              # v8.40 📈 szczyt: a later flag of a known coin = a live price after the flag
         kinds = e.setdefault("kinds", {})
         kind = f.get("kind") or "runner"
         if kind not in kinds or f["at"] < kinds[kind]:
@@ -90,6 +93,19 @@ def merge_flags(items: dict, flags: list[dict], src: str = "loop") -> int:
         if f.get("badge") and not e.get("badge"): e["badge"] = f["badge"]; e["kol"] = f.get("kol")   # v8.8 👑 / 🚀
         if isinstance(f.get("pd"), dict) and kind in ("runner", "early") and not e.get("pd"): e["pd"] = f["pd"]   # v8.38
     return new
+
+def seen_live(e: dict, px, mc, at: int) -> bool:
+    """v8.40 📈 szczyt po oznaczeniu: a live price seen after the first flag (the loop's own scan flags / the ✅ 10-min check, no extra API
+    call). Raises max / maxLive (the app shows peak MC = mc0 × max / px0) and refreshes last / mcNow. True if max went up."""
+    try: px = float(px)
+    except (TypeError, ValueError): return False
+    if not px > 0 or not at or at <= (e.get("at") or 0): return False
+    if at >= (e.get("lastAt") or 0):
+        e["last"], e["lastAt"] = px, at
+        if mc: e["mcNow"] = mc
+    if px > (e.get("maxLive") or 0): e["maxLive"], e["maxLiveAt"] = px, at
+    if px > (e.get("max") or 0): e["max"], e["maxAt"] = px, at; return True
+    return False
 
 def merge_item(a: dict, b: dict) -> dict:
     """one coin present in two copies of track_record.json -> one item (first flag = earliest, performance = freshest)."""
@@ -197,6 +213,8 @@ def hold10(items: dict, now_ms: int) -> int:
                 except (TypeError, ValueError): px = None
                 if not px or px <= 0: continue
                 e["h10"] = {"ok": px >= ref, "x": round(px / ref, 3), "at": now_ms}; n += 1
+                mc = e.get("mc0") and e.get("px0") and round(e["mc0"] * px / e["px0"])
+                seen_live(e, px, mc, now_ms)                         # v8.40 📈 szczyt: the same price also counts for the peak
     return n
 
 def worker_flags(url: str) -> list[dict]:
@@ -243,7 +261,9 @@ def main() -> int:
     if not a.perf_only:
         flags = [f for f in load_json(a.flags, []) if isinstance(f, dict)]
         wf = worker_flags(a.worker_url) if a.worker_url else []
+        mx0 = {k: e.get("max") for k, e in items.items()}
         new = merge_flags(items, flags, "loop") + merge_flags(items, wf, "worker")
+        peak_up = sum(1 for k, e in items.items() if k in mx0 and (e.get("max") or 0) > (mx0[k] or 0))   # v8.40 📈 szczyt raised
         if a.history:
             hist = load_json(a.history, {})
             audit = load_json(a.audit, []) if a.audit else []
@@ -255,8 +275,9 @@ def main() -> int:
     items = {k: e for k, e in items.items() if now_ms - e["at"] < KEEP_DAYS * 864e5}
     if a.merge_only:
         h10 = 0 if a.no_hold10 else hold10(items, now_ms)              # v8.39 ✅ trzyma się (one DexScreener batch, only when due)
-        if not a.dry_run and (new or h10 or not a.out.exists()): write_doc(a.out, items, doc, False, now_ms)
-        print(f"track record (merge): {len(items)} coins, {new} new flags saved now, ✅ 10-min check {h10}")
+        pk = locals().get("peak_up", 0)
+        if not a.dry_run and (new or h10 or pk or not a.out.exists()): write_doc(a.out, items, doc, False, now_ms)   # v8.40: + peak raised
+        print(f"track record (merge): {len(items)} coins, {new} new flags saved now, ✅ 10-min check {h10}, 📈 peak raised {pk}")
         gh = os.environ.get("GITHUB_OUTPUT")
         if gh:
             with open(gh, "a") as fh: fh.write(f"track_new={new}\ntrack_h10={h10}\n")

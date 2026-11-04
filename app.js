@@ -1,4 +1,6 @@
-/* KYVO_LIVE_v8_39 — v8.39: ✅ "trzyma się" badge on 🏃 Runner coins still at / above their flag price 10 min after the flag (server h10,
+/* KYVO_LIVE_v8_40 — v8.40: 🎯 "zaznaczony przy $X MC · 📈 szczyt $Y" on Runner / ⚡ Early / Runner 2.0 / 'Oznaczone dziś' (and unlocked
+   Runners in GTA): MC at the flag and the peak MC after it (server track record, max raised by the loop's live prices) + 🏔 ATH 48 h.
+   v8.39: ✅ "trzyma się" badge on 🏃 Runner coins still at / above their flag price 10 min after the flag (server h10,
    tools/track_record.py; badge only, nothing hidden) + stricter 🚀 Runner 2.0 entry (≤ 5× the 6 h low, ≤ 1.5× the first flag price).
    v8.38: ⚠️ "po dumpie" badge on Runner / Early / Runner 2.0 coins flagged ≥ 30% under their ATH (never hidden) + faster ⚡ Early Runner (catches vertical pumps like $Mag).
    v8.37: FIX Runner 2.0 freeze (endless render loop while data/runner2.json was loading) + timeout / try-catch fallback.
@@ -1309,6 +1311,36 @@
     const tip = en ? `10 min after the Runner flag the price was still at / above the flag price${x} — fewer of these dump right away` : `10 min po oznaczeniu cena wciąż ≥ cena z oznaczenia${x} — takie rzadziej od razu spadają`;
     return ` <span class="holdbadge okbadge" translate="no" title="${esc(tip)}">✅ ${en ? 'holding' : 'trzyma się'}</span>`;
   }
+  /* v8.40 🎯 zaznaczony / 📈 szczyt — MC at the flag and the peak MC after it, from the server track record (data/track_record.json:
+     mc0 = MC at the first flag, max = highest price after the flag from kyvo-calls 15-min candles + live prices the loop saw; peak MC =
+     mc0 × max / px0) and the live MC on screen if higher. 🏔 ATH 48 h = the ⚠️ po dumpie ATH (highest 15-min close in the 48 h BEFORE
+     the flag), shown only when it is above the peak. o = {mc0, px0, max, pd} of the row: own = true -> the row's own flag (Runner 2.0
+     entry), else only a fallback while the server item is not loaded yet. */
+  function srvItemOf(k) {
+    if (!trackServer || !k) return null;
+    if (srvItemOf.src !== trackServer) { srvItemOf.src = trackServer; srvItemOf.m = {}; for (const e of trackServer.items || []) if (e && e.k) srvItemOf.m[String(e.k).toLowerCase()] = e; }
+    return srvItemOf.m[String(k).toLowerCase()] || null;
+  }
+  function flagPeak(k, o, mcLive, own) {
+    const s = srvItemOf(k), ok0 = o && o.px0 > 0 && o.mc0 > 0, r = own && ok0 ? o : s || (ok0 ? o : null);
+    if (!r || !(r.mc0 > 0) || !(r.px0 > 0)) return null;
+    const mx = Math.max(r.max || 0, r === o && s && s.px0 > 0 && Math.abs(s.px0 / r.px0 - 1) < 0.02 ? s.max || 0 : 0);
+    const up = mx > r.px0 ? pctE(mx, r) : 0;
+    let peak = up != null && up > 0 ? (r.mc0 * mx) / r.px0 : r.mc0;
+    if (mcLive > peak && mcLive / r.mc0 < 1000) peak = mcLive;
+    const pd = (o && o.pd) || (s && s.pd);
+    const ath = pd && pd.ath > 0 && pd.ath > peak * 1.05 ? pd.ath : null;
+    return { mc0: r.mc0, peak, x: peak / r.mc0, ath };
+  }
+  function flagPeakHtml(k, o, mcLive, cls, own) {
+    const p = flagPeak(k, o, mcLive, own);
+    if (!p) return '';
+    const en = window.KyvoI18n && window.KyvoI18n.isEn();
+    const xs = p.x >= 1.05 ? ` <span class="up">(x${p.x >= 10 ? Math.round(p.x) : p.x.toFixed(1)})</span>` : '';
+    const tip = en ? 'MC when Kyvo flagged the coin · highest MC after the flag (15-min candles + live prices)' : 'MC, przy którym Kyvo oznaczył coina · najwyższy MC po oznaczeniu (świece 15 min + ceny na żywo)';
+    const ath = p.ath ? ` · <span class="mut" title="${esc(en ? 'Highest 15-min close in the 48 h before the flag' : 'Najwyższe zamknięcie 15 min w 48 h przed oznaczeniem')}">🏔 ATH 48 h ${en ? 'before' : 'przed'} ${fmtUsd(p.ath)}</span>` : '';
+    return `<div class="${cls || 'fpk'}" translate="no" title="${esc(tip)}">🎯 ${en ? 'flagged at' : 'zaznaczony przy'} <b>${fmtUsd(p.mc0)}</b> MC · 📈 ${en ? 'peak' : 'szczyt'} <b>${fmtUsd(p.peak)}</b>${xs}${ath}</div>`;
+  }
   // v8.33: % since a flag / entry through the shared entry sanity rule (pairs.js entryCheck): entry MC < $1K or > 500x from < $3K = "—"
   const pctE = (px, e) => (px > 0 && e && e.px0 > 0 ? KP.safePct(px, e.px0, e.mc0, e.mc0 > 0 ? (e.mc0 * px) / e.px0 : null) : null);
   let trackKind = localStorage.getItem('kyvo_track_kind') || 'all';
@@ -1588,6 +1620,7 @@
       const c = r.c;
       return `<div class="row td-row r2-row" data-key="${esc(e.k)}" role="button" tabindex="0" translate="no">${imgTag(c)}<div class="nm"><b><span class="cbadge c-${esc(e.chain || 'solana')}">${esc(chainBadge(c))}</span> ${esc(e.name || e.sym || '')} <span class="mut" style="font-weight:600">$${esc(e.sym || '')}</span></b>
         <small class="td-sub">${(pdBadge(e.k, e.pd) + holdBadge(e.k, holdOf(e.k) || e.hold)).trim()}${pdBadge(e.k, e.pd) || holdBadge(e.k, holdOf(e.k) || e.hold) ? ' ' : ''}${esc(ago(e.at))} · ${esc(srcL(e))} · MC ${fmtUsd(e.mc0)} → ${fmtUsd((c && c.mcap) || e.mcNow || e.mc0)}</small>
+        ${flagPeakHtml(e.k, e, c && c.mcap, '', true)}
         <small class="r2-why mut">${esc(e.why || '')}${e.how && /^recheck/.test(e.how) ? ' · ' + L2('sprawdzony ponownie', 're-checked') : ''}</small>
         <small class="r2-exit">🎯 ${L2('Sprzedaj ½ na x2, resztę trailing −30%', 'Sell ½ at 2x, trail the rest −30%')}</small></div>${rt}</div>`;
     };
@@ -1642,6 +1675,7 @@
           ${sv && sv.tweet && sv.tweet.url ? `<div class="twlink" translate="no"><a href="${esc(sv.tweet.url)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">🐦 ${L2('Tweet', 'Tweet')} @${esc(sv.tweet.handle || '')} · +${Math.round(sv.tweet.chg || 0)}% ${L2('od tweeta', 'since')} ↗</a></div>` : ''}
           ${st ? `<div class="rstage st${st.n}" translate="no"><b>${L2('Etap', 'Stage')} ${st.n}</b> ${stageBarHtml(st)} <span class="mut">${esc(st.range)} · ${esc(L2(st.pl, st.en))}</span></div>` : ''}
           <div class="rmc" translate="no">${tr && tr.mc0 ? `${L2('MC przy oznaczeniu', 'MC at flag')} <b>${fmtUsd(tr.mc0)}</b> → ${L2('teraz', 'now')} <b>${fmtUsd(c.mcap)}</b> <span class="${pctClass(climb)}">${climb >= 0.5 ? '↑' : climb <= -0.5 ? '↓' : '→'} ${fmtPct(climb)}</span> <span class="mut">· ${esc(flagAgo(tr.kinds.runner || tr.kinds.leg2 || tr.at))}</span>` : `MC <b>${fmtUsd(c.mcap)}</b>`}</div>
+          ${flagPeakHtml(keyOf(c), sv && sv.px0 > 0 ? sv : tr, c.mcap)}
           <small>${(h10Badge(keyOf(c), tr && tr.h10) + pdBadge(keyOf(c), sv && sv.pd) + holdBadge(keyOf(c))).trim()}${h10Badge(keyOf(c), tr && tr.h10) || pdBadge(keyOf(c), sv && sv.pd) || holdBadge(keyOf(c)) ? ' ' : ''}Liq ${fmtLiq(c)} · ⏱ ${esc(ageFrom(c.pairCreatedAt))}</small>
           <div class="rwhy" translate="no">${sv && sv.badge === 'kol' ? '👑 ' + L2('Dlaczego KOL coin', 'Why KOL coin') : sv && sv.badge === 'moon' ? '🚀 ' + L2('Dlaczego moon run', 'Why moon run') : sv && sv.badge === 'tweet' ? '🐦 ' + L2('Dlaczego tweet runner', 'Why tweet runner') : (sv && sv.badge === 'big') || x.big ? '📈 ' + L2('Dlaczego duży runner', 'Why big runner') : x.leg2 ? '🔁 ' + L2('Dlaczego kolejna fala', 'Why second leg') : '🏃 ' + L2('Dlaczego runner', 'Why runner')}: ${x.why.join(' · ')}</div>
           ${c._snap ? '' : window.KyvoInsights.upsideRowHtml(c)}</div>
@@ -1670,7 +1704,7 @@
       const res = `<div class="rt td-rt">${ok(maxP) ? `<b class="chrome td-max">+${Math.round(Math.max(0, maxP))}%</b><small class="mut">${L2('max po oznacz.', 'max after flag')}</small>` : ''}${ok(nowP) ? `<small class="${pctClass(nowP)}">${L2('teraz', 'now')} ${fmtPct(nowP)}</small>` : ''}</div>`;
       if (todayOpen && !todayOpen.includes(e.k)) return `<div class="row td-row rlock" role="button" tabindex="0" data-unlock translate="no"><div class="rlock-ic" aria-hidden="true">🔒</div><div class="nm"><b>🏃 Runner <span class="mut" style="font-weight:600">· ${esc(flagAgo(e.kinds.runner))}</span></b><div class="rlock-bars" aria-hidden="true"><i style="width:58%"></i><i style="width:40%"></i></div></div>${res}</div>`;
       const c = kolCoinOf(e);
-      return `<div class="row td-row" data-key="${esc(e.k)}" role="button" tabindex="0" translate="no">${imgTag(c)}<div class="nm"><b><span class="cbadge c-${esc(e.chain || 'solana')}">${esc(chainBadge(c))}</span> ${esc(e.name || e.sym || '')} <span class="mut" style="font-weight:600">$${esc(e.sym || '')}</span></b><small class="td-sub">${(h10Badge(e.k, e.h10) + pdBadge(e.k, e.pd) + holdBadge(e.k)).trim()}${h10Badge(e.k, e.h10) || pdBadge(e.k, e.pd) || holdBadge(e.k) ? ' ' : ''}${esc(flagAgo(e.kinds.runner))} · MC ${fmtUsd(e.mc0)} → ${fmtUsd(e.mcNow || e.mc0)}</small></div>${res}</div>`;
+      return `<div class="row td-row" data-key="${esc(e.k)}" role="button" tabindex="0" translate="no">${imgTag(c)}<div class="nm"><b><span class="cbadge c-${esc(e.chain || 'solana')}">${esc(chainBadge(c))}</span> ${esc(e.name || e.sym || '')} <span class="mut" style="font-weight:600">$${esc(e.sym || '')}</span></b><small class="td-sub">${(h10Badge(e.k, e.h10) + pdBadge(e.k, e.pd) + holdBadge(e.k)).trim()}${h10Badge(e.k, e.h10) || pdBadge(e.k, e.pd) || holdBadge(e.k) ? ' ' : ''}${esc(flagAgo(e.kinds.runner))} · MC ${fmtUsd(e.mc0)} → ${fmtUsd(e.mcNow || e.mc0)}</small>${flagPeakHtml(e.k, e, c && c.mcap)}</div>${res}</div>`;
     };
     const todayHtml = todayN ? `<div class="h" style="font-size:14px;margin-top:12px">${HS.today ? L2('Oznaczone dziś', 'Flagged today') : L2('Oznaczone w 24 h', 'Flagged in 24 h')} <span class="mut" style="font-size:12px">${todayN}</span> <span class="mut rh-note">${L2('log serwera · wynik od oznaczenia', 'server log · result since flag')}</span></div><div class="card td-card" style="padding:4px 10px">${todayList.map(todayRow).join('')}</div>` : '';
     $('#listBody').innerHTML = `<div class="h">🏃 <span class="chrome">Runner</span> <span class="badge live">LIVE</span></div>
@@ -3256,6 +3290,7 @@
     fetchCoins: gtaFetchCoins, universe: allUniverse, chain: () => activeChain, getLive: () => xLive, loadLive: () => loadLive(), getViral: () => viral,
     runners: () => { try { return runnerItems().coins; } catch (e) { return []; } }, unlocked: (k) => { try { return RunnerGate.unlocked(k); } catch (e) { return false; } },
     remember: (c) => { const k = keyOf(c); if (!byKey[k]) byKey[k] = c; }, isView: () => view === 'gta', keep: (fn) => keepUi(fn),
+    flagPeakHtml: (c) => flagPeakHtml(keyOf(c), null, c.mcap, 'fpk gta-fpk'),   // v8.40 🎯 / 📈 (GTA shows it only on unlocked Kyvo Runners)
   });
   if (window.KyvoProfile) window.KyvoProfile.init({ esc, fmtUsd, agoLabel, shortCa, toast });
   if (window.KyvoCoinPage) window.KyvoCoinPage.init({ esc, fmtUsd, fmtPct, toast, keyOf, shortCa, ageFrom, imgTag, chainBadge, tweetsFor, consensus: consensusOf, smartBuys: (c) => ((c.chainId === 'solana' || !c.chainId) ? smartBuysForMint(c.address) : []), getLeaderboard: () => leaderboard, getSmartMoney: () => smartMoney, onPf: (c) => coinRemount && coinRemount(c) });

@@ -161,10 +161,11 @@
     if (a != null && a < 24) bits.push(`<span class="gta-chip new">🆕 ${L2('nowy', 'new')}</span>`);   // the row already shows the exact age
     const r = runnerOf[ctx.keyOf(c)];
     if (r) bits.push(`<span class="gta-chip run">🏃 ${L2('Runner Kyvo', 'Kyvo Runner')}</span>`);
+    const fpk = r && ctx.flagPeakHtml ? ctx.flagPeakHtml(c) : '';   // v8.40 🎯 zaznaczony / 📈 szczyt (unlocked Kyvo Runners only)
     if (c._pf && c._pf.n) bits.push(`<span class="gta-chip pf">📣 ${c._pf.n} ${L2(c._pf.n === 1 ? 'call o GTA' : 'calli o GTA', c._pf.n === 1 ? 'GTA call' : 'GTA calls')} · pump.fun</span>`);
     const h6 = chg(c, 'h6');
     if (h6 != null && Math.abs(h6) >= 1) bits.push(`<span class="gta-chip ${h6 > 0 ? 'up' : 'dn'}">${h6 > 0 ? '+' : ''}${Math.round(h6)}% 6h</span>`);
-    return bits.length ? `<div class="gta-x">${bits.join('')}</div>` : '';
+    return (bits.length ? `<div class="gta-x">${bits.join('')}</div>` : '') + fpk;
   }
 
   function tweetCard(t) {
