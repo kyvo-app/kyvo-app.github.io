@@ -1,4 +1,4 @@
-/* KYVO_LIVE_v8_40 — v8.40: 🎯 "zaznaczony przy $X MC · 📈 szczyt $Y" on Runner / ⚡ Early / Runner 2.0 / 'Oznaczone dziś' (and unlocked
+/* KYVO_LIVE_v8_41 — v8.41: faster pushes (server only: early requeue, per-chain push, cached GT lists). v8.40: 🎯 "zaznaczony przy $X MC · 📈 szczyt $Y" on Runner / ⚡ Early / Runner 2.0 / 'Oznaczone dziś' (and unlocked
    Runners in GTA): MC at the flag and the peak MC after it (server track record, max raised by the loop's live prices) + 🏔 ATH 48 h.
    v8.39: ✅ "trzyma się" badge on 🏃 Runner coins still at / above their flag price 10 min after the flag (server h10,
    tools/track_record.py; badge only, nothing hidden) + stricter 🚀 Runner 2.0 entry (≤ 5× the 6 h low, ≤ 1.5× the first flag price).

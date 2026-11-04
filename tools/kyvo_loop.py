@@ -27,6 +27,12 @@ GitHub fires "*/5" schedules only every ~30–40 min in practice, so one workflo
   * data commits only when a feed's CONTENT changed (new tweet / new flag) or as a 30-min heartbeat, at most one commit per
     COMMIT_GAP (3 min) and at most COMMIT_MAX_H (7) per rolling hour — GitHub Pages (branch build) has a soft limit of
     10 builds/hour shared with the other workflows. Push = pull --rebase with retries; on a conflict our two feed files win.
+v8.41 (pushes were slow — measured 04.11: flag -> push median 96 s, max 108 s; scans ~3 min apart on Actions):
+  * the Runner scan (discord_calls.py) runs in the BACKGROUND like the other jobs; it rewrites --partial-out after each chain
+    (solana, then bsc) and the loop pushes those flags at once (holders.py first, so ⚠️ mało holderów stays on the push), instead of
+    waiting for the other chain + tweet runners + post-dump + predictions. sent.json dedupe = the final push never repeats them.
+  * gold / GTA / tracker / tweet results are pushed the moment they finish, no longer after the blocking scan (was up to ~4 min).
+  * the loop polls every 2 s while anything runs.
 The steps run as child processes (same scripts as before), so a crash in one step never stops the loop.
 Local test:  python3 tools/kyvo_loop.py --max-min 4 --dry-run --no-git
 """
@@ -68,20 +74,21 @@ def run(cmd: list[str], env_extra: dict | None = None, timeout: int = 240) -> di
 
 class Bg:
     """v8.9: the New Tweet read (~1.5–2 min: ~24 accounts at 1 req/s) runs NEXT TO the Runner scan, so scans keep their ~90-s pace."""
-    def __init__(self, cmd: list[str], env_extra: dict | None = None):
+    def __init__(self, cmd: list[str], env_extra: dict | None = None, max_s: float = 230):
+        self.max_s = max_s   # v8.41: the Runner scan gets its own limit (300 s, as when it was blocking)
         fd, self.outp = tempfile.mkstemp(prefix="kyvo_gho_"); os.close(fd)
         fd, self.logp = tempfile.mkstemp(prefix="kyvo_bg_"); os.close(fd)   # v8.12: file, not a pipe (a full pipe would block the child)
         self.t = time.time(); self.cmd = cmd; self.lf = open(self.logp, "w")
         self.p = subprocess.Popen(cmd, cwd=ROOT, env=dict(os.environ, GITHUB_OUTPUT=self.outp, KYVO_LIVE_GT_BUDGET=os.environ.get("KYVO_LIVE_GT_BUDGET", "5"), **(env_extra or {})), stdout=self.lf, stderr=subprocess.STDOUT, text=True)
     def done(self) -> bool:
-        if self.p.poll() is None and time.time() - self.t > 230: self.p.kill()   # v8.10: x_live stops itself at ~175 s
+        if self.p.poll() is None and time.time() - self.t > self.max_s: self.p.kill()   # v8.10: x_live stops itself at ~175 s
         return self.p.poll() is not None
     def result(self) -> dict:
         self.lf.close()
         try: out_txt = Path(self.logp).read_text(errors="replace")
         except Exception: out_txt = ""
         Path(self.logp).unlink(missing_ok=True)
-        tail = out_txt.strip().splitlines()[-2:]
+        tail = out_txt.strip().splitlines()[-(3 if "discord_calls" in self.cmd[1] else 2):]
         log(f"{Path(self.cmd[1]).name} rc={self.p.returncode} {time.time() - self.t:.0f}s |", " / ".join(tail)[:300])
         out = {}
         try:
@@ -129,13 +136,26 @@ def main() -> int:
     cc_out = f"{a.state_dir}/coin_checks.json" if a.dry_run else "data/coin_checks.json"  # v8.36 🧪 bundle / fake volume / watch events
     push_cmd = [py, "tools/kyvo_push.py", "--flags", f"{a.state_dir}/flags.json", "--state", f"{a.state_dir}/sent.json", "--smart", f"{a.state_dir}/smart_alerts.json",
                 "--gta", f"{a.state_dir}/gta_alerts.json", "--runner2", r2_out, "--holders", hold_out, "--checks", cc_out] + (["--dry-run"] if a.dry_run else [])
+    part = sd / "flags_partial.json"; part_seen = 0.0; n_part = 0         # v8.41 per-chain flags of the running scan
+    push_part = [x if x != f"{a.state_dir}/flags.json" else f"{a.state_dir}/flags_partial.json" for x in push_cmd]
+    sc = None                                                              # v8.41 the Runner scan (background)
     tw = None; gd = None; pf = None; n_pf = 0; tk = None; n_tk = 0
     next_tk = time.time() + 40
     gt = None; n_gt = 0; next_gt = time.time() + 20      # v8.31 🎮 GTA detector (~5 s, DexScreener only)
     cc = None; n_cc = 0                                  # v8.36 🧪 coin checks (background, ≤ ~45 s, public RPC)
     next_pf = time.time() + 75                  # v8.14: after the first scan + gold start
-    while time.time() < end - 20 or tw is not None or gd is not None or pf is not None or tk is not None or gt is not None or cc is not None:
+    def busy() -> bool:
+        return any(x is not None for x in (sc, tw, gd, pf, tk, gt, cc))
+    while time.time() < end - 20 or busy():
         did = False
+        # v8.41: a chain of the running scan is done -> its flags go out now (holders first: the push keeps ⚠️ mało holderów)
+        try: pm = part.stat().st_mtime if sc is not None else 0
+        except OSError: pm = 0
+        if pm and pm > part_seen:
+            part_seen = pm; n_part += 1
+            run([py, "tools/holders.py", "--flags", f"{a.state_dir}/flags_partial.json", "--out", hold_out],
+                env_extra={"KYVO_FACT_CACHE": f"{a.state_dir}/facts", "KYVO_HOLD_MAX_NEW": "4"}, timeout=40)   # this chain's new flags come first; ≤ 4 RugCheck calls
+            run(push_part, timeout=120)
         if cc is not None and cc.done():
             o = cc.result(); cc = None
             if o.get("checks_new") == "true" and not pending and time.time() - last_commit > 900: pending.append("coin checks")
@@ -169,12 +189,16 @@ def main() -> int:
         if tw is None and time.time() >= next_tw and time.time() < end - 180:
             next_tw = time.time() + a.tweet_every; n_tw += 1
             tw = Bg([py, "tools/x_live.py"])
-        if time.time() >= next_scan and time.time() < end - 45:
+        if sc is None and time.time() >= next_scan and time.time() < end - 45:
             next_scan = time.time() + a.scan_every; n_scan += 1
-            o = run([py, "tools/discord_calls.py", "--flags-out", f"{a.state_dir}/flags.json", "--kol-out", "data/kol_live.json", "--early-out", "data/early_shadow.json",
-                     "--audit-out", f"{a.state_dir}/audit.json"],
+            part.unlink(missing_ok=True); part_seen = 0.0
+            sc = Bg([py, "tools/discord_calls.py", "--flags-out", f"{a.state_dir}/flags.json", "--kol-out", "data/kol_live.json", "--early-out", "data/early_shadow.json",
+                     "--audit-out", f"{a.state_dir}/audit.json", "--partial-out", f"{a.state_dir}/flags_partial.json"],
                     env_extra={"KYVO_CALLS_STATE": f"{a.state_dir}/calls_state.json", "KYVO_FACT_CACHE": f"{a.state_dir}/facts",
-                               "KYVO_LEG2_CACHE": f"{a.state_dir}/leg2_shapes.json"}, timeout=300)   # v8.25: headroom for the cap-15 prefilter + leg2
+                               "KYVO_LEG2_CACHE": f"{a.state_dir}/leg2_shapes.json", "KYVO_GT_LIST_CACHE": f"{a.state_dir}/gt_lists.json"},
+                    max_s=300)   # v8.25: headroom for the cap-15 prefilter + leg2; v8.41 background + per-chain partial flags
+        if sc is not None and sc.done():
+            o = sc.result(); sc = None
             if o.get("kol_commit") == "true": pending.append("runner coins")
             # v8.25 item 1: every flag of this scan goes into data/track_record.json NOW (first flag kept, no network) + audit log;
             # + the Cloudflare worker's recent flags when KYVO_WORKER_FLAGS_URL is set (empty by default = off)
@@ -205,10 +229,11 @@ def main() -> int:
         if a.pf_every > 0: wait = min(wait, next_pf - time.time())
         if a.tk_every > 0: wait = min(wait, next_tk - time.time())
         if a.gta_every > 0: wait = min(wait, next_gt - time.time())
-        if tw is not None or gd is not None or pf is not None or tk is not None or gt is not None or cc is not None: wait = min(wait, 3)
+        if sc is not None: wait = min(wait, 2)                   # v8.41 catch each chain's partial flags within ~2 s
+        elif busy(): wait = min(wait, 3)
         if wait > 0: time.sleep(min(wait, max(1, end - time.time())))
-        if time.time() >= end - 20 and tw is None and gd is None and pf is None and tk is None and gt is None and cc is None: break
-    log(f"loop done: {n_scan} scans, {n_tw} tweet reads, {n_gold} gold runs, {n_pf} pump.fun reads, {n_tk} tracker reads, {n_gt} gta reads, {len(commits)} commits in the last hour, pending={pending}")
+        if time.time() >= end - 20 and not busy(): break
+    log(f"loop done: {n_scan} scans ({n_part} early per-chain pushes), {n_tw} tweet reads, {n_gold} gold runs, {n_pf} pump.fun reads, {n_tk} tracker reads, {n_gt} gta reads, {len(commits)} commits in the last hour, pending={pending}")
     if use_git and pending and len(commits) < a.commit_max_h + 1:   # leave nothing important uncommitted for the next run
         if commit_feeds("feeds: " + ", ".join(dict.fromkeys(pending)) + " [kyvo-loop]"): commits.append(time.time()); last_commit = time.time()
     lt.write_text(json.dumps({"commits": commits, "last_commit": last_commit}))

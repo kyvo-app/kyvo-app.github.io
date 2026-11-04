@@ -45,7 +45,7 @@ FIRST_KEEP_S = 6 * 3600                                    # v8.39: first Runner
 KEEP_S = 72 * 3600
 MAX_COINS = 120
 KINDS = ("runner", "leg2", "early")
-HOLD_WAIT_S = int(os.environ.get("KYVO_R2_HOLD_WAIT_S", "900"))   # v8.35: max wait for the holder check before a Solana coin is let in
+HOLD_WAIT_S = int(os.environ.get("KYVO_R2_HOLD_WAIT_S", "300"))   # v8.41: 15 -> 5 min (holders.py now also runs per chain); v8.35: max wait for the holder check before a Solana coin is let in
 EXIT_HINT = {"pl": "Sprzedaj ½ na x2, resztę trailing −30%", "en": "Sell ½ at 2x, trail the rest −30%"}
 
 def nf(v):

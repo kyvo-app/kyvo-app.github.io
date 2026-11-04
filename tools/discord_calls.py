@@ -54,6 +54,13 @@ LEG2_CACHE = Path(os.environ.get("KYVO_LEG2_CACHE", ".kyvo_calls/leg2_shapes.jso
 PD_BELOW = float(os.environ.get("KYVO_PD_BELOW", "30"))
 PD_READS = int(os.environ.get("KYVO_PD_READS", "6"))      # ≤ 6 GeckoTerminal reads per scan (10-min cache; free tier ~30 req/min)
 PD_CACHE = Path(os.environ.get("KYVO_PD_CACHE", ".kyvo_calls/post_dump.json"))
+# v8.41 faster scans: the slow-moving GeckoTerminal candidate lists (trending page 2, 6 h trending, top 24 h volume) are cached for
+# GT_LIST_TTL s (file, survives between scans) -> 3 of 7 GeckoTerminal list reads per chain skipped on most scans (each costs a read +
+# the 2.1 s rate-limit pause, more with 429 back-offs on GitHub's shared IPs). The fast lists (trending, new pools, 5 m, 1 h) stay live.
+GT_LIST_TTL = int(os.environ.get("KYVO_GT_LIST_TTL", "300"))
+GT_LIST_CACHE = Path(os.environ.get("KYVO_GT_LIST_CACHE", ".kyvo_calls/gt_lists.json"))
+_GTL: dict = {}
+_T: dict = {}   # v8.41 per-phase timing (last output line, the loop log shows it)
 # v8.9: quote / stable tokens that top the volume lists (never a "coin" for Kyvo)
 QUOTE_TOKENS = {"so11111111111111111111111111111111111111112", "epjfwdd5aufqssqem2qn1xzybapc8g4weggkzwytdt1v", "es9vmfrzacermjfrf4h2fyd4kconky11mcce8benwnyb",
                 "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c", "0x55d398326f99059ff775485246999027b3197955", "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
@@ -143,24 +150,54 @@ def candidates(chain: str) -> list[str]:
     net = CHAINS[chain]["gt"]
     for kind in ("trending_pools", "new_pools"):
         for page in (1, 2):
-            d = get(f"{GT}/networks/{net}/{kind}?page={page}") or {}
+            u = f"{GT}/networks/{net}/{kind}?page={page}"
+            if kind == "trending_pools" and page == 2: d, live = gt_list(u)            # v8.41 cached (slow list)
+            else: d, live = get(u) or {}, True
             for p in d.get("data") or []:
                 rid = (((p.get("relationships") or {}).get("base_token") or {}).get("data") or {}).get("id", "")
                 if "_" in rid: addrs.append(rid.split("_", 1)[1])
-            time.sleep(2.1)   # GeckoTerminal free tier ~30 req/min
+            if live: time.sleep(2.1)   # GeckoTerminal free tier ~30 req/min
     # v8.8: what is exploding in the last 5 min; v8.9: + 1 h trending and top 24 h volume = established $1M–$100M coins (📈 Big runner)
     for u in (f"{GT}/networks/{net}/trending_pools?duration=5m&page=1", f"{GT}/networks/{net}/trending_pools?duration=1h&page=1", f"{GT}/networks/{net}/trending_pools?duration=6h&page=1",
               f"{GT}/networks/{net}/pools?sort=h24_volume_usd_desc&page=1"):
-        d = get(u) or {}
+        if "duration=6h" in u or "h24_volume" in u: d, live = gt_list(u)            # v8.41 cached (slow lists)
+        else: d, live = get(u) or {}, True
         for p in d.get("data") or []:
             rid = (((p.get("relationships") or {}).get("base_token") or {}).get("data") or {}).get("id", "")
             if "_" in rid and rid.split("_", 1)[1].lower() not in QUOTE_TOKENS: addrs.append(rid.split("_", 1)[1])
-        time.sleep(2.1)
+        if live: time.sleep(2.1)
     seen, out = set(), []
     for a in addrs:
         k = a.lower()
         if k not in seen: seen.add(k); out.append(a)
     return out[:210]
+
+def gt_list(url: str) -> tuple[dict, bool]:
+    """v8.41: a slow GeckoTerminal list from the file cache (≤ GT_LIST_TTL s old) or live. Returns (data, fetched_live)."""
+    if not _GTL:
+        try: _GTL.update(json.loads(GT_LIST_CACHE.read_text()))
+        except Exception: _GTL["_"] = 1
+    m = _GTL.get(url)
+    if isinstance(m, list) and time.time() - m[0] < GT_LIST_TTL: return m[1], False
+    d = get(url)
+    if d:
+        _GTL[url] = [time.time(), d]
+        try:
+            GT_LIST_CACHE.parent.mkdir(parents=True, exist_ok=True)
+            keep = {k: v for k, v in _GTL.items() if isinstance(v, list) and time.time() - v[0] < 3600}
+            tmp = GT_LIST_CACHE.with_suffix(".tmp"); tmp.write_text(json.dumps(keep)); tmp.replace(GT_LIST_CACHE)
+        except Exception: pass
+        return d, True
+    if isinstance(m, list) and time.time() - m[0] < 3 * GT_LIST_TTL: return m[1], True   # API down / 429 -> a slightly older list
+    return {}, True
+
+def write_partial(path: Path | None, flags: list[dict]) -> None:
+    """v8.41: flags found so far (after each chain) -> path, atomically; the loop pushes them before the rest of the scan ends."""
+    if not path: return
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(".tmp"); tmp.write_text(json.dumps([{k: v for k, v in f.items() if k != "_pin"} for f in flags])); tmp.replace(path)
+    except Exception as e: print(f"  partial flags error: {type(e).__name__}")
 
 def pairs_for(chain: str, addrs: list[str]) -> list[dict]:
     # v8.13: tools/pairs.py rule (exact CA, main pool by liquidity, dead pump.fun curve pair never wins after migration)
@@ -546,6 +583,7 @@ def main() -> int:
     ap.add_argument("--kol-out", type=Path, help="v8.8: merge 👑 KOL coin / 🚀 Moon run flags into this JSON (app feed data/kol_live.json)")
     ap.add_argument("--early-out", type=Path, help="v8.24 SHADOW test: log coins passing earlyRunnerRule (EARLY_T) to this JSON "
                     "(e.g. data/early_shadow.json) — never posted, never pushed; for comparing with real Runner flags later")
+    ap.add_argument("--partial-out", type=Path, help="v8.41: flags so far, rewritten after each chain (the loop pushes them at once)")
     ap.add_argument("--audit-out", type=Path, help="v8.25: per-chain scan summary (candidates, prefilter passes, rule passes, near misses) as JSON")
     a = ap.parse_args()
 
@@ -581,10 +619,13 @@ def main() -> int:
         print("No DISCORD_WEBHOOK_SOL / DISCORD_WEBHOOK_BSC secret set -> nothing to do."); return 0
     st = load_state(a.state); now = time.time()
     st["posted"] = {k: t for k, t in st.get("posted", {}).items() if now - t < REPOST_AFTER_H * 3600}
+    _t0 = time.time()
     for chain in chains:
+        _tc = time.time()
         hist = [t for t in st.get("hist", {}).get(chain, []) if now - t < 3600]
         room = min(MAX_PER_RUN, MAX_PER_HOUR - len(hist))
-        coins = [to_coin(p) for p in pairs_for(chain, candidates(chain))]
+        _tl = time.time(); _cand = candidates(chain); _T[f"{chain}_lists"] = round(time.time() - _tl)
+        coins = [to_coin(p) for p in pairs_for(chain, _cand)]
         good_coins = [c for c in coins if good(c) and (c["liq"] or 0) >= MIN_LIQ_POST and f"{chain}:{c['address'].lower()}" not in st["posted"]]
         boosted = sorted([c for c in coins if c["boost"]], key=lambda c: -c["boost"])
         brank = {c["address"].lower(): i + 1 for i, c in enumerate(boosted)}
@@ -686,6 +727,13 @@ def main() -> int:
             if ov.get("blocked"): print(f"  no big runner ${c['symbol']}: {ov['blocked']}"); continue
             ov["big"] = {"h1": c.get("h1"), "h6": c.get("h6"), "acc": round(r.get("acc") or 0, 1), "txAcc": round(r["txAcc"], 1) if r.get("txAcc") else None, "br": round(r.get("br") or 0, 2)}
             flag(c, "runner", ov); print(f"  big runner ${c['symbol']} MC {fmt_usd(c['mcap'])} h1 {c.get('h1')} ×{r.get('acc', 0):.1f} vol")
+        # v8.41: this chain's flags go out NOW (the loop pushes them while the next chain is scanned); ⚠️ po dumpie first so the push
+        # keeps its tag (post_dump skips flags that already have pd -> no extra reads at the end)
+        if a.partial_out and flags:
+            try: post_dump(flags)
+            except Exception as e: print(f"  post-dump check error: {type(e).__name__}")
+            write_partial(a.partial_out, flags)
+        _T[chain] = round(time.time() - _tc)
         if not a.dry_run and not hooks[chain]:
             st.setdefault("hist", {})[chain] = hist; continue   # flag-only run for this chain (no webhook)
         sent = 0
@@ -702,6 +750,7 @@ def main() -> int:
         if not ranked: print(f"  [{chain}] no coin with a positive outlook right now -> nothing posted")
         st.setdefault("hist", {})[chain] = hist
     # v8.9 🐦 Tweet runner: coins from fresh New Tweet items (≤ 4 h) that clearly run AFTER the tweet (every scan, ~90 s in the loop)
+    _tt = time.time()
     if a.flags_out or a.kol_out:
         try:
             cands = kol_coins.tweet_candidates()
@@ -724,6 +773,7 @@ def main() -> int:
             print(f"tweet runners: {len(cands)} fresh tweet coins checked, {n_ok} running")
         except Exception as e:
             print(f"  tweet runner check error: {type(e).__name__}")
+    _T["tweet"] = round(time.time() - _tt); _tt = time.time()
     if not a.dry_run:
         a.state.parent.mkdir(parents=True, exist_ok=True); a.state.write_text(json.dumps(st))
     if a.flags_out:
@@ -731,12 +781,14 @@ def main() -> int:
         except Exception as e: print(f"  post-dump check error: {type(e).__name__}")
         attach_predictions(flags)
         a.flags_out.parent.mkdir(parents=True, exist_ok=True); a.flags_out.write_text(json.dumps(flags))
-        print(f"flags -> {a.flags_out}: {len(flags)}")
+        print(f"flags -> {a.flags_out}: {len(flags)}"); _T["pd_pred"] = round(time.time() - _tt)
     if a.kol_out: write_kol_feed(a.kol_out, [f for f in flags if f.get("badge")], dry=a.dry_run)
     if a.early_out: write_early_shadow(a.early_out, early_hits, flags)
     _memo_save()
     if a.audit_out:
         a.audit_out.parent.mkdir(parents=True, exist_ok=True); a.audit_out.write_text(json.dumps(audit))
+    _T["total"] = round(time.time() - _t0)
+    print("timing (s): " + " · ".join(f"{k} {v}" for k, v in _T.items()))   # v8.41: last line -> visible in the loop log
     return 0
 
 if __name__ == "__main__":

@@ -12,6 +12,10 @@
 # v8.25: every flag is merged into data/track_record.json right after its scan (+ data/flag_history.json audit log) and rides
 #        along with the feed commits; tools/git_sync.py JSON-merges those files on a push race with kyvo-calls (performance).
 #        Push: KYVO_PROMO_ALL on by default until KYVO_PROMO_UNTIL (7.11 23:59 Warsaw), failed pushes dropped after 3 tries.
+# v8.41: the successor is queued EARLY (right after chunk 1, ~17 min in) and no longer depends on KYVO_LOOP_CHAIN (it was 0, so
+#        runs only came from the cron, which GitHub fires ~hourly -> 7–29 min with no scans between runs on 04.11). concurrency
+#        holds the queued run until this one ends, so the next one starts within seconds. Never after a failed chunk 1 (no spin).
+#        GITHUB_TOKEN may dispatch workflow_dispatch (GitHub's documented exception). Kill switch: repo variable KYVO_LOOP_STOP = 1.
 # Runs on GitHub's servers only (never on the trading VPS). Secret: ONESIGNAL_REST_API_KEY (Settings -> Secrets and
 # variables -> Actions). Missing secret = feeds still refresh, push step is a no-op. The key is never printed.
 name: kyvo-push
@@ -65,7 +69,7 @@ jobs:
           mkdir -p .kyvo_push
           git config user.name "kyvo-push-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-      - name: Loop 1/3 (scan ~90 s, tweets ~4 min, push at once, commit on change)
+      - name: Loop 1/3 (scan back to back, push per chain as soon as it is scanned, commit on change)
         run: python3 tools/kyvo_loop.py --max-min "$LOOP_MIN" $DRY
       - name: Save state (chunk 1)
         if: always()
@@ -73,6 +77,11 @@ jobs:
         with:
           path: .kyvo_push
           key: kyvo-push-${{ github.run_id }}-1
+      - name: Queue the next run now (v8.41 — waits in the concurrency queue, starts the moment this run ends)
+        if: ${{ success() && github.event.inputs.dry_run != 'true' && vars.KYVO_LOOP_STOP != '1' }}   # chunk 1 ok -> no fast fail-requeue spin
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run kyvo-push.yml --ref "${GITHUB_REF_NAME}" || echo "requeue failed -> the cron backstop starts the next run"
       - name: Loop 2/3
         run: python3 tools/kyvo_loop.py --max-min "$LOOP_MIN" $DRY
       - name: Save state (chunk 2)
@@ -89,8 +98,4 @@ jobs:
         with:
           path: .kyvo_push
           key: kyvo-push-${{ github.run_id }}-3
-      - name: Queue the next run (keeps the feed continuous)
-        if: ${{ success() && github.event.inputs.dry_run != 'true' && vars.KYVO_LOOP_CHAIN != '0' }}   # never after a failure (no fast fail-requeue spin)
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh workflow run kyvo-push.yml --ref "${GITHUB_REF_NAME}" || echo "requeue failed -> the cron backstop starts the next run"
+      # v8.41: the end-of-run requeue moved up (after chunk 1); a second dispatch here would only replace the queued run.
