@@ -127,6 +127,28 @@ def load(p: Path, d):
     try: return json.loads(p.read_text())
     except Exception: return d
 
+# v8.42 🔥 Trend picks enter Runner 2.0 only when they are the strongest kind (on top of every normal Runner 2.0 check):
+# wide holder base, low concentration, a clean (not overheated) 1 h move on clearly rising volume, buyers in charge, MC ≥ $1M.
+TREND_R2 = {"holders": 2000, "t10": 25, "t1": 5, "h1_max": 60, "vup": 1.3, "br": 0.55, "mc_min": 300_000}   # price side = the Runner
+# rule (stricter h1 / vol / MC made the 03–04.11 backtest worse); the extra strictness is the holder base and buyer share.
+# 🌱 Wczesny trend picks always go through the re-check queue (30–60 min later, live data, every normal check incl. ≤ 5× the 6 h low,
+# ≤ 1.5× the first flag, ≥ 0.9× the flag price) and then need ≥ 300 holders AND more than at the flag, top 10 ≤ 30%, top 1 ≤ 8%.
+ETREND_R2 = {"holders": 300, "t10": 30, "t1": 8}
+
+def etrend_strict(v: dict, h: dict | None) -> str | None:
+    """None = ok, 'wait' = holders not rising yet (stays queued), else the reason."""
+    if not h or h.get("h") is None: return "wait"
+    t0 = ((v.get("f") or {}).get("trend") or {}).get("holders") or 0; E = ETREND_R2
+    if (h.get("t10") or 0) > E["t10"] or (h.get("t1") or 0) > E["t1"]: return "etrend_holders"
+    if h["h"] < E["holders"] or h["h"] <= t0: return "wait"
+    return None
+
+def trend_strict(f: dict, mc) -> str | None:
+    t = f.get("trend") or {}; T = TREND_R2
+    if (t.get("holders") or 0) < T["holders"] or (t.get("t10") if t.get("t10") is not None else 99) > T["t10"] or (t.get("t1") or 0) > T["t1"]: return "trend_holders"
+    if (t.get("h1") or 0) > T["h1_max"] or (t.get("vup") or 0) < T["vup"] or (t.get("br") or 0) < T["br"] or (mc or 0) < T["mc_min"]: return "trend_weak"
+    return None
+
 def src_of(f: dict) -> str:
     return f.get("badge") or ("early" if f.get("kind") == "early" else "leg2" if f.get("kind") == "leg2" else "runner")
 
@@ -196,7 +218,7 @@ def main() -> int:
         if bundled(k): q.pop(k, None); skipped["bundle"] = skipped.get("bundle", 0) + 1; return
         if not hold_ok(k):
             if k in hp and k not in q:   # v8.35: waiting for holder data -> queue it (due on the next scan, re-checked live like a young coin)
-                q[k] = {"t": int(now - F["recheckMinS"]), "px0": px, "mc0": mc, "f": {x: f.get(x) for x in ("k", "sym", "name", "chain", "addr", "pair", "img", "at", "px0", "pd")}, "src": f.get("src") or src_of(f), "hw": 1}
+                q[k] = {"t": int(now - F["recheckMinS"]), "px0": px, "mc0": mc, "f": {x: f.get(x) for x in ("k", "sym", "name", "chain", "addr", "pair", "img", "at", "px0", "pd", "trend")}, "src": f.get("src") or src_of(f), "hw": 1}
             return
         coins[k] = {"k": f["k"], "sym": f.get("sym"), "name": f.get("name"), "chain": f.get("chain"), "addr": f.get("addr"), "pair": f.get("pair") or "",
                     "img": f.get("img"), "src": f.get("src") or src_of(f), "at": nowms, "px0": px, "mc0": mc, "flagAt": f.get("at"), "flagPx": f.get("px0"),
@@ -213,6 +235,8 @@ def main() -> int:
         h1 = nf(f.get("h1") if f.get("h1") is not None else sn.get("h1")); age_h = nf(f.get("age_h") if f.get("age_h") is not None else sn.get("age_h"))
         vol1h = nf(f.get("vol1h") if f.get("vol1h") is not None else sn.get("vol1h")); px, mc = nf(f.get("px0")), nf(f.get("mc0"))
         why = check(mc, h1, age_h, vol1h)
+        if why is None and f.get("badge") == "trend": why = trend_strict(f, mc)   # v8.42 only the strongest 🔥 Trend picks
+        if f.get("badge") == "etrend" and why in (None, "young"): why = "young"     # v8.42 🌱 always re-checked later (holders must rise)
         qe = q.get(k)
         if why is None and qe and qe.get("px0") and px and px < F["recheckMinPx"] * qe["px0"]: why = "dumped"   # was young: must hold 0.9× of its first flag
         if why is None: why = chased(px, (first.get(k) or [0, None])[1])        # v8.39: re-flag far above the first flag
@@ -220,7 +244,7 @@ def main() -> int:
         if why is None: add(k, f, px, mc, h1, age_h, vol1h, "scan"); continue
         if why in ("late_6h", "chased"): q.pop(k, None)
         if why == "young" and not qe:
-            q[k] = {"t": int(now), "px0": px, "mc0": mc, "f": {x: f.get(x) for x in ("k", "sym", "name", "chain", "addr", "pair", "img", "at", "px0", "pd")}, "src": src_of(f)}; queued += 1
+            q[k] = {"t": int(now), "px0": px, "mc0": mc, "f": {x: f.get(x) for x in ("k", "sym", "name", "chain", "addr", "pair", "img", "at", "px0", "pd", "trend")}, "src": src_of(f)}; queued += 1
         skipped[why] = skipped.get(why, 0) + 1
     # 2) young queue: re-check 30–60 min after the first flag with live data
     for k in [k for k, v in q.items() if now - v["t"] > F["recheckMaxS"] + 600 or k in coins]: q.pop(k, None)
@@ -243,6 +267,11 @@ def main() -> int:
         if why is None: why = late_6h(m.get("px"), low6h(k, v.get("f") or {}, m.get("px"), m.get("m5"), m.get("h1"), m.get("h6")))   # v8.39
         if why is None and k in H and H[k].get("w"): why = "holders"
         if why is None and not hold_ok(k): continue          # v8.35 waits for holder data (stays queued)
+        if why is None and v.get("src") == "etrend":         # v8.42 🌱 Wczesny trend: holders ≥ 300 and rising, low concentration
+            why = etrend_strict(v, H.get(k))
+            if why == "wait":
+                if now - v["t"] < F["recheckMaxS"]: continue
+                why = "etrend_holders_flat"
         if why: q.pop(k, None); skipped["recheck_" + why] = skipped.get("recheck_" + why, 0) + 1; continue
         add(k, dict(v["f"], src=v.get("src")), m["px"], m["mc"], m["h1"], m["age_h"], m["vol1h"], f"recheck {round((now - v['t']) / 60)} min")
     # 3) live price for the list ('% since it entered Runner 2.0' in the app)

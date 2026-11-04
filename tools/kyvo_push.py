@@ -134,7 +134,8 @@ def runner2_items(a, st: dict, sent: dict, now: float, seeding: bool, items_now:
         if len(out) >= R2_PER_RUN: continue
         h1 = c.get("h1"); mv = f" +{round(h1)}% 1h" if isinstance(h1, (int, float)) and 0 < h1 < 100000 else ""
         it = {"id": kid, "kind": "runner2", "topic": kid, "hash": "#coin/" + urllib.parse.quote(c["k"], safe=""),
-              "title_pl": f"🚀 Runner 2.0 · ${c.get('sym') or '?'}{mv} · sprawdzony", "title_en": f"🚀 Runner 2.0 · ${c.get('sym') or '?'}{mv} · confirmed"}
+              "title_pl": f"🚀 Runner 2.0{' · 🔥 Trend' if c.get('src') == 'trend' else ' · 🌱 Wczesny trend' if c.get('src') == 'etrend' else ''} · ${c.get('sym') or '?'}{mv} · sprawdzony",
+              "title_en": f"🚀 Runner 2.0{' · 🔥 Trend' if c.get('src') == 'trend' else ' · 🌱 Early trend' if c.get('src') == 'etrend' else ''} · ${c.get('sym') or '?'}{mv} · confirmed"}   # v8.42 🔥 Trend source
         for lang, base in (("pl", f"MC {fmt_usd(c.get('mc0'))} · ostrzejszy sygnał"), ("en", f"MC {fmt_usd(c.get('mc0'))} · stricter signal")):
             hint = f"MC {fmt_usd(c.get('mc0'))} · {R2_EXIT[lang]}"
             it["body_" + lang] = hint if len(hint) <= 110 else base
@@ -628,6 +629,22 @@ def main() -> int:
                                   "body_pl": f"po tweecie @{tw.get('handle')} · MC {fmt_usd(f.get('mc0'))}",
                                   "body_en": f"after @{tw.get('handle')}'s tweet · MC {fmt_usd(f.get('mc0'))}"})
             if b == "tweet": continue
+        if b == "etrend":   # v8.42 🌱 Wczesny trend — fresh coin climbing hard with real volume (same 🏃 Runner type / toggle / caps)
+            tr = f.get("trend") or {}
+            mv = f" +{round(tr['h1'])}% 1h" if isinstance(tr.get("h1"), (int, float)) and tr["h1"] > 0 else ""
+            items.append({"id": kid, "kind": "runner", "topic": kid, "hash": "#coin/" + f["k"],
+                          "title_pl": f"🏃 Runner · 🌱 Wczesny trend · ${f['sym']}{mv}", "title_en": f"🏃 Runner · 🌱 Early trend · ${f['sym']}{mv}",
+                          "body_pl": f"MC {fmt_usd(f.get('mc0'))} · młody coin, mocny wzrost · wysokie ryzyko", "body_en": f"MC {fmt_usd(f.get('mc0'))} · young coin climbing hard · high risk"})
+            continue
+        if b == "trend":    # v8.42 🔥 Trend — established quality coin trending up (same 🏃 Runner type / toggle / caps)
+            tr = f.get("trend") or {}
+            mv = f" +{round(tr['h1'])}% 1h" if isinstance(tr.get("h1"), (int, float)) and tr["h1"] > 0 else ""
+            hc = f" · {tr['holders']:,} holderów".replace(",", " ") if isinstance(tr.get("holders"), int) else ""
+            hce = f" · {tr['holders']:,} holders" if isinstance(tr.get("holders"), int) else ""
+            items.append({"id": kid, "kind": "runner", "topic": kid, "hash": "#coin/" + f["k"],
+                          "title_pl": f"🏃 Runner · 🔥 Trend · ${f['sym']}{mv}", "title_en": f"🏃 Runner · 🔥 Trend · ${f['sym']}{mv}",
+                          "body_pl": f"MC {fmt_usd(f.get('mc0'))}{hc} · stabilny trend ↑", "body_en": f"MC {fmt_usd(f.get('mc0'))}{hce} · steady uptrend"})
+            continue
         if b == "big":      # v8.9 📈 Big runner — established $1M–$100M coin running now (passed the safety floor)
             bg = f.get("big") or {}
             mv = (f" +{round(bg['h1'])}%" if bg.get("h1") is not None and bg["h1"] > 0 else "")

@@ -1,4 +1,4 @@
-/* KYVO_LIVE_v8_41 — v8.41: faster pushes (server only: early requeue, per-chain push, cached GT lists). v8.40: 🎯 "zaznaczony przy $X MC · 📈 szczyt $Y" on Runner / ⚡ Early / Runner 2.0 / 'Oznaczone dziś' (and unlocked
+/* KYVO_LIVE_v8_42 — v8.42: 🔥 Trend — established quality coins trending steadily up (MC $300K–$50M, ≥ 6 h, ≥ 1 000 holders, top 10 ≤ 30%, +15–60% 1 h on rising volume) as a new 🏃 Runner source (badge, same push / toggle) + 🌱 Wczesny trend (fresh graduated coins 15 min–3 h, $50K–$300K, climbing hard on real volume, not bundled); both reach 🚀 Runner 2.0 only through extra-strict checks. v8.41: faster pushes (server only: early requeue, per-chain push, cached GT lists). v8.40: 🎯 "zaznaczony przy $X MC · 📈 szczyt $Y" on Runner / ⚡ Early / Runner 2.0 / 'Oznaczone dziś' (and unlocked
    Runners in GTA): MC at the flag and the peak MC after it (server track record, max raised by the loop's live prices) + 🏔 ATH 48 h.
    v8.39: ✅ "trzyma się" badge on 🏃 Runner coins still at / above their flag price 10 min after the flag (server h10,
    tools/track_record.py; badge only, nothing hidden) + stricter 🚀 Runner 2.0 entry (≤ 5× the 6 h low, ≤ 1.5× the first flag price).
@@ -1426,6 +1426,20 @@
     else if (e.badge === 'tweet' && e.tweet) { // v8.9 🐦 Tweet runner: runs after a tracked account's tweet
       out.push(`+${Math.round(e.tweet.chg || 0)}% ${L2('od tweeta', 'since the tweet')} @${esc(e.tweet.handle || '')}`, L2('wolumen i kupujący rosną od tweeta', 'volume and buyers rising since the tweet'));
     }
+    else if (e.badge === 'trend') { // v8.42 🔥 Trend (server): established quality coin trending steadily up
+      const t = e.trend || {}, pc = (v) => (v == null ? null : (v >= 0 ? '+' : '') + Math.round(v) + '%');
+      if (t.h1 != null) out.push(pc(t.h1) + ' 1h' + (t.h24 != null ? ' · ' + pc(t.h24) + ' 24h' : ''));
+      if (t.holders) out.push(`${fmtInt(t.holders)} ${L2('holderów', 'holders')}` + (t.t10 != null ? ` · top 10 ${Math.round(t.t10)}%` : ''));
+      if (t.vup) out.push(`vol 1h ×${(+t.vup).toFixed(1)} ${L2('vs tempo 6 h', 'vs 6 h pace')}`);
+      if (t.br) out.push(`${Math.round(t.br * 100)}% ${L2('kupna', 'buys')}`);
+    }
+    else if (e.badge === 'etrend') { // v8.42 🌱 Wczesny trend (server): fresh graduated coin climbing hard with real volume
+      const t = e.trend || {};
+      if (t.h1 != null) out.push('+' + Math.round(t.h1) + '% 1h' + (t.age_h != null ? ' · ' + L2('coin ma', 'coin is') + ' ' + (t.age_h < 1 ? Math.round(t.age_h * 60) + ' min' : (+t.age_h).toFixed(1) + ' h') : ''));
+      if (t.holders) out.push(`${fmtInt(t.holders)} ${L2('holderów', 'holders')}` + (t.t10 != null ? ` · top 10 ${Math.round(t.t10)}%` : ''));
+      if (t.tx1h) out.push(`${fmtInt(t.tx1h)} ${L2('transakcji 1h', 'trades 1h')}`);
+      if (t.br) out.push(`${Math.round(t.br * 100)}% ${L2('kupna', 'buys')}`);
+    }
     else if (e.badge === 'big') { // v8.9 📈 Big runner (server): established $1M+ coin running now
       const b = e.big || {}, pc = (v) => (v == null ? null : (v >= 0 ? '+' : '') + Math.round(v) + '%');
       if (b.h1 != null) out.push(pc(b.h1) + ' 1h' + (b.h6 != null ? ' · ' + pc(b.h6) + ' 6h' : ''));
@@ -1439,7 +1453,8 @@
   }
   function kolWarnHtml(e) {
     if (e.badge === 'tweet') return `<div class="kolwarn" translate="no">⚠️ ${(window.KyvoI18n && window.KyvoI18n.isEn()) ? 'Moves right after a tweet often fade fast — late entries are risky.' : 'Ruchy zaraz po tweecie często szybko się kończą — późne wejście jest ryzykowne.'}</div>`;
-    if (e.badge === 'big') return ''; // v8.9: big runners passed the normal safety floor — no high-risk banner
+    if (e.badge === 'etrend') return `<div class="kolwarn" translate="no">⚠️ ${(window.KyvoI18n && window.KyvoI18n.isEn()) ? 'Young coin (under 3 h): big moves both ways — small size, take profit early.' : 'Młody coin (poniżej 3 h): duże ruchy w obie strony — mała pozycja, realizuj zysk wcześnie.'}</div>`;   // v8.42
+    if (e.badge === 'big' || e.badge === 'trend') return ''; // v8.9 / v8.42: passed the safety floor + holder checks — no high-risk banner
     const en = window.KyvoI18n && window.KyvoI18n.isEn(), L2 = (pl, x) => (en ? x : pl);
     const p = e.top_pct != null ? Math.round(e.top_pct) : null, who = e.kol ? ' (@' + esc(e.kol) + ')' : '';
     let t;
@@ -1606,7 +1621,7 @@
     let openK = null; if (!prem) { try { openK = (RunnerGate.openKeys() || []).map((k) => String(k).replace(/^leg2:/, '')); } catch (e) { openK = []; } }
     const isOpen = (e) => prem || Date.now() - e.at > 24 * 3.6e6 || (openK || []).includes(e.k);
     const ago = (ms) => { const m = Math.max(1, Math.round((Date.now() - ms) / 60e3)); return m < 60 ? L2(m + ' min temu', m + ' min ago') : m < 48 * 60 ? L2(Math.floor(m / 60) + ' h ' + (m % 60) + ' min temu', Math.floor(m / 60) + ' h ' + (m % 60) + ' min ago') : L2(Math.round(m / 1440) + ' d temu', Math.round(m / 1440) + ' d ago'); };
-    const srcL = (e) => (e.src === 'early' ? '⚡ ' + L2('Wczesny', 'Early') : e.src === 'leg2' ? '🔁 ' + L2('Kolejna fala', 'Second leg') : e.src === 'kol' ? '👑 KOL' : e.src === 'moon' ? '🚀 Moon' : e.src === 'big' ? '📈 ' + L2('Duży', 'Big') : e.src === 'tweet' ? '🐦 Tweet' : '🏃 Runner');
+    const srcL = (e) => (e.src === 'early' ? '⚡ ' + L2('Wczesny', 'Early') : e.src === 'leg2' ? '🔁 ' + L2('Kolejna fala', 'Second leg') : e.src === 'kol' ? '👑 KOL' : e.src === 'moon' ? '🚀 Moon' : e.src === 'big' ? '📈 ' + L2('Duży', 'Big') : e.src === 'trend' ? '🔥 Trend' : e.src === 'etrend' ? '🌱 ' + L2('Wczesny trend', 'Early trend') : e.src === 'tweet' ? '🐦 Tweet' : '🏃 Runner');
     const ok = (v) => v != null && isFinite(v) && v < 5000;
     const pcts = (e) => { const c = kolCoinOf(e), live = Number(c && c.priceUsd) > 0 ? Number(c.priceUsd) : e.last; const nowP = pctE(live, e); const maxP = pctE(Math.max(e.max || 0, live || 0), e); return { c, nowP, maxP }; };
     const res = all.map((e) => Object.assign({ e }, pcts(e)));
@@ -1656,7 +1671,7 @@
     const shown = runnerStage ? items.coins.filter((x) => (stageOf(x.c.mcap) || {}).n === runnerStage) : items.coins;
     const freeLeft = !prem && openK.length && items.coins.some((x) => openK.includes(x.key)), openN = openK.length, nLeft = Math.max(0, quota - openN);
     const flagAgo = (ms) => { const m = Math.max(1, Math.round((Date.now() - ms) / 60e3)); return m < 60 ? L2(m + ' min temu', m + ' min ago') : L2(Math.round(m / 60) + ' h temu', Math.round(m / 60) + ' h ago'); };
-    const kindLabel = (x) => { const b = x.srv && x.srv.badge; return b === 'kol' ? '👑 KOL coin' : b === 'moon' ? '🚀 Moon run' : b === 'tweet' ? '🐦 Tweet runner' : b === 'big' || x.big ? '📈 ' + L2('Duży runner', 'Big runner') : x.leg2 ? '🔁 ' + L2('Kolejna fala', 'Second leg') : x.early ? '⚡ ' + L2('Zaczyna pompować', 'Starting to pump') : '🏃 Runner'; };
+    const kindLabel = (x) => { const b = x.srv && x.srv.badge; return b === 'kol' ? '👑 KOL coin' : b === 'moon' ? '🚀 Moon run' : b === 'tweet' ? '🐦 Tweet runner' : b === 'trend' ? '🔥 Trend' : b === 'etrend' ? '🌱 ' + L2('Wczesny trend', 'Early trend') : b === 'big' || x.big ? '📈 ' + L2('Duży runner', 'Big runner') : x.leg2 ? '🔁 ' + L2('Kolejna fala', 'Second leg') : x.early ? '⚡ ' + L2('Zaczyna pompować', 'Starting to pump') : '🏃 Runner'; };
     const lockCard = (x) => { const at = runnerFlagAt(x); // v8.11: no name / ticker / CA / logo / chart / links for locked Runners
       return `<div class="row runner rlock" role="button" tabindex="0" data-unlock translate="no"><div class="rlock-ic" aria-hidden="true">🔒</div>
         <div class="nm"><b>${kindLabel(x)}${at ? ` <span class="mut" style="font-weight:600">· ${esc(flagAgo(at))}</span>` : ''}</b>
@@ -1671,13 +1686,13 @@
       const climb = tr && tr.mc0 ? (c.mcap / tr.mc0 - 1) * 100 : null;
       return `<div class="row runner${x.leg2 ? ' leg2' : ''}" data-key="${esc(keyOf(c))}" role="button" tabindex="0">${imgTag(c)}
         <div class="nm"><b><span class="cbadge c-${esc(c.chainId || 'solana')}">${esc(chainBadge(c))}</span> ${esc(c.name)} <span class="mut" style="font-weight:600">$${esc(c.symbol)}</span>${sv ? '' : x.leg2 ? ` <span class="leg2b" translate="no">🔁 ${L2('Kolejna fala', 'Second leg')}</span>` : x.big ? ` <span class="leg2b bigb" translate="no">📈 ${L2('Duży runner', 'Big runner')}</span>` : x.early ? ` <span class="leg2b early" translate="no">⚡ ${L2('Zaczyna pompować', 'Starting to pump')}</span>` : ''}</b>
-          ${sv ? `<div class="kolline">${sv.badge === 'kol' ? '<span class="leg2b kolb" translate="no">👑 KOL coin</span>' : sv.badge === 'tweet' ? `<span class="leg2b twb" translate="no">🐦 Tweet runner</span>` : sv.badge === 'big' ? `<span class="leg2b bigb" translate="no">📈 ${L2('Duży runner', 'Big runner')}</span>` : `<span class="leg2b moonb" translate="no">🚀 Moon run · ${L2('wysokie ryzyko', 'high risk')}</span>`}</div>` + kolWarnHtml(sv) : ''}
+          ${sv ? `<div class="kolline">${sv.badge === 'kol' ? '<span class="leg2b kolb" translate="no">👑 KOL coin</span>' : sv.badge === 'tweet' ? `<span class="leg2b twb" translate="no">🐦 Tweet runner</span>` : sv.badge === 'big' ? `<span class="leg2b bigb" translate="no">📈 ${L2('Duży runner', 'Big runner')}</span>` : sv.badge === 'trend' ? `<span class="leg2b bigb" translate="no">🔥 Trend · ${L2('stabilny wzrost', 'steady uptrend')}</span>` : sv.badge === 'etrend' ? `<span class="leg2b early" translate="no">🌱 ${L2('Wczesny trend', 'Early trend')}</span>` : `<span class="leg2b moonb" translate="no">🚀 Moon run · ${L2('wysokie ryzyko', 'high risk')}</span>`}</div>` + kolWarnHtml(sv) : ''}
           ${sv && sv.tweet && sv.tweet.url ? `<div class="twlink" translate="no"><a href="${esc(sv.tweet.url)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">🐦 ${L2('Tweet', 'Tweet')} @${esc(sv.tweet.handle || '')} · +${Math.round(sv.tweet.chg || 0)}% ${L2('od tweeta', 'since')} ↗</a></div>` : ''}
           ${st ? `<div class="rstage st${st.n}" translate="no"><b>${L2('Etap', 'Stage')} ${st.n}</b> ${stageBarHtml(st)} <span class="mut">${esc(st.range)} · ${esc(L2(st.pl, st.en))}</span></div>` : ''}
           <div class="rmc" translate="no">${tr && tr.mc0 ? `${L2('MC przy oznaczeniu', 'MC at flag')} <b>${fmtUsd(tr.mc0)}</b> → ${L2('teraz', 'now')} <b>${fmtUsd(c.mcap)}</b> <span class="${pctClass(climb)}">${climb >= 0.5 ? '↑' : climb <= -0.5 ? '↓' : '→'} ${fmtPct(climb)}</span> <span class="mut">· ${esc(flagAgo(tr.kinds.runner || tr.kinds.leg2 || tr.at))}</span>` : `MC <b>${fmtUsd(c.mcap)}</b>`}</div>
           ${flagPeakHtml(keyOf(c), sv && sv.px0 > 0 ? sv : tr, c.mcap)}
           <small>${(h10Badge(keyOf(c), tr && tr.h10) + pdBadge(keyOf(c), sv && sv.pd) + holdBadge(keyOf(c))).trim()}${h10Badge(keyOf(c), tr && tr.h10) || pdBadge(keyOf(c), sv && sv.pd) || holdBadge(keyOf(c)) ? ' ' : ''}Liq ${fmtLiq(c)} · ⏱ ${esc(ageFrom(c.pairCreatedAt))}</small>
-          <div class="rwhy" translate="no">${sv && sv.badge === 'kol' ? '👑 ' + L2('Dlaczego KOL coin', 'Why KOL coin') : sv && sv.badge === 'moon' ? '🚀 ' + L2('Dlaczego moon run', 'Why moon run') : sv && sv.badge === 'tweet' ? '🐦 ' + L2('Dlaczego tweet runner', 'Why tweet runner') : (sv && sv.badge === 'big') || x.big ? '📈 ' + L2('Dlaczego duży runner', 'Why big runner') : x.leg2 ? '🔁 ' + L2('Dlaczego kolejna fala', 'Why second leg') : '🏃 ' + L2('Dlaczego runner', 'Why runner')}: ${x.why.join(' · ')}</div>
+          <div class="rwhy" translate="no">${sv && sv.badge === 'kol' ? '👑 ' + L2('Dlaczego KOL coin', 'Why KOL coin') : sv && sv.badge === 'moon' ? '🚀 ' + L2('Dlaczego moon run', 'Why moon run') : sv && sv.badge === 'tweet' ? '🐦 ' + L2('Dlaczego tweet runner', 'Why tweet runner') : sv && sv.badge === 'trend' ? '🔥 ' + L2('Dlaczego trend', 'Why trend') : sv && sv.badge === 'etrend' ? '🌱 ' + L2('Dlaczego wczesny trend', 'Why early trend') : (sv && sv.badge === 'big') || x.big ? '📈 ' + L2('Dlaczego duży runner', 'Why big runner') : x.leg2 ? '🔁 ' + L2('Dlaczego kolejna fala', 'Why second leg') : '🏃 ' + L2('Dlaczego runner', 'Why runner')}: ${x.why.join(' · ')}</div>
           ${c._snap ? '' : window.KyvoInsights.upsideRowHtml(c)}</div>
         <div class="rt">${sparkSvg(c)}<b class="${pctClass(c.change.h1)}">${fmtPct(c.change.h1)}</b><small class="mut">1h</small><small class="rtmc" translate="no">MC ${fmtUsd(c.mcap)}</small></div></div>`;
     };

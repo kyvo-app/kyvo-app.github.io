@@ -114,6 +114,7 @@ def main() -> int:
     for c in (load(a.early, {}) or {}).get("items") or []: add(c.get("k"), c.get("addr"), TTL_HOT)
     for c in (load(a.track, {}) or {}).get("items") or []:
         if now - (c.get("at") or 0) / 1000 < 24 * 3600: add(c.get("k"), c.get("addr"), TTL_OLD)
+        if c.get("badge") == "etrend" and now - (c.get("at") or 0) / 1000 < 2 * 3600: add(c.get("k"), c.get("addr"), TTL_HOT)   # v8.42 🌱 Runner 2.0 needs rising holders
     # 🥇 Gold metrics = the same RugCheck facts, already fetched by tools/gold.py -> no request
     for c in (load(a.gold, {}) or {}).get("cards") or []:
         k, m = str(c.get("k") or "").lower(), c.get("metrics") or {}

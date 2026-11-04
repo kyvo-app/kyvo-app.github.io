@@ -60,6 +60,18 @@ PD_CACHE = Path(os.environ.get("KYVO_PD_CACHE", ".kyvo_calls/post_dump.json"))
 GT_LIST_TTL = int(os.environ.get("KYVO_GT_LIST_TTL", "300"))
 GT_LIST_CACHE = Path(os.environ.get("KYVO_GT_LIST_CACHE", ".kyvo_calls/gt_lists.json"))
 _GTL: dict = {}
+# v8.42 🔥 Trend: established quality coins trending steadily up (CHOO-type: $300K–$50M, ≥ 6 h old, many holders, +15–60% in 1 h on
+# rising volume) -> a 🏃 Runner flag with badge "trend" (Runner tab + push as '🏃 Runner · 🔥 Trend'); Runner 2.0 takes it when it
+# passes its own stricter checks. Free public data only (DexScreener pairs already read, RugCheck / GoPlus, GeckoTerminal traders).
+TREND = {"mc_min": 300_000, "mc_max": 50_000_000, "age_min_h": 6, "liq_min": 50_000, "vol24_min": 500_000, "vol1h_min": 50_000,
+         "h1_min": 20, "h1_max": 60, "vol_up": 1.3, "h24_max": 400, "br_min": 0.52, "tx1h_min": 60, "m5_min": -5,
+         "holders_min": 1000, "top10_max": 30, "top1_max": 10, "per_chain": 3, "day_cap": int(os.environ.get("KYVO_TREND_DAY_CAP", "8")),
+         "cool_s": 1800}
+# v8.42 🌱 Wczesny trend: FRESH graduated coins climbing hard with real volume (TOLY-type, 04.11: 35 min old, $90K MC, +143% 1 h,
+# 8 k trades, 60% buys) -> 🏃 Runner flag with badge "etrend". Not bundled (RugCheck insiders < 20), no single-wallet dominance.
+ETREND = {"mc_min": 50_000, "mc_max": 300_000, "age_min_h": 0.25, "age_max_h": 3, "liq_min": 15_000, "vol1h_min": 50_000, "h1_min": 30,
+          "m5_min": 0, "m5_max": 60, "tx1h_min": 300, "br_min": 0.55, "holders_min": 150, "top10_max": 35, "top1_max": 8, "per_chain": 2,
+          "day_cap": int(os.environ.get("KYVO_ETREND_DAY_CAP", "8")), "cool_s": 1800}
 _T: dict = {}   # v8.41 per-phase timing (last output line, the loop log shows it)
 # v8.9: quote / stable tokens that top the volume lists (never a "coin" for Kyvo)
 QUOTE_TOKENS = {"so11111111111111111111111111111111111111112", "epjfwdd5aufqssqem2qn1xzybapc8g4weggkzwytdt1v", "es9vmfrzacermjfrf4h2fyd4kconky11mcce8benwnyb",
@@ -191,6 +203,92 @@ def gt_list(url: str) -> tuple[dict, bool]:
     if isinstance(m, list) and time.time() - m[0] < 3 * GT_LIST_TTL: return m[1], True   # API down / 429 -> a slightly older list
     return {}, True
 
+def trend_pre(c: dict) -> bool:
+    """v8.42 🔥 Trend — cheap stage on the DexScreener pair already in hand (no extra request)."""
+    T = TREND; mc, v1, v6 = c.get("mcap") or 0, c.get("vol1h") or 0, c.get("vol6h") or 0
+    if not (T["mc_min"] <= mc <= T["mc_max"]) or c.get("on_curve"): return False
+    if (c.get("age_h") or 0) < T["age_min_h"] or (c.get("liq") or 0) < T["liq_min"] or (c.get("vol24") or 0) < T["vol24_min"]: return False
+    h1 = c.get("h1")
+    if h1 is None or not (T["h1_min"] <= h1 <= T["h1_max"]) or v1 < T["vol1h_min"]: return False
+    if v6 and v1 < T["vol_up"] * v6 / 6: return False                      # volume rising: last hour above 1.3× the 6 h hourly pace
+    if (c.get("h24") or 0) > T["h24_max"] or (c.get("m5") or 0) < T["m5_min"]: return False   # ≤ 5× the price 24 h ago, not dumping now
+    if (c.get("tx_h1") or 0) < T["tx1h_min"] or (c.get("buy_ratio") or 0) < T["br_min"]: return False
+    return True
+
+def etrend_pre(c: dict) -> bool:
+    """v8.42 🌱 Wczesny trend — cheap stage (DexScreener pair already in hand)."""
+    T = ETREND
+    if not (T["mc_min"] <= (c.get("mcap") or 0) <= T["mc_max"]) or c.get("on_curve") or (c.get("liq") or 0) < T["liq_min"]: return False
+    if c.get("age_h") is None or not (T["age_min_h"] <= c["age_h"] <= T["age_max_h"]): return False
+    if (c.get("h1") or 0) < T["h1_min"] or (c.get("vol1h") or 0) < T["vol1h_min"]: return False
+    m5 = c.get("m5") or 0
+    if not (T["m5_min"] <= m5 <= T["m5_max"]): return False               # still climbing, not one vertical candle
+    return (c.get("tx_h1") or 0) >= T["tx1h_min"] and (c.get("buy_ratio") or 0) >= T["br_min"]
+
+def trend_holders(c: dict) -> tuple[dict | None, dict | None, dict | None]:
+    """(facts {h, t10, t1}, RugCheck report, GoPlus result) — Solana: RugCheck (same pool-free maths as tools/holders.py), BSC: GoPlus."""
+    import holders as H
+    if c["chain"] == "solana":
+        try: r, _ = H.rc_report(c["address"], False)
+        except H.RateLimited: return None, None, None
+        return H.facts(r), r, None
+    res = (kol_coins.get(kol_coins.GP + "token_security/56?contract_addresses=" + c["address"]) or {}).get("result") or {}
+    g = res.get(c["address"].lower()) or res.get(c["address"])
+    if not isinstance(g, dict): return None, None, None
+    hs = [h for h in g.get("holders") or [] if not str(h.get("is_contract")) == "1" and not str(h.get("is_locked")) == "1"]
+    pct = [float(h.get("percent") or 0) * 100 for h in hs]
+    try: hc = int(g.get("holder_count") or 0)
+    except Exception: hc = None
+    return {"h": hc, "t10": round(sum(pct[:10]), 1) if pct else None, "t1": round(pct[0], 1) if pct else None}, None, g
+
+def trend_scan(chain: str, coins: list[dict], flagged: set, st: dict, flag, early: bool = False) -> int:
+    """v8.42 🔥 Trend (early=False) / 🌱 Wczesny trend (early=True): ≤ 3 / 2 candidates per chain get the holder + hard-rug check
+    (🔥 also real buyers rising); ≤ 8 coins a Warsaw day each, 30-min re-flag cooldown."""
+    T = ETREND if early else TREND; ts = st.setdefault("etrend" if early else "trend", {}); day = __import__("datetime").datetime.now(__import__("zoneinfo").ZoneInfo("Europe/Warsaw")).strftime("%Y-%m-%d")
+    if ts.get("day") != day: ts.update({"day": day, "coins": []})
+    seen = ts.setdefault("seen", {}); now = time.time()
+    for k in [k for k, t in seen.items() if now - t > 86400]: seen.pop(k, None)
+    pre = etrend_pre if early else trend_pre
+    cand = sorted([c for c in coins if c["address"] not in flagged and pre(c)
+                   and now - seen.get(f"{chain}:{c['address'].lower()}", 0) > T["cool_s"]], key=lambda c: -(c.get("vol1h") or 0))[:T["per_chain"]]
+    n = 0
+    for c in cand:
+        k = f"{chain}:{c['address'].lower()}"
+        if k not in ts["coins"] and len(ts["coins"]) >= T["day_cap"]: print(f"  🔥 trend ${c['symbol']}: day cap {T['day_cap']} reached"); break
+        seen[k] = now
+        f, r, g = trend_holders(c)
+        if not f or f.get("h") is None: print(f"  no 🔥 trend ${c['symbol']}: holders unknown"); continue
+        why = ("holders" if f["h"] < T["holders_min"] else "top10" if (f.get("t10") or 0) > T["top10_max"] else "top1" if (f.get("t1") or 0) > T["top1_max"] else
+               "devrug" if f.get("devrug") else "rugged" if f.get("rugged") else None)
+        if why: print(f"  no {'🌱 early' if early else '🔥'} trend ${c['symbol']}: {why} (h {f['h']}, top10 {f.get('t10')}%)"); continue
+        if early:   # young coin: every hard-rug test incl. the insider / bundle graph + same-ticker copycat; no buyer-count floor
+            try:
+                score, checks = kyvo_check(c, coins)
+                bad = kol_coins.hard_rug(c, checks, r, g) or kol_coins.copycat_of(c, coins)
+            except Exception as e: print(f"  🌱 early trend check error ${c['symbol']}: {type(e).__name__}"); continue
+            if bad: print(f"  no 🌱 early trend ${c['symbol']}: {bad}"); continue
+            ov = {"badge": "etrend", "trend": {"h1": c.get("h1"), "m5": c.get("m5"), "age_h": round(c.get("age_h") or 0, 2), "holders": f["h"], "t10": f.get("t10"),
+                                               "t1": f.get("t1"), "br": round(c.get("buy_ratio") or 0, 2), "tx1h": c.get("tx_h1")}}
+            flag(c, "runner", ov, score, checks); flagged.add(c["address"]); n += 1
+            if k not in ts["coins"]: ts["coins"].append(k)
+            print(f"  🌱 early trend ${c['symbol']} MC {fmt_usd(c['mcap'])} age {c.get('age_h', 0):.1f} h h1 +{round(c.get('h1') or 0)}% holders {f['h']} top10 {f.get('t10')}%")
+            continue
+        try:
+            score, checks = kyvo_check(c, coins)
+            # RugCheck's insider graph flags most established coins (CHOO 04.11: 72 linked wallets, 19 262 holders) -> for 🔥 Trend the
+            # holder spread above (≥ 1 000 holders, top 10 ≤ 30%, top 1 ≤ 10%) replaces that one test; every other hard-rug test stays
+            ins = (r or {}).get("graphInsidersDetected") if isinstance(r, dict) else None
+            r2 = dict(r, graphInsidersDetected=0) if isinstance(r, dict) else r
+            ov = kol_coins.big_check(c, checks, coins, facts={"rc": r2} if c["chain"] == "solana" else {"rc": None, "gp": g})   # hard rug / copycat / real unique buyers rising
+        except Exception as e: print(f"  🔥 trend check error ${c['symbol']}: {type(e).__name__}"); continue
+        if ov.get("blocked"): print(f"  no 🔥 trend ${c['symbol']}: {ov['blocked']}"); continue
+        ov.update({"badge": "trend", "trend": {"h1": c.get("h1"), "h6": c.get("h6"), "h24": c.get("h24"), "holders": f["h"], "t10": f.get("t10"), "t1": f.get("t1"),
+                                               "br": round(c.get("buy_ratio") or 0, 2), "ins": ins, "vup": round((c.get("vol1h") or 0) / ((c.get("vol6h") or 0) / 6), 1) if c.get("vol6h") else None}})
+        flag(c, "runner", ov, score, checks); flagged.add(c["address"]); n += 1
+        if k not in ts["coins"]: ts["coins"].append(k)
+        print(f"  🔥 trend ${c['symbol']} MC {fmt_usd(c['mcap'])} h1 +{round(c.get('h1') or 0)}% holders {f['h']} top10 {f.get('t10')}%")
+    return n
+
 def write_partial(path: Path | None, flags: list[dict]) -> None:
     """v8.41: flags found so far (after each chain) -> path, atomically; the loop pushes them before the rest of the scan ends."""
     if not path: return
@@ -219,7 +317,7 @@ def to_coin(p: dict) -> dict:
         "mcap": p.get("marketCap") or p.get("fdv"), "liq": (p.get("liquidity") or {}).get("usd"), "vol24": (p.get("volume") or {}).get("h24"),
         "h1": (p.get("priceChange") or {}).get("h1"), "h24": (p.get("priceChange") or {}).get("h24"),
         "m5": (p.get("priceChange") or {}).get("m5"), "h6": (p.get("priceChange") or {}).get("h6"),
-        "vol1h": (p.get("volume") or {}).get("h1"), "vol5m": (p.get("volume") or {}).get("m5"), "buys1h": buys, "sells1h": sells,
+        "vol1h": (p.get("volume") or {}).get("h1"), "vol6h": (p.get("volume") or {}).get("h6"), "vol5m": (p.get("volume") or {}).get("m5"), "buys1h": buys, "sells1h": sells,
         "tx6h": (((p.get("txns") or {}).get("h6") or {}).get("buys") or 0) + (((p.get("txns") or {}).get("h6") or {}).get("sells") or 0) if ((p.get("txns") or {}).get("h6")) else None,
         "age_h": (time.time() * 1000 - created) / 3.6e6 if created else None,
         "buy_ratio": buys / (buys + sells) if buys + sells else None, "tx_h1": buys + sells,
@@ -612,6 +710,7 @@ def main() -> int:
                 f.update({"badge": ov["badge"], "kol": ov.get("handle") if ov["badge"] == "kol" else None, "top_pct": ov.get("top_pct"),
                           "top_is": ov.get("top_is"), "concentrated": ov.get("concentrated"), "evidence": ov.get("evidence") or [],
                           "tweeted_by": ov.get("tweeted_by") or [], "buyers1h": ov.get("buyers1h"), "big": ov.get("big"), "tweet": ov.get("tweet"),
+                          "trend": ov.get("trend"),   # v8.42 🔥 Trend facts (app "why" line)
                           "snap": {"liq": c.get("liq"), "vol1h": c.get("vol1h"), "h1": c.get("h1"), "m5": c.get("m5"), "tx1h": c.get("tx_h1"),
                                    "age_h": round(c["age_h"], 3) if c.get("age_h") is not None else None, "created": int(time.time() * 1000 - (c.get("age_h") or 0) * 3.6e6)}})
             flags.append(f)
@@ -727,6 +826,10 @@ def main() -> int:
             if ov.get("blocked"): print(f"  no big runner ${c['symbol']}: {ov['blocked']}"); continue
             ov["big"] = {"h1": c.get("h1"), "h6": c.get("h6"), "acc": round(r.get("acc") or 0, 1), "txAcc": round(r["txAcc"], 1) if r.get("txAcc") else None, "br": round(r.get("br") or 0, 2)}
             flag(c, "runner", ov); print(f"  big runner ${c['symbol']} MC {fmt_usd(c['mcap'])} h1 {c.get('h1')} ×{r.get('acc', 0):.1f} vol")
+        # v8.42 🔥 Trend (after the Big runner pass, never a coin already flagged this scan)
+        for _early in (False, True):
+            try: trend_scan(chain, coins, {f["addr"] for f in flags if f["kind"] == "runner"}, st, flag, early=_early)
+            except Exception as e: print(f"  trend error: {type(e).__name__}")
         # v8.41: this chain's flags go out NOW (the loop pushes them while the next chain is scanned); ⚠️ po dumpie first so the push
         # keeps its tag (post_dump skips flags that already have pd -> no extra reads at the end)
         if a.partial_out and flags:
