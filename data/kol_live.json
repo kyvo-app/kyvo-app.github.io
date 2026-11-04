@@ -1,24 +1,24 @@
 {
  "version": 1,
- "updated_at": "2026-11-04T16:54:55Z",
+ "updated_at": "2026-11-04T17:12:17Z",
  "items": [
   {
-   "k": "solana:3vajh3wXe3EuLSXfSaCikyoCnzyhUJ3KPSoFhyAgpump",
-   "sym": "PREFIRE",
-   "name": "Prefire",
+   "k": "solana:7xP2r4Vtjy5opBZjbPcCc4N7BkRhhQddqsFQDpDopump",
+   "sym": "$TAPE",
+   "name": "Tidal Tape ",
    "chain": "solana",
-   "addr": "3vajh3wXe3EuLSXfSaCikyoCnzyhUJ3KPSoFhyAgpump",
-   "pair": "DmeYJaAGWGqvugcgTnHCchzjXyZgfiM3Pdc8VZmfggvo",
-   "img": "https://cdn.dexscreener.com/cms/images/HN0nxUHoxgvJfuLj?width=800&height=800&quality=95&format=auto",
+   "addr": "7xP2r4Vtjy5opBZjbPcCc4N7BkRhhQddqsFQDpDopump",
+   "pair": "54CGG1YRpRwXwBDjAabN4AyPDDMX9LLxeby9paVARPC8",
+   "img": "https://cdn.dexscreener.com/cms/images/PkfxAVFgZiN_R3fK?width=800&height=800&quality=95&format=auto",
    "kind": "runner",
-   "at": 1793810770224,
-   "px0": 9.241e-05,
-   "mc0": 86339,
-   "h1": 77.19,
-   "m5": 12.26,
-   "age_h": 1.24,
-   "vol1h": 60898.87,
-   "h6": 124,
+   "at": 1793811573610,
+   "px0": 0.0002674,
+   "mc0": 267375,
+   "h1": 489,
+   "m5": 3.65,
+   "age_h": 0.432,
+   "vol1h": 392871.85,
+   "h6": 489,
    "badge": "etrend",
    "kol": null,
    "top_pct": null,
@@ -30,65 +30,60 @@
    "big": null,
    "tweet": null,
    "trend": {
-    "h1": 77.19,
-    "m5": 12.26,
-    "age_h": 1.24,
-    "holders": 1086,
-    "t10": 17.4,
-    "t1": 2.8,
-    "br": 0.57,
-    "tx1h": 1357
+    "h1": 489,
+    "m5": 3.65,
+    "age_h": 0.43,
+    "holders": 1015,
+    "t10": 5.5,
+    "t1": 0.6,
+    "br": 0.77,
+    "tx1h": 6863
    },
    "snap": {
-    "liq": 23614.85,
-    "vol1h": 60898.87,
-    "h1": 77.19,
-    "m5": 12.26,
-    "tx1h": 1357,
-    "age_h": 1.24,
-    "created": 1793806306053
-   },
-   "pd": {
-    "b": 0,
-    "ath": 86339,
-    "w": false
+    "liq": 42419.88,
+    "vol1h": 392871.85,
+    "h1": 489,
+    "m5": 3.65,
+    "tx1h": 6863,
+    "age_h": 0.432,
+    "created": 1793810019586
    },
    "pred": {
-    "G": 0.602,
-    "scen": "high",
-    "sc": 100,
+    "G": 0.116,
+    "scen": "low",
+    "sc": 91,
     "as": false,
     "h": {
      "0.5": [
-      13,
-      50,
-      10,
-      55
+      5,
+      20,
+      -10,
+      31
      ],
      "1": [
-      19,
-      70,
-      13,
-      53
+      7,
+      30,
+      -15,
+      30
      ],
      "3": [
-      18,
-      80,
-      16,
-      45
+      8,
+      30,
+      -29,
+      25
      ],
      "6": [
-      40,
-      170,
-      5,
-      34,
+      16,
+      60,
+      -43,
+      19,
       1
      ],
      "8": [
-      40,
-      170,
-      -5,
-      26,
+      16,
+      60,
+      -47,
+      15,
       1
      ]
     }
@@ -179,9 +174,7 @@
       1
      ]
     }
-   },
-   "mcNow": 174868,
-   "lastAt": 1793810966608
+   }
   },
   {
    "k": "solana:EwHV6XfuMmBirGSiDVSypVkHcw7jD7Mho1s5xGwjpump",
@@ -291,7 +284,7 @@
    "h6": 302,
    "badge": "big",
    "kol": null,
-   "top_pct": 0.4,
+   "top_pct": 0.5,
    "top_is": null,
    "concentrated": false,
    "evidence": [],
@@ -357,7 +350,9 @@
       18
      ]
     }
-   }
+   },
+   "mcNow": 6121296,
+   "lastAt": 1793812238489
   }
  ]
 }
