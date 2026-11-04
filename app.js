@@ -1,4 +1,6 @@
-/* KYVO_LIVE_v8_38 — v8.38: ⚠️ "po dumpie" badge on Runner / Early / Runner 2.0 coins flagged ≥ 30% under their ATH (never hidden) + faster ⚡ Early Runner (catches vertical pumps like $Mag).
+/* KYVO_LIVE_v8_39 — v8.39: ✅ "trzyma się" badge on 🏃 Runner coins still at / above their flag price 10 min after the flag (server h10,
+   tools/track_record.py; badge only, nothing hidden) + stricter 🚀 Runner 2.0 entry (≤ 5× the 6 h low, ≤ 1.5× the first flag price).
+   v8.38: ⚠️ "po dumpie" badge on Runner / Early / Runner 2.0 coins flagged ≥ 30% under their ATH (never hidden) + faster ⚡ Early Runner (catches vertical pumps like $Mag).
    v8.37: FIX Runner 2.0 freeze (endless render loop while data/runner2.json was loading) + timeout / try-catch fallback.
    KYVO_LIVE_v8_36 — v8.36 (pomysły od Orangie): 🛡️ Pilnuj moich coinów (watchlista: ruch ±20 %, 🐋 wieloryb / 🧑‍💻 dev sprzedał, 📰 nowy artykuł,
    🧛 kopia > $500K MC — w przeglądarce, gdy Kyvo jest otwarte), ⚠️ bundle (tools/coin_checks.py: kto zasilił top 20 holderów, publiczne RPC Solany)
@@ -1291,6 +1293,22 @@
     const tip = en ? `Flagged ${Math.round(p.b)}% below its all-time high${p.ath ? ' (ATH MC ' + fmtUsd(p.ath) + ')' : ''} — the big pump may already be over` : `Oznaczony ${Math.round(p.b)}% pod ATH${p.ath ? ' (ATH MC ' + fmtUsd(p.ath) + ')' : ''} — duża pompa mogła już minąć`;
     return ` <span class="holdbadge pdbadge" translate="no" title="${esc(tip)}">⚠️ ${en ? 'post-dump' : 'po dumpie'} −${Math.round(p.b)}%</span>`;
   }
+  /* v8.39 ✅ trzyma się — server field h10 = {ok: price ≥ Runner flag price 10 min after the flag, x: ratio, at} (tools/track_record.hold10).
+     Badge only, shown on 🏃 Runner cards and 'Oznaczone dziś'. Read from data/track_record.json. */
+  function h10Of(k, h) {
+    if (h && typeof h === 'object') return h;
+    if (!trackServer || !k) return null;
+    if (h10Of.src !== trackServer) { h10Of.src = trackServer; h10Of.m = {}; for (const e of trackServer.items || []) if (e && e.h10) h10Of.m[String(e.k).toLowerCase()] = e.h10; }
+    return h10Of.m[String(k).toLowerCase()] || null;
+  }
+  function h10Badge(k, h) {
+    const p = h10Of(k, h);
+    if (!p || !p.ok) return '';
+    const en = window.KyvoI18n && window.KyvoI18n.isEn();
+    const x = p.x > 0 && isFinite(p.x) ? ` (${p.x >= 1 ? '+' : ''}${Math.round((p.x - 1) * 100)}%)` : '';
+    const tip = en ? `10 min after the Runner flag the price was still at / above the flag price${x} — fewer of these dump right away` : `10 min po oznaczeniu cena wciąż ≥ cena z oznaczenia${x} — takie rzadziej od razu spadają`;
+    return ` <span class="holdbadge okbadge" translate="no" title="${esc(tip)}">✅ ${en ? 'holding' : 'trzyma się'}</span>`;
+  }
   // v8.33: % since a flag / entry through the shared entry sanity rule (pairs.js entryCheck): entry MC < $1K or > 500x from < $3K = "—"
   const pctE = (px, e) => (px > 0 && e && e.px0 > 0 ? KP.safePct(px, e.px0, e.mc0, e.mc0 > 0 ? (e.mc0 * px) / e.px0 : null) : null);
   let trackKind = localStorage.getItem('kyvo_track_kind') || 'all';
@@ -1624,7 +1642,7 @@
           ${sv && sv.tweet && sv.tweet.url ? `<div class="twlink" translate="no"><a href="${esc(sv.tweet.url)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">🐦 ${L2('Tweet', 'Tweet')} @${esc(sv.tweet.handle || '')} · +${Math.round(sv.tweet.chg || 0)}% ${L2('od tweeta', 'since')} ↗</a></div>` : ''}
           ${st ? `<div class="rstage st${st.n}" translate="no"><b>${L2('Etap', 'Stage')} ${st.n}</b> ${stageBarHtml(st)} <span class="mut">${esc(st.range)} · ${esc(L2(st.pl, st.en))}</span></div>` : ''}
           <div class="rmc" translate="no">${tr && tr.mc0 ? `${L2('MC przy oznaczeniu', 'MC at flag')} <b>${fmtUsd(tr.mc0)}</b> → ${L2('teraz', 'now')} <b>${fmtUsd(c.mcap)}</b> <span class="${pctClass(climb)}">${climb >= 0.5 ? '↑' : climb <= -0.5 ? '↓' : '→'} ${fmtPct(climb)}</span> <span class="mut">· ${esc(flagAgo(tr.kinds.runner || tr.kinds.leg2 || tr.at))}</span>` : `MC <b>${fmtUsd(c.mcap)}</b>`}</div>
-          <small>${(pdBadge(keyOf(c), sv && sv.pd) + holdBadge(keyOf(c))).trim()}${pdBadge(keyOf(c), sv && sv.pd) || holdBadge(keyOf(c)) ? ' ' : ''}Liq ${fmtLiq(c)} · ⏱ ${esc(ageFrom(c.pairCreatedAt))}</small>
+          <small>${(h10Badge(keyOf(c), tr && tr.h10) + pdBadge(keyOf(c), sv && sv.pd) + holdBadge(keyOf(c))).trim()}${h10Badge(keyOf(c), tr && tr.h10) || pdBadge(keyOf(c), sv && sv.pd) || holdBadge(keyOf(c)) ? ' ' : ''}Liq ${fmtLiq(c)} · ⏱ ${esc(ageFrom(c.pairCreatedAt))}</small>
           <div class="rwhy" translate="no">${sv && sv.badge === 'kol' ? '👑 ' + L2('Dlaczego KOL coin', 'Why KOL coin') : sv && sv.badge === 'moon' ? '🚀 ' + L2('Dlaczego moon run', 'Why moon run') : sv && sv.badge === 'tweet' ? '🐦 ' + L2('Dlaczego tweet runner', 'Why tweet runner') : (sv && sv.badge === 'big') || x.big ? '📈 ' + L2('Dlaczego duży runner', 'Why big runner') : x.leg2 ? '🔁 ' + L2('Dlaczego kolejna fala', 'Why second leg') : '🏃 ' + L2('Dlaczego runner', 'Why runner')}: ${x.why.join(' · ')}</div>
           ${c._snap ? '' : window.KyvoInsights.upsideRowHtml(c)}</div>
         <div class="rt">${sparkSvg(c)}<b class="${pctClass(c.change.h1)}">${fmtPct(c.change.h1)}</b><small class="mut">1h</small><small class="rtmc" translate="no">MC ${fmtUsd(c.mcap)}</small></div></div>`;
@@ -1652,7 +1670,7 @@
       const res = `<div class="rt td-rt">${ok(maxP) ? `<b class="chrome td-max">+${Math.round(Math.max(0, maxP))}%</b><small class="mut">${L2('max po oznacz.', 'max after flag')}</small>` : ''}${ok(nowP) ? `<small class="${pctClass(nowP)}">${L2('teraz', 'now')} ${fmtPct(nowP)}</small>` : ''}</div>`;
       if (todayOpen && !todayOpen.includes(e.k)) return `<div class="row td-row rlock" role="button" tabindex="0" data-unlock translate="no"><div class="rlock-ic" aria-hidden="true">🔒</div><div class="nm"><b>🏃 Runner <span class="mut" style="font-weight:600">· ${esc(flagAgo(e.kinds.runner))}</span></b><div class="rlock-bars" aria-hidden="true"><i style="width:58%"></i><i style="width:40%"></i></div></div>${res}</div>`;
       const c = kolCoinOf(e);
-      return `<div class="row td-row" data-key="${esc(e.k)}" role="button" tabindex="0" translate="no">${imgTag(c)}<div class="nm"><b><span class="cbadge c-${esc(e.chain || 'solana')}">${esc(chainBadge(c))}</span> ${esc(e.name || e.sym || '')} <span class="mut" style="font-weight:600">$${esc(e.sym || '')}</span></b><small class="td-sub">${(pdBadge(e.k, e.pd) + holdBadge(e.k)).trim()}${pdBadge(e.k, e.pd) || holdBadge(e.k) ? ' ' : ''}${esc(flagAgo(e.kinds.runner))} · MC ${fmtUsd(e.mc0)} → ${fmtUsd(e.mcNow || e.mc0)}</small></div>${res}</div>`;
+      return `<div class="row td-row" data-key="${esc(e.k)}" role="button" tabindex="0" translate="no">${imgTag(c)}<div class="nm"><b><span class="cbadge c-${esc(e.chain || 'solana')}">${esc(chainBadge(c))}</span> ${esc(e.name || e.sym || '')} <span class="mut" style="font-weight:600">$${esc(e.sym || '')}</span></b><small class="td-sub">${(h10Badge(e.k, e.h10) + pdBadge(e.k, e.pd) + holdBadge(e.k)).trim()}${h10Badge(e.k, e.h10) || pdBadge(e.k, e.pd) || holdBadge(e.k) ? ' ' : ''}${esc(flagAgo(e.kinds.runner))} · MC ${fmtUsd(e.mc0)} → ${fmtUsd(e.mcNow || e.mc0)}</small></div>${res}</div>`;
     };
     const todayHtml = todayN ? `<div class="h" style="font-size:14px;margin-top:12px">${HS.today ? L2('Oznaczone dziś', 'Flagged today') : L2('Oznaczone w 24 h', 'Flagged in 24 h')} <span class="mut" style="font-size:12px">${todayN}</span> <span class="mut rh-note">${L2('log serwera · wynik od oznaczenia', 'server log · result since flag')}</span></div><div class="card td-card" style="padding:4px 10px">${todayList.map(todayRow).join('')}</div>` : '';
     $('#listBody').innerHTML = `<div class="h">🏃 <span class="chrome">Runner</span> <span class="badge live">LIVE</span></div>

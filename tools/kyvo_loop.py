@@ -181,6 +181,7 @@ def main() -> int:
             t = run([py, "tools/track_record.py", "--merge-only", "--flags", f"{a.state_dir}/flags.json", "--out", "data/track_record.json",
                      "--history", "data/flag_history.json", "--audit", f"{a.state_dir}/audit.json"], timeout=60)
             if (t.get("track_new") or "0") not in ("", "0"): pending.append("new flags")
+            if (t.get("track_h10") or "0") not in ("", "0") and not pending and time.time() - last_commit > 300: pending.append("runner ✅ 10 min")   # v8.39
             hd = run([py, "tools/holders.py", "--flags", f"{a.state_dir}/flags.json", "--out", hold_out],
                      env_extra={"KYVO_FACT_CACHE": f"{a.state_dir}/facts"}, timeout=60)   # v8.35 👥 before Runner 2.0 (it drops ⚠️ coins)
             if hd.get("holders_new") == "true" and not pending and time.time() - last_commit > 900: pending.append("holders")

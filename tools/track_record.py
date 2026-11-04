@@ -13,6 +13,10 @@ v8.25 — two writers, clear roles:
     (≤ 50 h after the flag, at most 25 pools per run), current price from DexScreener; it never adds coins.
   Both commit through tools/git_sync.py: on a push race the two JSON files are MERGED (merge_docs / merge_history), never
   overwritten, so neither workflow can drop the other's work.
+v8.39 ✅ trzyma się: in --merge-only mode (the loop, every scan) a 🏃 Runner coin whose Runner flag is 10–30 min old and has no check
+  yet gets ONE live DexScreener price (batched, ≤ 30 coins / call, only when such coins exist): item h10 = {ok: price ≥ Runner flag
+  price, x: price / flag price, at}. Badge only (the app shows '✅ trzyma się' when ok), nothing is hidden, no push.
+  (24 h backtest 03–04.11: 17/46 Runner flags held after 10 min, 24 % winners vs 15 % for all.) rpx = first Runner flag price.
 Old single-writer mode (no --merge-only / --perf-only) still works: merge flags + performance in one go.
 commit=true goes to $GITHUB_OUTPUT if there is a new flag or the last committed update is ≥ 60 min old.
 Public data only, no keys. Not financial advice.
@@ -47,6 +51,7 @@ FIRST = ("k", "sym", "name", "chain", "addr", "img", "at", "px0", "mc0", "stage0
 PERF = ("pair", "max", "maxAt", "maxV", "maxLive", "maxLiveAt", "p1", "p8", "ohAt", "ohFinal")   # candle-based performance
 LIVE = ("last", "lastAt", "mcNow")                                                               # latest live price
 HIST_DAYS = 7
+H10_MIN_S, H10_MAX_S = 10 * 60, 30 * 60   # v8.39 ✅ trzyma się: check window after the Runner flag
 HIST_MAX = 6000
 SCANS_MAX = 240
 
@@ -79,7 +84,9 @@ def merge_flags(items: dict, flags: list[dict], src: str = "loop") -> int:
             if isinstance(f.get("pred"), dict): e["pred"] = f["pred"]
         kinds = e.setdefault("kinds", {})
         kind = f.get("kind") or "runner"
-        if kind not in kinds or f["at"] < kinds[kind]: kinds[kind] = f["at"]
+        if kind not in kinds or f["at"] < kinds[kind]:
+            kinds[kind] = f["at"]
+            if kind == "runner": e["rpx"] = f["px0"]                 # v8.39: first 🏃 Runner flag price (✅ trzyma się reference)
         if f.get("badge") and not e.get("badge"): e["badge"] = f["badge"]; e["kol"] = f.get("kol")   # v8.8 👑 / 🚀
         if isinstance(f.get("pd"), dict) and kind in ("runner", "early") and not e.get("pd"): e["pd"] = f["pd"]   # v8.38
     return new
@@ -103,7 +110,7 @@ def merge_item(a: dict, b: dict) -> dict:
         for k, t in (e.get("kinds") or {}).items():
             if k not in kinds or (t or 0) < kinds[k]: kinds[k] = t
     out["kinds"] = kinds
-    for k in ("badge", "kol", "src0", "pd"):
+    for k in ("badge", "kol", "src0", "pd", "rpx", "h10"):          # v8.39 rpx / h10 ✅ trzyma się
         v = first.get(k) or other.get(k)
         if v: out[k] = v
     return out
@@ -169,6 +176,29 @@ def merge_history(ours: dict, theirs: dict) -> dict:
     out["rows"] = sorted(rows.values(), key=lambda r: -(r.get("first") or 0))[:HIST_MAX]; out["scans"] = scans[-SCANS_MAX:]
     return out
 
+def hold10(items: dict, now_ms: int) -> int:
+    """v8.39 ✅ trzyma się: Runner coins 10–30 min after their 🏃 Runner flag without h10 -> one live price each (DexScreener batch).
+    h10 = {"ok": price >= Runner flag price, "x": price / flag price, "at": ms}. Returns the number of coins checked."""
+    due = []
+    for e in items.values():
+        rt = (e.get("kinds") or {}).get("runner")
+        ref = e.get("rpx") or (e.get("px0") if rt and rt == e.get("at") else None)
+        if not rt or not ref or e.get("h10") or not e.get("addr") or e.get("chain") not in GT_NET: continue
+        if H10_MIN_S * 1000 <= now_ms - rt <= H10_MAX_S * 1000: due.append((e, ref))
+    n = 0
+    for ch in {e["chain"] for e, _ in due}:
+        grp = [(e, r) for e, r in due if e["chain"] == ch]
+        for i in range(0, len(grp), 30):
+            d = get(f"{DS}/tokens/v1/{ch}/" + ",".join(e["addr"] for e, _ in grp[i:i + 30]))
+            for e, ref in grp[i:i + 30]:
+                ps = [p for p in (d or []) if ((p.get("baseToken") or {}).get("address") or "").lower() == e["addr"].lower()]
+                p = choose(ps)
+                try: px = float(p["priceUsd"]) if p and p.get("priceUsd") else None
+                except (TypeError, ValueError): px = None
+                if not px or px <= 0: continue
+                e["h10"] = {"ok": px >= ref, "x": round(px / ref, 3), "at": now_ms}; n += 1
+    return n
+
 def worker_flags(url: str) -> list[dict]:
     """v8.25: recent 🏃 Runner flags from the Cloudflare fast-push worker (GET <worker>/flags). Empty URL / error -> []."""
     if not url: return []
@@ -204,6 +234,7 @@ def main() -> int:
     ap.add_argument("--audit", type=Path, help="v8.25 per-scan prefilter summary written by discord_calls.py --audit-out")
     ap.add_argument("--worker-url", default=os.environ.get("KYVO_WORKER_FLAGS_URL", "").strip(), help="v8.25 Cloudflare worker base URL (empty = off)")
     ap.add_argument("--dry-run", action="store_true", help="print what would change, write nothing")
+    ap.add_argument("--no-hold10", action="store_true", help="v8.39: skip the ✅ 10-min Runner price check (no network at all)")
     a = ap.parse_args()
     now_ms = int(time.time() * 1000)
     doc = load_json(a.out, {"items": []})
@@ -223,11 +254,12 @@ def main() -> int:
             print(f"flag history: {len(hist.get('rows', []))} rows ({hn} new), {len(hist.get('scans', []))} scan summaries" + (f", worker flags {len(wf)}" if a.worker_url else ""))
     items = {k: e for k, e in items.items() if now_ms - e["at"] < KEEP_DAYS * 864e5}
     if a.merge_only:
-        if not a.dry_run and (new or not a.out.exists()): write_doc(a.out, items, doc, False, now_ms)
-        print(f"track record (merge): {len(items)} coins, {new} new flags saved now")
+        h10 = 0 if a.no_hold10 else hold10(items, now_ms)              # v8.39 ✅ trzyma się (one DexScreener batch, only when due)
+        if not a.dry_run and (new or h10 or not a.out.exists()): write_doc(a.out, items, doc, False, now_ms)
+        print(f"track record (merge): {len(items)} coins, {new} new flags saved now, ✅ 10-min check {h10}")
         gh = os.environ.get("GITHUB_OUTPUT")
         if gh:
-            with open(gh, "a") as fh: fh.write(f"track_new={new}\n")
+            with open(gh, "a") as fh: fh.write(f"track_new={new}\ntrack_h10={h10}\n")
         return 0
     live = [e for e in items.values() if now_ms - e["at"] < 7 * 864e5]
     # current price: DexScreener tokens batch per chain (≤ 30 addresses / call)

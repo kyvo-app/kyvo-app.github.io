@@ -567,7 +567,7 @@ def main() -> int:
             f = {"k": f"{c['chain']}:{c['address']}", "sym": c["symbol"], "name": c["name"], "chain": c["chain"], "addr": c["address"],
                  "pair": c.get("pair") or "", "img": c.get("image"), "kind": kind, "at": int(time.time() * 1000), "px0": c["price"], "mc0": c["mcap"],
                  "h1": c.get("h1"), "m5": c.get("m5"), "age_h": round(c["age_h"], 3) if c.get("age_h") is not None else None,   # v8.24: push shows the real 1 h move
-                 "vol1h": c.get("vol1h")}   # v8.34: push filter (vol 1h / MC)
+                 "vol1h": c.get("vol1h"), "h6": c.get("h6")}   # v8.34: push filter (vol 1h / MC); v8.39 h6 -> runner2 late_6h fallback
             # v8.34: estimateUpside input at flag time -> "pred" (computed in one node call before --flags-out is written, saved in the track record)
             f["_pin"] = dict(rule_input(c, score if score is not None else 75, checks or [], None), _assumed=score is None)
             if ov and ov.get("badge"):   # v8.8 override: no thresholds stored, only what the app shows

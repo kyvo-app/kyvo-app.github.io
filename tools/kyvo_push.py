@@ -106,9 +106,11 @@ RUNNER_PUSH_SOURCE = os.environ.get("RUNNER_PUSH_SOURCE", "github").strip().lowe
 PUSH_LOG_MAX = 300
 # v8.34 🚀 Runner 2.0 (data/runner2.json from tools/runner2.py): stricter Runner signal, own type 'runner2' / tag runner2 (toggle '🚀 Runner 2.0',
 # missing tag = ON, "0" = off). Always sent by THIS loop (not 'plain' -> never skipped by RUNNER_PUSH_SOURCE=worker). Once per coin; may
-# follow a 🏃 Runner / ⚡ Early push of the same coin, but never within R2_GAP_S of it (waits, then sends). Same plan routing as 🏃 Runner.
+# follow a 🏃 Runner / ⚡ Early push of the same coin. v8.39: sent at once (R2_GAP_S = 0, was a 10-min wait after the Runner / Early push;
+# KYVO_R2_GAP_S brings a gap back). Same plan routing as 🏃 Runner. v8.39: a coin that entered from a 🔁 Kolejna fala flag (src leg2)
+# is never pushed (0/6 winners in the 03–04.11 backtest) — it stays visible in the app's Runner 2.0 list.
 R2_MAX_AGE_S = 20 * 60     # only coins that entered Runner 2.0 in the last 20 min push (older -> list only)
-R2_GAP_S = 10 * 60         # no 2 pushes for one coin within 10 min
+R2_GAP_S = int(os.environ.get("KYVO_R2_GAP_S", "0"))   # v8.39: 0 = push at once (was 10 min after the Runner / Early push of the coin)
 R2_PER_RUN = 2
 R2_SEED_V = 1
 R2_EXIT = {"pl": "Sprzedaj ½ na x2, resztę trailing −30%", "en": "Sell ½ at 2x, trail the rest −30%"}
@@ -117,7 +119,7 @@ def runner2_items(a, st: dict, sent: dict, now: float, seeding: bool, items_now:
     doc = load(a.runner2, {}) if a.runner2 else {}
     r2seed = seeding or st.get("r2_seeded_v") != R2_SEED_V
     out = []
-    busy = {it["id"].split(":", 1)[1] for it in items_now if it.get("kind") == "runner" and ":" in it["id"]}   # a Runner push for it goes out now
+    busy = {it["id"].split(":", 1)[1] for it in items_now if it.get("kind") == "runner" and ":" in it["id"]} if R2_GAP_S > 0 else set()   # v8.39: gap 0 -> same run is fine
     for c in sorted(doc.get("coins") or [], key=lambda c: c.get("at") or 0):
         k = str(c.get("k", "")).lower(); kid = "r2:" + k
         if not k or kid in sent: continue
@@ -125,8 +127,9 @@ def runner2_items(a, st: dict, sent: dict, now: float, seeding: bool, items_now:
         hw = (HOLD.get(k) or {}).get("w") or ((c.get("hold") or {}).get("w"))
         if hw: sent[kid] = now; print(f"- {kid}: 🚀 Runner 2.0 skipped — ⚠️ holders {hw}"); continue   # v8.35 never push a flagged coin
         if ((CHECKS.get(k) or {}).get("b") or {}).get("flag"): sent[kid] = now; print(f"- {kid}: 🚀 Runner 2.0 skipped — ⚠️ bundle"); continue   # v8.36
+        if c.get("src") == "leg2": sent[kid] = now; print(f"- {kid}: 🚀 Runner 2.0 not pushed — 🔁 Kolejna fala (v8.39, list only)"); continue
         other = max([sent.get(p + k, 0) for p in ("run:", "early:", "kol:", "moon:", "big:", "twr:")] + [0])
-        if k in busy or now - other < R2_GAP_S:
+        if k in busy or (R2_GAP_S > 0 and now - other < R2_GAP_S):
             print(f"- {kid}: 🚀 Runner 2.0 waits ({int(now - other) if other else 0}s since the Runner push < {R2_GAP_S}s)"); continue
         if len(out) >= R2_PER_RUN: continue
         h1 = c.get("h1"); mv = f" +{round(h1)}% 1h" if isinstance(h1, (int, float)) and 0 < h1 < 100000 else ""
