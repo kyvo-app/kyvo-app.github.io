@@ -329,6 +329,7 @@ def runner_style(items: list[dict], flags: list[dict]) -> None:
         if not f: continue
         h1 = f.get("h1") if f.get("h1") is not None else (f.get("snap") or {}).get("h1")
         if it["id"].startswith("twr:") and (f.get("tweet") or {}).get("chg") is not None: h1 = None   # title already has the % after the tweet
+        if it["id"].startswith("rdy:"): h1 = None   # v8.45 👤 Rowdy: title stays '🏃 Runner · 👤 Rowdy · $SYM'
         if it["id"].startswith("stv:"): h1 = None   # v8.43 👤 bystevenr: title stays '🏃 Runner · 👤 bystevenr · $SYM'
         nm = clip(f.get("name") or "", 18)
         mv = f" +{round(h1)}%" if isinstance(h1, (int, float)) and 0 < h1 < 100000 else ""
@@ -598,6 +599,16 @@ def main() -> int:
             continue
         if f.get("kind") != "runner": continue
         kid = "run:" + f["k"].lower()
+        if f.get("badge") == "rowdy":    # v8.45 👤 Rowdy — copy of Rowdy's buy (tools/rowdy.py, 2 wallets); no Runner rules, same as 👤 bystevenr
+            sid = "rdy:" + f["k"].lower()        # own id: once per coin (3 days)
+            if sid in sent or any(x["id"] == sid for x in items): continue
+            if seeding: sent[sid] = now; continue
+            sv = f.get("rowdy") or {}
+            usd = f" · kupił za {fmt_usd(sv['usd'])}" if sv.get("usd") else ""; usde = f" · bought {fmt_usd(sv['usd'])}" if sv.get("usd") else ""
+            items.append({"id": sid, "kind": "runner", "topic": sid, "hash": "#coin/" + f["k"],
+                          "title_pl": f"🏃 Runner · 👤 Rowdy · ${f['sym']}", "title_en": f"🏃 Runner · 👤 Rowdy · ${f['sym']}",
+                          "body_pl": f"MC {fmt_usd(f.get('mc0'))}{usd} · kopia jego zakupu", "body_en": f"MC {fmt_usd(f.get('mc0'))}{usde} · copy of his buy"})
+            continue
         if f.get("badge") == "steven":   # v8.43 👤 bystevenr — copy of @bystevenr's buy (tools/steven.py, seconds after his tx); no Runner rules
             sid = "stv:" + f["k"].lower()        # own id: pushes even if the coin was a 🏃 Runner before; once per coin (3 days)
             if sid in sent or any(x["id"] == sid for x in items): continue
