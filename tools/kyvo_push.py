@@ -647,6 +647,15 @@ def main() -> int:
                           "title_pl": f"🏃 Runner · 🌱 Wczesny trend · ${f['sym']}{mv}", "title_en": f"🏃 Runner · 🌱 Early trend · ${f['sym']}{mv}",
                           "body_pl": f"MC {fmt_usd(f.get('mc0'))} · młody coin, mocny wzrost · wysokie ryzyko", "body_en": f"MC {fmt_usd(f.get('mc0'))} · young coin climbing hard · high risk"})
             continue
+        if b == "climb":    # v8.44 🫏 Cichy wspinacz — small young coin climbing a steady staircase (same 🏃 Runner type / toggle / caps)
+            tr = f.get("trend") or {}
+            mv = f" +{round(tr['rise'])}%" if isinstance(tr.get("rise"), (int, float)) and tr["rise"] > 0 else ""
+            hc = f" · {tr['holders']} holderów" if isinstance(tr.get("holders"), int) else ""
+            hce = f" · {tr['holders']} holders" if isinstance(tr.get("holders"), int) else ""
+            items.append({"id": kid, "kind": "runner", "topic": kid, "hash": "#coin/" + f["k"],
+                          "title_pl": f"🏃 Runner · 🫏 Cichy wspinacz · ${f['sym']}{mv}", "title_en": f"🏃 Runner · 🫏 Quiet climber · ${f['sym']}{mv}",
+                          "body_pl": f"MC {fmt_usd(f.get('mc0'))}{hc} · rośnie schodkami · wysokie ryzyko", "body_en": f"MC {fmt_usd(f.get('mc0'))}{hce} · steady staircase climb · high risk"})
+            continue
         if b == "trend":    # v8.42 🔥 Trend — established quality coin trending up (same 🏃 Runner type / toggle / caps)
             tr = f.get("trend") or {}
             mv = f" +{round(tr['h1'])}% 1h" if isinstance(tr.get("h1"), (int, float)) and tr["h1"] > 0 else ""

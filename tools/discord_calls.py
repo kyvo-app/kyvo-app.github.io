@@ -72,6 +72,13 @@ TREND = {"mc_min": 300_000, "mc_max": 50_000_000, "age_min_h": 6, "liq_min": 50_
 ETREND = {"mc_min": 50_000, "mc_max": 300_000, "age_min_h": 0.25, "age_max_h": 3, "liq_min": 15_000, "vol1h_min": 50_000, "h1_min": 30,
           "m5_min": 0, "m5_max": 60, "tx1h_min": 300, "br_min": 0.55, "holders_min": 150, "top10_max": 35, "top1_max": 8, "per_chain": 2,
           "day_cap": int(os.environ.get("KYVO_ETREND_DAY_CAP", "8")), "cool_s": 1800}
+# v8.44 🫏 Cichy wspinacz: small young Solana coins climbing a steady staircase (The Donkey-type: $30K–$150K MC, 40–150+ holders and
+# rising, +200–450% in many small green steps, higher lows, no single spike / dump) -> 🏃 Runner flag with badge "climb" (Runner tab +
+# push '🏃 Runner · 🫏 Cichy wspinacz'). Runner tab only, never 🚀 Runner 2.0. Free data: DexScreener pair, GeckoTerminal 5-min candles, RugCheck.
+CLIMB = {"mc_min": 30_000, "mc_max": 150_000, "age_min_h": 0.5, "age_max_h": 24, "liq_min": 8_000, "vol1h_min": 8_000, "tx1h_min": 80,
+         "br_min": 0.52, "h6_min": 150, "h6_max": 600, "m5_min": -8, "m5_max": 25, "holders_min": 40, "top10_max": 40, "top1_max": 10,
+         "rise_min": 2.0, "rise_max": 5.5, "green_min": 0.55, "spike_max": 0.35, "dd_max": 35, "hl_min": 3, "per_chain": 2,
+         "day_cap": int(os.environ.get("KYVO_CLIMB_DAY_CAP", "8")), "cool_s": 3600}
 _T: dict = {}   # v8.41 per-phase timing (last output line, the loop log shows it)
 # v8.9: quote / stable tokens that top the volume lists (never a "coin" for Kyvo)
 QUOTE_TOKENS = {"so11111111111111111111111111111111111111112", "epjfwdd5aufqssqem2qn1xzybapc8g4weggkzwytdt1v", "es9vmfrzacermjfrf4h2fyd4kconky11mcce8benwnyb",
@@ -287,6 +294,70 @@ def trend_scan(chain: str, coins: list[dict], flagged: set, st: dict, flag, earl
         flag(c, "runner", ov, score, checks); flagged.add(c["address"]); n += 1
         if k not in ts["coins"]: ts["coins"].append(k)
         print(f"  🔥 trend ${c['symbol']} MC {fmt_usd(c['mcap'])} h1 +{round(c.get('h1') or 0)}% holders {f['h']} top10 {f.get('t10')}%")
+    return n
+
+def climb_pre(c: dict) -> bool:
+    """v8.44 🫏 Cichy wspinacz — cheap stage (DexScreener pair already in hand), Solana only."""
+    T = CLIMB
+    if c.get("chain") != "solana" or c.get("on_curve") or not (T["mc_min"] <= (c.get("mcap") or 0) <= T["mc_max"]): return False
+    if c.get("age_h") is None or not (T["age_min_h"] <= c["age_h"] <= T["age_max_h"]) or (c.get("liq") or 0) < T["liq_min"]: return False
+    if (c.get("vol1h") or 0) < T["vol1h_min"] or (c.get("tx_h1") or 0) < T["tx1h_min"] or (c.get("buy_ratio") or 0) < T["br_min"]: return False
+    h6 = c.get("h6") if c.get("h6") is not None else c.get("h24")
+    if h6 is None or not (T["h6_min"] <= h6 <= T["h6_max"]): return False
+    return T["m5_min"] <= (c.get("m5") or 0) <= T["m5_max"]               # not one vertical candle now, not dumping now
+
+def stair_shape(ol: list) -> dict | None:
+    """v8.44: 5-min candles [t, o, h, l, c, v] -> staircase facts: rise (last close / first low), green share, biggest single candle
+    share of the whole move, worst drawdown from a running high (%), higher lows count over 6 blocks."""
+    ol = sorted([[float(x) for x in r[:6]] for r in ol if len(r) >= 6], key=lambda r: r[0])
+    if len(ol) < 24: return None
+    lo0, px = min(r[3] for r in ol[:6]) or ol[0][1], ol[-1][4]
+    if lo0 <= 0 or px <= 0: return None
+    green = sum(1 for r in ol if r[4] >= r[1]) / len(ol)
+    move = px - lo0; big = max((r[4] - r[1]) for r in ol)
+    hi, dd = 0.0, 0.0
+    for r in ol: hi = max(hi, r[4]); dd = max(dd, (1 - r[4] / hi) * 100 if hi else 0)
+    n = len(ol) // 6; lows = [min(r[3] for r in ol[i * n:(i + 1) * n]) for i in range(6)]
+    return {"rise": px / lo0, "green": round(green, 2), "spike": round(big / move, 2) if move > 0 else 1, "dd": round(dd, 1),
+            "hl": sum(1 for i in range(1, 6) if lows[i] > lows[i - 1])}
+
+def climb_scan(chain: str, coins: list[dict], flagged: set, st: dict, flag) -> int:
+    """v8.44 🫏 Cichy wspinacz: ≤ 2 candidates per scan get candles + holders + every hard-rug test (as 🌱); ≤ 8 coins a Warsaw day."""
+    if chain != "solana": return 0
+    T = CLIMB; ts = st.setdefault("climb", {}); day = __import__("datetime").datetime.now(__import__("zoneinfo").ZoneInfo("Europe/Warsaw")).strftime("%Y-%m-%d")
+    if ts.get("day") != day: ts.update({"day": day, "coins": []})
+    seen = ts.setdefault("seen", {}); now = time.time()
+    for k in [k for k, t in seen.items() if now - t > 86400]: seen.pop(k, None)
+    cand = sorted([c for c in coins if c["address"] not in flagged and climb_pre(c) and c.get("pair")
+                   and now - seen.get(f"{chain}:{c['address'].lower()}", 0) > T["cool_s"]], key=lambda c: -(c.get("tx_h1") or 0))[:T["per_chain"]]
+    n = 0
+    for c in cand:
+        k = f"{chain}:{c['address'].lower()}"
+        if k not in ts["coins"] and len(ts["coins"]) >= T["day_cap"]: print(f"  🫏 climb ${c['symbol']}: day cap {T['day_cap']} reached"); break
+        seen[k] = now
+        try:
+            d = get(f"{GT}/networks/{CHAINS[chain]['gt']}/pools/{c['pair']}/ohlcv/minute?aggregate=5&limit=72&currency=usd&token={c['address']}")
+            sh = stair_shape((((d or {}).get("data") or {}).get("attributes") or {}).get("ohlcv_list") or [])
+        except Exception as e: print(f"  🫏 climb candles error ${c['symbol']}: {type(e).__name__}"); continue
+        why = ("candles" if not sh else "rise" if not (T["rise_min"] <= sh["rise"] <= T["rise_max"]) else "green" if sh["green"] < T["green_min"] else
+               "spike" if sh["spike"] > T["spike_max"] else "dump" if sh["dd"] > T["dd_max"] else "lows" if sh["hl"] < T["hl_min"] else None)
+        if why: print(f"  no 🫏 climb ${c['symbol']}: {why} {sh}"); continue
+        f, r, g = trend_holders(c)
+        if not f or f.get("h") is None: print(f"  no 🫏 climb ${c['symbol']}: holders unknown"); continue
+        why = ("holders" if f["h"] < T["holders_min"] else "top10" if (f.get("t10") or 0) > T["top10_max"] else "top1" if (f.get("t1") or 0) > T["top1_max"] else
+               "devrug" if f.get("devrug") else "rugged" if f.get("rugged") else None)
+        if why: print(f"  no 🫏 climb ${c['symbol']}: {why} (h {f['h']}, top10 {f.get('t10')}%)"); continue
+        try:
+            score, checks = kyvo_check(c, coins)
+            bad = kol_coins.hard_rug(c, checks, r, g) or kol_coins.copycat_of(c, coins)
+        except Exception as e: print(f"  🫏 climb check error ${c['symbol']}: {type(e).__name__}"); continue
+        if bad: print(f"  no 🫏 climb ${c['symbol']}: {bad}"); continue
+        ov = {"badge": "climb", "trend": {"h1": c.get("h1"), "h6": c.get("h6"), "age_h": round(c.get("age_h") or 0, 2), "holders": f["h"], "t10": f.get("t10"),
+                                          "t1": f.get("t1"), "br": round(c.get("buy_ratio") or 0, 2), "tx1h": c.get("tx_h1"), "rise": round((sh["rise"] - 1) * 100),
+                                          "green": sh["green"], "hl": sh["hl"], "dd": sh["dd"]}}
+        flag(c, "runner", ov, score, checks); flagged.add(c["address"]); n += 1
+        if k not in ts["coins"]: ts["coins"].append(k)
+        print(f"  🫏 climb ${c['symbol']} MC {fmt_usd(c['mcap'])} +{round((sh['rise'] - 1) * 100)}% green {sh['green']} holders {f['h']} top10 {f.get('t10')}%")
     return n
 
 def write_partial(path: Path | None, flags: list[dict]) -> None:
@@ -830,6 +901,8 @@ def main() -> int:
         for _early in (False, True):
             try: trend_scan(chain, coins, {f["addr"] for f in flags if f["kind"] == "runner"}, st, flag, early=_early)
             except Exception as e: print(f"  trend error: {type(e).__name__}")
+        try: climb_scan(chain, coins, {f["addr"] for f in flags if f["kind"] == "runner"}, st, flag)   # v8.44 🫏 Cichy wspinacz (Runner tab only)
+        except Exception as e: print(f"  climb error: {type(e).__name__}")
         # v8.41: this chain's flags go out NOW (the loop pushes them while the next chain is scanned); ⚠️ po dumpie first so the push
         # keeps its tag (post_dump skips flags that already have pd -> no extra reads at the end)
         if a.partial_out and flags:

@@ -234,6 +234,7 @@ def main() -> int:
         sn = f.get("snap") or {}
         h1 = nf(f.get("h1") if f.get("h1") is not None else sn.get("h1")); age_h = nf(f.get("age_h") if f.get("age_h") is not None else sn.get("age_h"))
         vol1h = nf(f.get("vol1h") if f.get("vol1h") is not None else sn.get("vol1h")); px, mc = nf(f.get("px0")), nf(f.get("mc0"))
+        if f.get("badge") == "climb": continue   # v8.44 🫏 Cichy wspinacz: Runner tab only, never 🚀 Runner 2.0
         why = check(mc, h1, age_h, vol1h)
         if why is None and f.get("badge") == "trend": why = trend_strict(f, mc)   # v8.42 only the strongest 🔥 Trend picks
         if f.get("badge") == "etrend" and why in (None, "young"): why = "young"     # v8.42 🌱 always re-checked later (holders must rise)
