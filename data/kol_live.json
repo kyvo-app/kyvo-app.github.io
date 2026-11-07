@@ -1,7 +1,186 @@
 {
  "version": 1,
- "updated_at": "2026-11-07T01:17:27Z",
+ "updated_at": "2026-11-07T01:32:05Z",
  "items": [
+  {
+   "k": "solana:FzmSx4UuG8Jhsrxvyt1xNtk6qFxo7KY4zGwPifKZpump",
+   "sym": "Busted",
+   "name": "Busted",
+   "chain": "solana",
+   "addr": "FzmSx4UuG8Jhsrxvyt1xNtk6qFxo7KY4zGwPifKZpump",
+   "pair": "GWpxi3LT6WznhS2zgJdBDymyYxBHt7Vk38fpeiRZVFcS",
+   "img": "https://cdn.dexscreener.com/cms/images/mtBqRY6S-vhmC0q7?width=800&height=800&quality=95&format=auto",
+   "kind": "runner",
+   "at": 1794015028198,
+   "px0": 0.0002804,
+   "mc0": 277671,
+   "h1": 71.66,
+   "m5": 2.12,
+   "age_h": 1.098,
+   "vol1h": 316717.54,
+   "h6": 609,
+   "badge": "etrend",
+   "kol": null,
+   "top_pct": null,
+   "top_is": null,
+   "concentrated": null,
+   "evidence": [],
+   "tweeted_by": [],
+   "buyers1h": null,
+   "big": null,
+   "tweet": null,
+   "trend": {
+    "h1": 71.66,
+    "m5": 2.12,
+    "age_h": 1.1,
+    "holders": 568,
+    "t10": 5.4,
+    "t1": 0.5,
+    "br": 0.61,
+    "tx1h": 2364
+   },
+   "snap": {
+    "liq": 41525.52,
+    "vol1h": 316717.54,
+    "h1": 71.66,
+    "m5": 2.12,
+    "tx1h": 2364,
+    "age_h": 1.098,
+    "created": 1794011075260
+   },
+   "pd": {
+    "b": 0,
+    "ath": 277671,
+    "w": false
+   },
+   "pred": {
+    "G": 0.473,
+    "scen": "med",
+    "sc": 100,
+    "as": false,
+    "h": {
+     "0.5": [
+      9,
+      35,
+      2,
+      49
+     ],
+     "1": [
+      13,
+      50,
+      2,
+      47
+     ],
+     "3": [
+      15,
+      50,
+      -1,
+      40
+     ],
+     "6": [
+      30,
+      110,
+      -12,
+      30,
+      1
+     ],
+     "8": [
+      30,
+      110,
+      -19,
+      23,
+      1
+     ]
+    }
+   }
+  },
+  {
+   "k": "solana:BFkjyPar9gFv49gvEzwFW3PcjvyWn77LNYhnBSzYpump",
+   "sym": "LUCKY",
+   "name": "LuckyCoin",
+   "chain": "solana",
+   "addr": "BFkjyPar9gFv49gvEzwFW3PcjvyWn77LNYhnBSzYpump",
+   "pair": "AS9iajCjpaVxKh1cbe4B89hKUFM7WtzSdzLy5HsfMvcB",
+   "img": "https://cdn.dexscreener.com/cms/images/wFybyIunN3w0sBWu?width=800&height=800&quality=95&format=auto",
+   "kind": "runner",
+   "at": 1794014360877,
+   "px0": 7.76e-05,
+   "mc0": 77457,
+   "h1": 108,
+   "m5": 11.54,
+   "age_h": 0.296,
+   "vol1h": 228026.25,
+   "h6": 108,
+   "badge": "etrend",
+   "kol": null,
+   "top_pct": null,
+   "top_is": null,
+   "concentrated": null,
+   "evidence": [],
+   "tweeted_by": [],
+   "buyers1h": null,
+   "big": null,
+   "tweet": null,
+   "trend": {
+    "h1": 108,
+    "m5": 11.54,
+    "age_h": 0.3,
+    "holders": 249,
+    "t10": 22.9,
+    "t1": 2.7,
+    "br": 0.62,
+    "tx1h": 7013
+   },
+   "snap": {
+    "liq": 21173.08,
+    "vol1h": 228026.25,
+    "h1": 108,
+    "m5": 11.54,
+    "tx1h": 7013,
+    "age_h": 0.296,
+    "created": 1794013297002
+   },
+   "pred": {
+    "G": 0.141,
+    "scen": "low",
+    "sc": 82,
+    "as": false,
+    "h": {
+     "0.5": [
+      7,
+      30,
+      -16,
+      32
+     ],
+     "1": [
+      10,
+      40,
+      -23,
+      31
+     ],
+     "3": [
+      10,
+      40,
+      -44,
+      26
+     ],
+     "6": [
+      20,
+      90,
+      -63,
+      20,
+      1
+     ],
+     "8": [
+      20,
+      90,
+      -69,
+      15,
+      1
+     ]
+    }
+   }
+  },
   {
    "k": "solana:8UQdy5sHMVWUWSHeA5B3ZuuAVNumjSLPXdf19MXcpump",
    "sym": "COGE",
@@ -91,7 +270,9 @@
       20
      ]
     }
-   }
+   },
+   "mcNow": 10634236,
+   "lastAt": 1794015028176
   },
   {
    "k": "solana:5pdu9jrUf9ryLzCsv3S92ikoBiK3n2zA9tMN9Rr7pump",
