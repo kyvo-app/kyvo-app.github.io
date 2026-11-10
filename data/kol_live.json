@@ -1,6 +1,6 @@
 {
  "version": 1,
- "updated_at": "2026-11-10T12:19:08Z",
+ "updated_at": "2026-11-10T12:37:56Z",
  "items": [
   {
    "k": "solana:6mXFCoZ515w37YfmwXGJMPfQfiK5tr9WkihW3oN9pump",
@@ -11,14 +11,14 @@
    "pair": "CKuwAXUbnxmeCNurN5VvyC7kLz42JnQtyh2nyFJ8Kv1X",
    "img": "https://cdn.dexscreener.com/cms/images/jPrSz4tn7DdMCm5z?width=800&height=800&quality=95&format=auto",
    "kind": "runner",
-   "at": 1794311683142,
-   "px0": 0.0005337,
-   "mc0": 507547,
-   "h1": 80.13,
-   "m5": 5.22,
-   "age_h": 186.58,
-   "vol1h": 190682.33,
-   "h6": 94.53,
+   "at": 1794313503579,
+   "px0": 0.0005473,
+   "mc0": 520459,
+   "h1": 101,
+   "m5": 0.53,
+   "age_h": 187.088,
+   "vol1h": 343875.66,
+   "h6": 95.34,
    "badge": "tweet",
    "kol": null,
    "top_pct": 3.1,
@@ -30,7 +30,7 @@
    "tweeted_by": [
     "Dior100x"
    ],
-   "buyers1h": 657,
+   "buyers1h": 1380,
    "big": null,
    "tweet": {
     "id": "2120106846853963955",
@@ -38,58 +38,58 @@
     "handle": "Dior100x",
     "ts": 1794307836,
     "px0": 0.00029439543022076757,
-    "chg": 81.3
+    "chg": 94.2
    },
    "trend": null,
    "snap": {
-    "liq": 70370.59,
-    "vol1h": 190682.33,
-    "h1": 80.13,
-    "m5": 5.22,
-    "tx1h": 1967,
-    "age_h": 186.58,
-    "created": 1793639995467
+    "liq": 70657.31,
+    "vol1h": 343875.66,
+    "h1": 101,
+    "m5": 0.53,
+    "tx1h": 4805,
+    "age_h": 187.088,
+    "created": 1793639986683
    },
    "pred": {
-    "G": 0.364,
-    "scen": "med",
+    "G": 0.278,
+    "scen": "low",
     "sc": 75,
     "as": true,
     "h": {
      "0.5": [
       6,
       25,
-      -1,
-      43
+      -6,
+      39
      ],
      "1": [
-      9,
+      8,
       35,
-      -2,
-      42
+      -8,
+      38
      ],
      "3": [
-      16,
+      14,
       60,
-      -8,
-      36
+      -18,
+      32
      ],
      "6": [
-      20,
-      90,
-      -19,
-      27
+      19,
+      80,
+      -30,
+      24
      ],
      "8": [
-      20,
-      90,
-      -24,
-      21
+      19,
+      80,
+      -35,
+      18
      ]
     }
    },
-   "mcNow": 497128,
-   "lastAt": 1794312325783
+   "mcNow": 530494,
+   "lastAt": 1794314265202
   },
   {
    "k": "bsc:0x0c6302401aa5325C2E36F170f52C00B1d220B405",
@@ -802,95 +802,6 @@
      ]
     }
    }
-  },
-  {
-   "k": "solana:Hh3oTaqDCKKfdBgsQEvxp9sUwyNf8x9qmKqEMLBWpump",
-   "sym": "HODL",
-   "name": "HODL",
-   "chain": "solana",
-   "addr": "Hh3oTaqDCKKfdBgsQEvxp9sUwyNf8x9qmKqEMLBWpump",
-   "pair": "DTdtHUx79bmNMnesv3au7pzBKAkB3mUUi8GwUdZ6Suw",
-   "img": "https://cdn.dexscreener.com/cms/images/Ur9HtTsmXtjiJF1E?width=800&height=800&quality=95&format=auto",
-   "kind": "runner",
-   "at": 1794227464682,
-   "px0": 0.003269,
-   "mc0": 3268829,
-   "h1": 34.31,
-   "m5": 7.22,
-   "age_h": 6472.702,
-   "vol1h": 254979.39,
-   "h6": 212,
-   "badge": "big",
-   "kol": null,
-   "top_pct": 6.5,
-   "top_is": null,
-   "concentrated": false,
-   "evidence": [],
-   "tweeted_by": [],
-   "buyers1h": 583,
-   "big": {
-    "h1": 34.31,
-    "h6": 212,
-    "acc": 16.2,
-    "txAcc": 4.0,
-    "br": 0.54
-   },
-   "tweet": null,
-   "trend": null,
-   "snap": {
-    "liq": 285645.35,
-    "vol1h": 254979.39,
-    "h1": 34.31,
-    "m5": 7.22,
-    "tx1h": 1500,
-    "age_h": 6472.702,
-    "created": 1770925737073
-   },
-   "pd": {
-    "b": 9,
-    "ath": 3597341,
-    "w": false
-   },
-   "pred": {
-    "G": 0.294,
-    "scen": "low",
-    "sc": 75,
-    "as": true,
-    "h": {
-     "0.5": [
-      3,
-      11,
-      -1,
-      40
-     ],
-     "1": [
-      4,
-      15,
-      -2,
-      38
-     ],
-     "3": [
-      7,
-      25,
-      -5,
-      33
-     ],
-     "6": [
-      9,
-      35,
-      -11,
-      24
-     ],
-     "8": [
-      10,
-      40,
-      -14,
-      19
-     ]
-    }
-   },
-   "mcNow": 3751060,
-   "lastAt": 1794237977704
   }
  ]
 }
