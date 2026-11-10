@@ -1,7 +1,99 @@
 {
  "version": 1,
- "updated_at": "2026-11-10T06:27:18Z",
+ "updated_at": "2026-11-10T06:39:52Z",
  "items": [
+  {
+   "k": "solana:JBUe4NZu4rm4Ej5AsLZECZLHvnWpFRmhn9oPLXCVpump",
+   "sym": "MUBBO",
+   "name": "Mubbo",
+   "chain": "solana",
+   "addr": "JBUe4NZu4rm4Ej5AsLZECZLHvnWpFRmhn9oPLXCVpump",
+   "pair": "EiDBvXtUWKjQfpxFo3ucuKaKNkBUt6dTruXvetCJs7Xq",
+   "img": "https://cdn.dexscreener.com/cms/images/ecCy7zpbEzuzJCcB?width=800&height=800&quality=95&format=auto",
+   "kind": "runner",
+   "at": 1794292337592,
+   "px0": 0.0001009,
+   "mc0": 97455,
+   "h1": 65.36,
+   "m5": 5.9,
+   "age_h": 1.385,
+   "vol1h": 284741.72,
+   "h6": 160,
+   "badge": "etrend",
+   "kol": null,
+   "top_pct": null,
+   "top_is": null,
+   "concentrated": null,
+   "evidence": [],
+   "tweeted_by": [],
+   "buyers1h": null,
+   "big": null,
+   "tweet": null,
+   "trend": {
+    "h1": 65.36,
+    "m5": 5.9,
+    "age_h": 1.38,
+    "holders": 1171,
+    "t10": 11.0,
+    "t1": 1.2,
+    "br": 0.66,
+    "tx1h": 3941
+   },
+   "snap": {
+    "liq": 24036.13,
+    "vol1h": 284741.72,
+    "h1": 65.36,
+    "m5": 5.9,
+    "tx1h": 3941,
+    "age_h": 1.385,
+    "created": 1794287351989
+   },
+   "pd": {
+    "b": 10,
+    "ath": 108050,
+    "w": false
+   },
+   "pred": {
+    "G": 0.536,
+    "scen": "med",
+    "sc": 100,
+    "as": false,
+    "h": {
+     "0.5": [
+      12,
+      50,
+      2,
+      52
+     ],
+     "1": [
+      18,
+      70,
+      1,
+      50
+     ],
+     "3": [
+      18,
+      70,
+      -5,
+      43
+     ],
+     "6": [
+      40,
+      150,
+      -20,
+      32,
+      1
+     ],
+     "8": [
+      40,
+      150,
+      -29,
+      25,
+      1
+     ]
+    }
+   }
+  },
   {
    "k": "bsc:0x13920fe6467E9e3c852B8D365A036c995F0F7777",
    "sym": "GM",
@@ -87,7 +179,9 @@
       18
      ]
     }
-   }
+   },
+   "mcNow": 3637589,
+   "lastAt": 1794292787148
   },
   {
    "k": "solana:Eqx3sZXKgZ49XrZfKkUAdNz8D8keZtQtNG83wisxpump",
