@@ -1,33 +1,22 @@
-/* Kyvo Premium — payment stub. NOTHING is sold yet (enabled:false → CTA shows "Wkrótce").
-   Later: Stripe Payment Links (Stripe account of an adult / legal guardian or a company), subscription with
-   a 3-day trial that requires a payment method (card, Apple Pay, Google Pay; BLIK is not available for
-   recurring payments). Payment Links are public URLs — NEVER put a Stripe secret key (sk_...) here.
-   Entitlement check (who is Premium) needs a backend later, e.g. Firebase + Stripe webhook / extension. */
+/* v8.46: Kyvo does not sell plans inside the app. A purchase on the sales site returns a
+   one-time code. This app redeems it with HTTPS POST {code} to KYVO_ACCESS_CONFIG.redeemUrl.
+   Empty redeemUrl does not unlock anyone. The code is not stored. A successful redeem only
+   sets kyvo_device_ok=1 on this device (separate from kyvo_owner_tok). Never put a code,
+   a shared password, or a Stripe secret in this file. */
+window.KYVO_ACCESS_CONFIG = { redeemUrl: '' };
 window.KYVO_PREMIUM_CONFIG = {
-  enabled: false,                       // payments are NOT live (no Stripe account yet) → every CTA shows "Wkrótce"
+  enabled: false,
   currency: 'USD',
-  /* v8.14.1 two paid tiers (launch price = -50 %, shown as a crossed-out regular price):
-       free     → 1 Runner / Warsaw day, Gold 3 checks + 1 card / day, Tracker 3 wallets, 2 notifications / day
-       premium  → 3 Runners / day + everything else unlimited (Gold full, Tracker unlimited, all notifications)
-       runners  → everything in Premium + ALL Runners (👑 KOL coin, 🚀 Moon run, 📈 Big runner, 🐦 Tweet runner, 🔁 second leg)
-                  + Runner / Tweet runner / 👀 smart-money push (top tier; the owner link unlocks this tier) */
+  /* tiers still used by the gates:
+       free     → 1 Runner / Warsaw day, Tracker 3 wallets, 2 notifications / day
+       runners  → full access (all Runners, unlimited Tracker, all notifications). Owner link or the access password. */
   freeRunnersPerDay: 1,
   plans: {
-    premium: { name: 'Premium', regularPrice: '$9.99', promoPrice: '$4.99', runnersPerDay: 3,
-               stripePaymentLinkPromo: '', stripePaymentLinkRegular: '' },        // e.g. https://buy.stripe.com/xxxx (only used when enabled:true)
-    runners: { name: '🏃 Runners', regularPrice: '$49.99', promoPrice: '$24.99', runnersPerDay: null,   // null = unlimited
-               stripePaymentLinkPromo: '', stripePaymentLinkRegular: '' },
+    premium: { name: 'Premium', runnersPerDay: 3 },
+    runners: { name: 'runners', runnersPerDay: null },
   },
-  regularPrice: '$9.99',                // legacy fields (= Premium plan) for older code paths
-  promoPrice: '$4.99',
-  promoActive: true,                    // "Cena startowa -50%" badge + crossed-out regular price (no deadline / seat count)
-  promoPct: 50,
-  period: 'mies.',
-  trialDays: 3,
-  stripePaymentLinkPromo: '',           // legacy (= Premium plan)
-  stripePaymentLinkRegular: '',
-  manageUrl: '',                        // Stripe customer portal link (cancel / change card)
-  popupAfterLogin: true,                // v8.2: show the Premium pop-up after login / "continue without login" (max once per session and per day)
+  promoActive: false,
+  popupAfterLogin: false,
 };
 
 /* v8.12 🥇 Gold tab (Orangie-style coin DD). Client-side gate like the Runner gate (bypassable by a technical user — data is public).
@@ -64,6 +53,8 @@ window.KYVO_TRACKER_CONFIG = {
   'use strict';
   var KYVO_OWNER_SHA256 = 'fe4e23b1d006665193fb50952d6d357bb7f1da522ae3cc208aa4aca0c4e4ad7e';
   var owner = false;
+  var access = false;
+  try { access = localStorage.getItem('kyvo_device_ok') === '1'; } catch (e) {}
   function hex(buf) { return Array.prototype.map.call(new Uint8Array(buf), function (b) { return ('0' + b.toString(16)).slice(-2); }).join(''); }
   function sha(t) {
     if (!t || !(window.crypto && crypto.subtle && window.TextEncoder)) return Promise.resolve('');
@@ -85,6 +76,15 @@ window.KYVO_TRACKER_CONFIG = {
     if (tokUrl !== null) { u.searchParams.delete('owner'); history.replaceState(history.state, '', u.pathname + u.search + u.hash); }
   } catch (e) {}
   var stored = null; try { stored = localStorage.getItem('kyvo_owner_tok'); } catch (e) {}
+  function changed(detail) {
+    try { window.dispatchEvent(new CustomEvent('kyvo-premium-change', { detail: detail || {} })); } catch (e) {}
+    setTimeout(function () { try { if (window.KyvoPush && window.KyvoPush.syncTags) window.KyvoPush.syncTags(); } catch (e) {} }, 4000);
+  }
+  function redeemUrl() {
+    var c = window.KYVO_ACCESS_CONFIG || {};
+    var u = String(c.redeemUrl || '').replace(/^\s+|\s+$/g, '');
+    return /^https:\/\//i.test(u) ? u : '';
+  }
   window.KyvoPremiumReady = Promise.all([sha(tokUrl), sha(stored)]).then(function (r) {
     var en = false; try { en = localStorage.getItem('kyvo_lang') === 'en'; } catch (e) {}
     if (tokUrl && r[0] === KYVO_OWNER_SHA256) {
@@ -93,13 +93,9 @@ window.KYVO_TRACKER_CONFIG = {
       toast(en ? '🏃 Runners plan active (owner)' : '🏃 Plan Runners aktywny (właściciel)');
     } else if (tokUrl) toast(en ? 'Invalid owner link' : 'Nieprawidłowy link właściciela');
     if (!owner && stored && r[1] === KYVO_OWNER_SHA256) owner = true;
-    if (!owner && freeHour()) toast(en ? '🎁 Premium free until ' + freeLabel() : '🎁 Premium za darmo do ' + freeLabel());
-    if (owner) {
-      try { window.dispatchEvent(new CustomEvent('kyvo-premium-change', { detail: { owner: true } })); } catch (e) {}
-      // OneSignal tag premium=1 (only works once push was enabled on this device; notify.js also re-syncs on opt-in)
-      setTimeout(function () { try { if (window.KyvoPush && window.KyvoPush.syncTags) window.KyvoPush.syncTags(); } catch (e) {} }, 4000);
-    }
-    return owner;
+    if (!owner && !access && freeHour()) toast(en ? '🎁 Premium free until ' + freeLabel() : '🎁 Premium za darmo do ' + freeLabel());
+    if (owner || access) changed(owner ? { owner: true } : { access: true });
+    return owner || access;
   });
   /* v8.14.1 tiers: 'free' | 'premium' | 'runners'. Owner = 'runners' (top tier). Until a real backend exists nobody else is paid
      (enabled:false). Later the entitlement (kyvo_premium_until + kyvo_premium_tier) must come from the backend, never from user input. */
@@ -110,12 +106,12 @@ window.KYVO_TRACKER_CONFIG = {
   function freeHour() { return Date.now() < FREE_UNTIL; }
   function freeLabel() { return '7.11 23:59'; }
   function tier() {
-    if (owner) return 'runners';
+    if (owner || access) return 'runners';
     if (freeHour()) return 'runners';
     return paidTier();
   }
   function paidTier() {
-    if (owner) return 'runners';
+    if (owner || access) return 'runners';
     var C = window.KYVO_PREMIUM_CONFIG || {};
     if (!C.enabled) return 'free';
     try {
@@ -135,9 +131,69 @@ window.KYVO_TRACKER_CONFIG = {
       return Math.max(1, +C.freeRunnersPerDay || 1);
     },
     isOwner: function () { return owner; },
+    hasAccess: function () { return access; },
+    /* One-time code. Sent once to redeemUrl, never saved. Empty URL does not unlock. */
+    redeem: function (code) {
+      var t = String(code == null ? '' : code).trim();
+      var url = redeemUrl();
+      if (!t) return Promise.resolve({ ok: false, reason: 'empty' });
+      if (!url) return Promise.resolve({ ok: false, reason: 'pending' });
+      return fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ code: t }),
+      }).then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (body) {
+          if (res.ok && (!body || body.ok !== false)) {
+            access = true;
+            try { localStorage.setItem('kyvo_device_ok', '1'); } catch (e) {}
+            changed({ access: true });
+            return { ok: true };
+          }
+          return { ok: false, reason: 'invalid' };
+        });
+      }, function () { return { ok: false, reason: 'network' }; });
+    },
     paidTier: paidTier,
-    isFreeHour: function () { return !owner && freeHour(); },   // v8.22: free launch week (owner keeps the 'owner' label)
+    isFreeHour: function () { return !owner && !access && freeHour(); },
     freeUntil: FREE_UNTIL,
     freeLabel: freeLabel,
+    formHtml: function () {
+      var en = false; try { en = localStorage.getItem('kyvo_lang') === 'en'; } catch (e) {}
+      if (owner || access) {
+        return '<div class="card" translate="no"><b>' + (en ? 'Unlocked' : 'Odblokowano') + '</b><div class="mut" style="margin-top:4px;font-size:12.5px;line-height:1.45">' + (en ? 'Full access is on for this device.' : 'Pełny dostęp jest włączony na tym urządzeniu.') + '</div></div>';
+      }
+      var pending = !redeemUrl();
+      return '<form id="kyvoAccess" class="card" translate="no" autocomplete="off">' +
+        '<div class="h" style="font-size:15px;margin:0 0 6px">' + (en ? 'Code' : 'Hasło / kod') + '</div>' +
+        '<p class="mut" style="font-size:12.5px;line-height:1.45;margin:0 0 8px">' + (en ? 'One-time code from your purchase. It works on one device. Kyvo does not sell plans in the app.' : 'Jednorazowy kod z zakupu. Działa na jednym urządzeniu. Kyvo nie sprzedaje planów w aplikacji.') + '</p>' +
+        (pending ? '<p class="mut" style="font-size:12.5px;line-height:1.45;margin:0 0 8px">' + (en ? 'The code will work after the next app update.' : 'Kod zadziała po kolejnej aktualizacji aplikacji.') + '</p>' : '') +
+        '<input class="acc-in" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="80" placeholder="' + (en ? 'Code' : 'Hasło / kod') + '" aria-label="' + (en ? 'Code' : 'Hasło / kod') + '">' +
+        '<button type="submit" class="pf-btn pf-share">' + (en ? 'Unlock' : 'Odblokuj') + '</button>' +
+        '<div data-acc-msg class="mut" style="margin-top:8px;font-size:12.5px"></div></form>';
+    },
+    wireAccess: function (root) {
+      if (!root) return;
+      var form = root.querySelector('#kyvoAccess');
+      if (!form || form._w) return;
+      form._w = true;
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var input = form.querySelector('input');
+        var msg = form.querySelector('[data-acc-msg]');
+        var en = false; try { en = localStorage.getItem('kyvo_lang') === 'en'; } catch (e2) {}
+        var btn = form.querySelector('button');
+        if (btn) btn.disabled = true;
+        window.KyvoPremium.redeem(input ? input.value : '').then(function (r) {
+          if (btn) btn.disabled = false;
+          if (!msg) return;
+          if (r && r.ok) { if (input) input.value = ''; msg.textContent = en ? 'Unlocked on this device.' : 'Odblokowano na tym urządzeniu.'; }
+          else if (r && r.reason === 'pending') msg.textContent = en ? 'The code will work after the next app update.' : 'Kod zadziała po kolejnej aktualizacji aplikacji.';
+          else if (r && r.reason === 'empty') msg.textContent = en ? 'Enter the code.' : 'Wpisz kod.';
+          else if (r && r.reason === 'network') msg.textContent = en ? 'Could not connect. Try again in a moment.' : 'Nie udało się połączyć. Spróbuj za chwilę.';
+          else msg.textContent = en ? 'Code is invalid or already used.' : 'Kod nieprawidłowy albo już wykorzystany.';
+        });
+      });
+    },
   };
 })();

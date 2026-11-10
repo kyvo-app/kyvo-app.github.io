@@ -219,7 +219,7 @@
       art: coachArt('pl'),
       t: 'Kyvo Coach w Journal',
       p: 'Zapytaj o swoje trade’y: czy grasz na tilcie, który setup daje Ci najwięcej, jak wygląda Twoja psychika w tym tygodniu. Odpowiedzi liczone z Twojego dziennika — na regułach, bez płatnego AI.',
-      li: ['Journal i Coach — w Premium', 'Wystarczy publiczny adres portfela, nigdy klucz', 'To wskazówki, nie porada finansowa'],
+      li: ['Journal i Coach — po jednorazowym kodzie', 'Wystarczy publiczny adres portfela, nigdy klucz', 'To wskazówki, nie porada finansowa'],
     },
     {
       art: '<div class="ob-art ob-ios"><span>Safari</span><span>⬆︎ Udostępnij</span><span>➕ Do ekranu początk.</span></div>',
@@ -345,8 +345,8 @@
       x.live = !!(C.enabled && /^https:\/\//.test(x.link));
       return x;
     };
-    C.premium = mk('premium', { name: 'Premium', regularPrice: C.regularPrice || '$9.99', promoPrice: C.promoPrice || '$4.99', runnersPerDay: 3, stripePaymentLinkPromo: C.stripePaymentLinkPromo, stripePaymentLinkRegular: C.stripePaymentLinkRegular });
-    C.runners = mk('runners', { name: '🏃 Runners', regularPrice: '$49.99', promoPrice: '$24.99', runnersPerDay: null });
+    C.premium = mk('premium', { name: 'Premium', regularPrice: '', promoPrice: '', runnersPerDay: 3 });
+    C.runners = mk('runners', { name: 'runners', regularPrice: '', promoPrice: '', runnersPerDay: null });
     return C;
   }
   const curTier = () => { try { return (window.KyvoPremium && window.KyvoPremium.tier && window.KyvoPremium.tier()) || 'free'; } catch (e) { return 'free'; } };
@@ -389,9 +389,10 @@
   }
 
   /* ---------------- v8.2: Premium pop-up after login / "continue without login" (max once per session and per day) ---------------- */
-  function maybePremiumPopup(force, focus) {
+  function maybePremiumPopup() { return false; } // v8.46: no in-app Premium popup
+  function _retiredPremiumPopup(force, focus) {
+    return false;
     const C = planCfg();
-    if (!force && C.popupAfterLogin === false) return false;
     const day = new Date().toISOString().slice(0, 10);
     try {
       if (!force && (sessionStorage.getItem('kyvo_pm_pop') || localStorage.getItem('kyvo_pm_pop_day') === day)) return false;
@@ -445,12 +446,12 @@
       ['Język', 'Kyvo działa po polsku i po angielsku. Zmienisz język przyciskami PL / EN w zakładce Więcej (albo na pierwszej karcie wprowadzenia, albo w nagłówku na komputerze). Wybór zapamiętujemy w tej przeglądarce.'],
     ]],
     ['Logowanie, Premium i kontakt', [
-      ['Czy muszę się logować?', 'Nie. „Kontynuuj bez logowania” daje pełny dostęp do wszystkiego. Logowanie zapisuje Twój portfel w Profilu i przygotowuje konto pod przyszłe Kyvo Premium.'],
+      ['Czy muszę się logować?', 'Nie. „Kontynuuj bez logowania” daje dostęp do darmowych funkcji. Logowanie zapisuje Twój portfel w Profilu. Pełny dostęp włącza jednorazowy kod z zakupu — Kyvo nie sprzedaje planów w aplikacji.'],
       ['Jak działa logowanie portfelem?', 'Wybierasz Phantom / Solflare (Solana) albo MetaMask lub inny portfel EVM (BSC, Robinhood Chain). Portfel pokazuje wiadomość „Logowanie do Kyvo. To nie jest transakcja i nic nie kosztuje.” — podpisujesz tylko ją. To nie jest transakcja, nie ma opłat, Kyvo nie dostaje dostępu do środków. Podpis sprawdzamy na Twoim urządzeniu, a sesja zostaje w tej przeglądarce. Na iPhonie Kyvo otworzy się w przeglądarce w aplikacji portfela.'],
       ['Co jeśli portfel prosi o zatwierdzenie transakcji?', 'Odrzuć ją. Kyvo nigdy nie wysyła transakcji do podpisu — tylko wiadomość tekstową. Nikt z Kyvo nie poprosi też o seed phrase ani klucz prywatny.'],
       ['Google, e-mail i Apple', 'Logowanie przez Google i e-mail (link logowania wysyłany na maila — bez hasła) włączymy wkrótce; Apple — później. Do tego czasu przyciski są oznaczone „Wkrótce”.'],
       ['Jak się wylogować?', 'Profil → „Wyloguj”. Adres zostaje w Profilu, możesz go usunąć osobno. Więcej → „Wyczyść dane Kyvo” usuwa wszystko z tej przeglądarki.'],
-      ['Kyvo Premium', 'Plan Premium jest w przygotowaniu — funkcje oznaczone „wkrótce” jeszcze nie działają i nic nie jest sprzedawane. Planowane są dwa plany: Premium — $9.99 / mies. (cena startowa -50%: $4.99 / mies.) oraz 🏃 Runners — $49.99 / mies. (cena startowa -50%: $24.99 / mies.). Oba z 3 dniami za darmo (z podpiętą kartą, Apple Pay lub Google Pay; BLIK nie działa dla subskrypcji) i wymagają logowania. Runnery: darmowo 1 dziennie (pierwszy oznaczony danego dnia), Premium 3 dziennie, Runners — wszystkie + push o Runnerach i push smart money. Premium daje też Tracker bez limitu i wszystkie powiadomienia. Wszystko inne, co działa dziś, zostaje za darmo.'],
+      ['Hasło / kod', 'Kyvo nie sprzedaje planów w aplikacji. Bez kodu zostaje plan darmowy (1 Runner dziennie, limit obserwowanych portfeli i powiadomień). Jednorazowy kod z zakupu wpisujesz przy logowaniu albo w Więcej. Po udanym użyciu działa tylko na tym urządzeniu i nie zadziała u nikogo innego. Sam kod nie jest zapisywany.'],
       ['Kontakt', 'Chcesz pogadać, pomóc albo współpracować? Więcej → Kontakt (Discord).'],
     ]],
     ['Zakładki z coinami', [
@@ -510,8 +511,8 @@
         ['6. Linki zewnętrzne', 'Kyvo zawiera linki do zewnętrznych serwisów (np. DexScreener, X, eksploratory blockchain, terminale handlowe). Kyvo nie jest z nimi powiązane, nie odpowiada za ich treści ani działanie, a korzystanie z nich podlega ich regulaminom. Nazwy i znaki towarowe należą do ich właścicieli.'],
         ['7. Treści z X', 'Pokazujemy krótkie cytaty publicznych postów wraz z autorem i linkiem do oryginału, w celu informacyjnym. Prawa do treści należą do ich autorów. Jeśli jesteś autorem i chcesz usunięcia cytatu, skontaktuj się z nami — usuniemy go.'],
         ['7a. Logowanie', 'Logowanie jest dobrowolne — bez niego masz pełny dostęp. Logowanie portfelem polega wyłącznie na podpisaniu wiadomości tekstowej; to nie jest transakcja i nic nie kosztuje. Kyvo nigdy nie poprosi o podpisanie transakcji, seed phrase ani klucz prywatny. Sesja jest zapisana tylko w Twojej przeglądarce. Logowanie przez Google (gdy zostanie włączone) działa przez Supabase Auth (UE) i Google. Na telefonie logowanie aplikacją Phantom może na chwilę przełączyć Cię do Safari. Wylogujesz się w Profilu.'],
-        ['7b. Kyvo Premium', 'Kyvo Premium jest w przygotowaniu i obecnie nie jest sprzedawane — nie pobieramy żadnych płatności. Ceny i funkcje pokazane na stronie Premium mają charakter zapowiedzi i mogą się zmienić. Premium będzie wymagało zalogowania.'],
-        ['7c. Warunki subskrypcji (po uruchomieniu płatności)', 'Premium będzie subskrypcją miesięczną w dwóch planach: Premium — cena regularna $9.99 / mies., cena startowa dla pierwszych użytkowników $4.99 / mies. (-50%); 🏃 Runners — cena regularna $49.99 / mies., cena startowa $24.99 / mies. (-50%). Na start 3 dni za darmo — okres próbny wymaga podania metody płatności (karta, Apple Pay lub Google Pay; BLIK nie jest dostępny dla płatności cyklicznych). Jeśli nie anulujesz przed końcem okresu próbnego, subskrypcja zamieni się w płatną i będzie się automatycznie odnawiać co miesiąc. Anulować możesz w każdej chwili — Premium działa wtedy do końca opłaconego okresu. Płatności obsłuży zewnętrzny operator (Stripe); Kyvo nie widzi danych Twojej karty. Szczegóły, w tym prawo odstąpienia od umowy, podamy przed uruchomieniem płatności.'],
+        ['7b. Dostęp', 'Kyvo nie sprzedaje planów w tej aplikacji i nie przyjmuje tu płatności ani danych karty. Płatność, jeśli ją robisz, odbywa się poza Kyvo. Pełny dostęp włącza jednorazowy kod. Po użyciu zostaje tylko znacznik na tym urządzeniu, bez samego kodu. Bez kodu zostają limity darmowe.'],
+        ['7c. Płatności poza aplikacją', 'Kyvo nie obsługuje subskrypcji w aplikacji i nie widzi danych karty. Warunki płatności obowiązują na stronie, na której kupujesz dostęp, nie w tym programie.'],
         ['8. Zasady korzystania', 'Nie wolno używać Kyvo do działań niezgodnych z prawem, do manipulacji rynkiem, oszustw ani do przeciążania usług, z których Kyvo korzysta. Kyvo jest przeznaczone dla osób pełnoletnich (18+).'],
         ['9. Odpowiedzialność', 'W najszerszym zakresie dopuszczalnym przez prawo twórca Kyvo nie odpowiada za straty finansowe wynikające z decyzji podjętych na podstawie treści w aplikacji ani za przerwy w działaniu lub błędy danych. Nie wyłącza to praw, których nie można wyłączyć na mocy przepisów, w tym praw konsumenta.'],
         ['10. Zmiany', 'Regulamin może się zmieniać wraz z rozwojem aplikacji. Aktualna wersja jest zawsze dostępna w Kyvo (Więcej → Regulamin).'],
@@ -525,7 +526,7 @@
         ['Co zapisuje się na Twoim urządzeniu', 'W pamięci przeglądarki (localStorage i pamięć podręczna aplikacji) zapisujemy tylko: wybraną sieć i filtry, ostatnie dane coinów (żeby apka szybciej startowała), informację „od kiedy coin jest na liście”, wybrane zakładki, publiczne adresy portfeli dodane w Profilu, nick i avatar (zdjęcie avatara zostaje na telefonie), pobraną historię transakcji tych adresów, wybrany język, watchlistę i alerty oraz to, że wprowadzenie zostało już pokazane. Te dane nie są nigdzie wysyłane przez Kyvo. Usuniesz je przyciskiem „Wyczyść dane Kyvo” (Więcej) albo czyszcząc dane strony w przeglądarce.'],
         ['Logowanie portfelem', 'Gdy logujesz się portfelem, Twój portfel podpisuje wiadomość tekstową. Podpis sprawdzamy na Twoim urządzeniu; sesja (publiczny adres, treść wiadomości i podpis) zostaje tylko w localStorage tej przeglądarki i nie trafia na żaden serwer Kyvo. Nie dostajemy dostępu do środków ani kluczy.'],
         ['Logowanie przez Google lub e-mail', 'GOOGLE_STATUS Gdy jest włączone, logowanie Google obsługuje Supabase Auth (Supabase, Inc.; projekt Kyvo w UE — Frankfurt) razem z Google: przetwarzane są Twój adres e-mail, imię, zdjęcie profilowe i identyfikator konta Google. Supabase przechowuje konto (e-mail, ID, daty logowania, techniczne logi z adresem IP), a w Twojej przeglądarce zostaje dane sesji. Używamy ich tylko do logowania (i w przyszłości do obsługi Premium); podstawa: art. 6 ust. 1 lit. b RODO. Wylogujesz się przyciskiem „Wyloguj”; żeby usunąć konto Google w Kyvo, napisz do nas — usuniemy je w ciągu 30 dni. Logowanie e-mailem jest na razie wyłączone.'],
-        ['Płatności (w przyszłości)', 'Kyvo Premium nie jest jeszcze sprzedawane. Po uruchomieniu płatności obsłuży je Stripe — dane karty trafią bezpośrednio do Stripe, a Kyvo zobaczy tylko status subskrypcji.'],
+        ['Płatności', 'Kyvo nie sprzedaje planów w aplikacji i nie zbiera danych karty. Jednorazowy kod jest wysyłany do sprawdzenia i nie jest zapisywany w przeglądarce.'],
         ['Nie sprzedajemy danych', 'Nie sprzedajemy, nie udostępniamy i nie wykorzystujemy Twoich danych do reklam.'],
         ['Zapytania do zewnętrznych API', 'Żeby pokazać dane na żywo, Twoja przeglądarka łączy się bezpośrednio z publicznymi usługami: DexScreener, GeckoTerminal, RugCheck i GoPlus (tylko adres oglądanego coina), OneSignal (tylko gdy włączysz powiadomienia systemowe), publiczne węzły RPC Solany (publicnode), BSC (bloXroute, 48 Club, BNB Chain) i Robinhood Chain, Blockscout (Robinhood Chain) oraz Binance (publiczne kursy). Gdy logowanie Google jest włączone — także z Supabase (projekt Kyvo, UE) i serwerami Google. Obrazki coinów ładują się z serwerów tych usług. Jak przy każdym połączeniu w internecie, te serwisy widzą Twój adres IP i dane przeglądarki, a gdy sprawdzasz portfel w Profilu — także ten publiczny adres. Działają według własnych polityk prywatności. Licznik odwiedzin: raz na przeglądarkę strona wysyła jedno zapytanie do publicznego licznika Abacus (abacus.jasoncameron.dev), które zwiększa jedną wspólną liczbę; później tylko ją odczytuje. Nie wysyłamy żadnego identyfikatora, cookies ani adresu portfela (serwer licznika widzi adres IP, jak każda usługa).'],
         ['Powiadomienia', 'Powiadomienia w apce (gdy Kyvo jest otwarte) tworzy lokalnie Twoja przeglądarka. Powiadomienia systemowe (gdy Kyvo jest zamknięte) są opcjonalne i włączają się dopiero, gdy klikniesz „Włącz powiadomienia systemowe” i zaakceptujesz prośbę przeglądarki. Wysyła je OneSignal (OneSignal, Inc., USA): przechowuje anonimowy identyfikator subskrypcji push Twojej przeglądarki, typ urządzenia/przeglądarki, język, strefę czasową i znacznik planu (free/Premium), żeby wysłać alert. Nie przekazujemy OneSignal imienia, e-maila ani adresów portfeli. Wyłączysz to w ustawieniach powiadomień Kyvo lub w ustawieniach przeglądarki/telefonu — wtedy subskrypcja jest usuwana.'],
@@ -561,7 +562,7 @@
     },
   };
   function legalLinks() {
-    return `<a href="#help">Jak korzystać</a><a href="#legal/regulamin">Regulamin</a><a href="#legal/prywatnosc">Prywatność</a><a href="#legal/zrodla">Źródła danych</a><a href="#legal/ryzyko">Ryzyko</a><a href="#premium">Premium</a><a href="#kontakt">Kontakt</a>`;
+    return `<a href="#help">Jak korzystać</a><a href="#legal/regulamin">Regulamin</a><a href="#legal/prywatnosc">Prywatność</a><a href="#legal/zrodla">Źródła danych</a><a href="#legal/ryzyko">Ryzyko</a><a href="#premium">Dostęp</a><a href="#kontakt">Kontakt</a>`;
   }
   function renderLegal(root, which, ctx) {
     const L = LEGAL[which] || LEGAL.regulamin;
@@ -636,7 +637,7 @@
       art: coachArt('en'),
       t: 'Kyvo Coach in the Journal',
       p: 'Ask about your trades: are you tilt trading, which setup pays you the most, how your psychology looks this week. Answers are computed from your own journal — rule-based, no paid AI.',
-      li: ['Journal and Coach — in Premium', 'A public wallet address is enough, never a key', 'Tips, not financial advice'],
+      li: ['Journal and Coach — after a one-time code', 'A public wallet address is enough, never a key', 'Tips, not financial advice'],
     },
     {
       art: '<div class="ob-art ob-ios"><span>Safari</span><span>⬆︎ Share</span><span>➕ Add to Home Screen</span></div>',
@@ -655,12 +656,12 @@
       ['Language', 'Kyvo is available in Polish and English. Switch with the PL / EN buttons in More (or on the first intro card, or in the header on desktop). Your choice is remembered in this browser.'],
     ]],
     ['Sign-in, Premium and contact', [
-      ['Do I have to sign in?', 'No. “Continue without signing in” gives full access to everything. Signing in saves your wallet in Profile and prepares your account for the future Kyvo Premium.'],
+      ['Do I have to sign in?', 'No. “Continue without signing in” keeps the free limits. Signing in saves your wallet in Profile. Full access is a one-time code from your purchase — Kyvo does not sell plans in the app.'],
       ['How does wallet sign-in work?', 'Choose Phantom / Solflare (Solana) or MetaMask or another EVM wallet (BSC, Robinhood Chain). The wallet shows the message “Sign in to Kyvo. This is not a transaction and costs nothing.” — you only sign that. It isn\'t a transaction, there are no fees and Kyvo gets no access to your funds. We verify the signature on your device and the session stays in this browser. On iPhone, Kyvo opens in the wallet app\'s browser.'],
       ['What if my wallet asks me to approve a transaction?', 'Reject it. Kyvo never sends a transaction to sign — only a text message. Nobody from Kyvo will ever ask for your seed phrase or private key either.'],
       ['Google, email and Apple', 'Google and email sign-in (a sign-in link sent to your email — no password) are coming soon; Apple later. Until then the buttons are marked “Coming soon”.'],
       ['How do I sign out?', 'Profile → “Sign out”. The address stays in Profile and you can remove it separately. More → “Clear Kyvo data” removes everything from this browser.'],
-      ['Kyvo Premium', 'The Premium plans are in preparation — features marked “coming soon” don\'t work yet and nothing is being sold. Two plans are planned: Premium — $9.99 / month (launch price -50%: $4.99 / month) and 🏃 Runners — $49.99 / month (launch price -50%: $24.99 / month). Both come with 3 days free (with a card, Apple Pay or Google Pay attached; BLIK doesn\'t work for subscriptions) and require signing in. Runners: free 1 a day (the first one flagged that day), Premium 3 a day, Runners plan — all of them + Runner push and smart money push. Premium also gives unlimited Tracker and all notifications. Everything else that works today stays free.'],
+      ['Code', 'Kyvo does not sell plans in the app. Without a code you stay on the free limits (1 Runner a day, a cap on followed wallets and notifications). Enter the one-time code from your purchase on the sign-in screen or in More. After a successful redeem it works only on this device and will not work for anyone else. The code itself is not saved.'],
       ['Contact', 'Want to chat, help out or collaborate? More → Contact (Discord).'],
     ]],
     ['Coin tabs', [
@@ -706,8 +707,8 @@
         ['6. External links', 'Kyvo contains links to external services (e.g. DexScreener, X, blockchain explorers, trading terminals). Kyvo isn\'t affiliated with them, isn\'t responsible for their content or operation, and their use is subject to their own terms. Names and trademarks belong to their owners.'],
         ['7. Content from X', 'We show short quotes of public posts with the author and a link to the original, for information purposes. Rights to the content belong to its authors. If you are the author and want a quote removed, contact us — we\'ll remove it.'],
         ['7a. Sign-in', 'Signing in is voluntary — you have full access without it. Wallet sign-in consists only of signing a text message; it isn\'t a transaction and costs nothing. Kyvo will never ask you to sign a transaction or for a seed phrase or private key. The session is stored only in your browser. Google sign-in (once enabled) works through Supabase Auth (EU) and Google. On a phone, signing in with the Phantom app may briefly switch you to Safari. You can sign out in Profile.'],
-        ['7b. Kyvo Premium', 'Kyvo Premium is in preparation and is not currently being sold — we don\'t take any payments. Prices and features shown on the Premium page are an announcement and may change. Premium will require signing in.'],
-        ['7c. Subscription terms (once payments launch)', 'Premium will be a monthly subscription in two plans: Premium — regular price $9.99 / month, launch price for early users $4.99 / month (-50%); 🏃 Runners — regular price $49.99 / month, launch price $24.99 / month (-50%). 3 days free to start — the trial requires a payment method (card, Apple Pay or Google Pay; BLIK isn\'t available for recurring payments). If you don\'t cancel before the trial ends, the subscription becomes paid and renews automatically every month. You can cancel at any time — Premium then works until the end of the paid period. Payments will be handled by an external operator (Stripe); Kyvo doesn\'t see your card details. Details, including the right of withdrawal, will be provided before payments launch.'],
+        ['7b. Access', 'Kyvo does not sell plans in this app and does not take payments or card details here. If you pay, that happens outside Kyvo. Full access is a one-time code. After it is used, only a marker stays on this device, not the code. Without a code, the free limits stay.'],
+        ['7c. Payments outside the app', 'Kyvo does not run subscriptions in the app and never sees card details. Payment terms apply on the site where you buy access, not in this program.'],
         ['8. Rules of use', 'You may not use Kyvo for unlawful activity, market manipulation, fraud or to overload the services Kyvo relies on. Kyvo is intended for adults (18+).'],
         ['9. Liability', 'To the fullest extent permitted by law, the creator of Kyvo is not liable for financial losses resulting from decisions made based on content in the app, or for interruptions or data errors. This does not exclude rights that cannot be excluded by law, including consumer rights.'],
         ['10. Changes', 'These terms may change as the app develops. The current version is always available in Kyvo (More → Terms).'],
@@ -722,7 +723,7 @@
         ['What is stored on your device', 'In browser storage (localStorage and the app cache) we only store: the selected network and filters, recent coin data (so the app starts faster), “how long a coin has been on the list”, selected tabs, your language, the public wallet addresses added in Profile, your nickname and avatar (the avatar photo stays on your phone), the fetched transaction history of those addresses, your watchlist and alerts, and the fact that the intro was already shown. Kyvo doesn\'t send this data anywhere. Delete it with “Clear Kyvo data” (More) or by clearing site data in your browser.'],
         ['Wallet sign-in', 'When you sign in with a wallet, your wallet signs a text message. We verify the signature on your device; the session (public address, message text and signature) stays only in this browser\'s localStorage and never reaches any Kyvo server. We get no access to funds or keys.'],
         ['Sign-in with Google or email', 'GOOGLE_STATUS When enabled, Google sign-in is handled by Supabase Auth (Supabase, Inc.; the Kyvo project is in the EU — Frankfurt) together with Google: your email address, name, profile photo and Google account ID are processed. Supabase stores the account (email, ID, sign-in dates, technical logs with your IP address) and session data stays in your browser. We use it only for signing in (and in the future for Premium); legal basis: Art. 6(1)(b) GDPR. Sign out with “Sign out”; to delete your Kyvo Google account, write to us — we delete it within 30 days. Email sign-in is disabled for now.'],
-        ['Payments (in the future)', 'Kyvo Premium isn\'t sold yet. Once payments launch, Stripe will handle them — card details go directly to Stripe and Kyvo only sees the subscription status.'],
+        ['Payments', 'Kyvo does not sell plans in the app and does not collect card details. A one-time code is sent to be checked and is not saved in the browser.'],
         ['We don\'t sell data', 'We don\'t sell, share or use your data for advertising.'],
         ['Requests to external APIs', 'To show live data, your browser connects directly to public services: DexScreener, GeckoTerminal, RugCheck and GoPlus (only the address of the coin you\'re viewing), OneSignal (only if you enable system notifications), public RPC nodes for Solana (publicnode), BSC (bloXroute, 48 Club, BNB Chain) and Robinhood Chain, Blockscout (Robinhood Chain) and Binance (public prices). When Google sign-in is enabled — also Supabase (Kyvo project, EU) and Google servers. Coin images load from those services\' servers. As with any internet connection, these services see your IP address and browser data, and when you check a wallet in Profile — also that public address. They operate under their own privacy policies. Visit counter: once per browser the site sends one request to the public Abacus counter (abacus.jasoncameron.dev), which adds 1 to a single shared number; after that it only reads it. No identifier, cookie or wallet address is sent (the counter\'s server sees your IP address, like any service).'],
         ['Notifications', 'In-app notifications (while Kyvo is open) are created locally by your browser. System notifications (while Kyvo is closed) are optional and only turn on when you tap “Enable system notifications” and accept the browser prompt. They are sent by OneSignal (OneSignal, Inc., USA), which stores an anonymous push-subscription ID for your browser, device/browser type, language, time zone and a plan tag (free/Premium) in order to deliver alerts. We don\'t give OneSignal your name, email or wallet addresses. Turn it off in Kyvo notification settings or in your browser/phone settings — the subscription is then removed.'],
@@ -784,50 +785,20 @@
   const PREMIUM_ROWS = EN ? PREMIUM_ROWS_EN : PREMIUM_ROWS_PL;
   const T = (x) => (window.KyvoI18n ? window.KyvoI18n.t(x) : x);
   function renderPremium(root, ctx) {
-    const C = planCfg();
     const L = (pl, en) => (EN ? en : pl);
-    const per = EN ? 'mo' : C.period;
-    const live = C.premium.live || C.runners.live;
-    const S = window.KyvoAuth && window.KyvoAuth.session();
-    const tier = curTier();
-    const owner = !!(window.KyvoPremium && window.KyvoPremium.isOwner && window.KyvoPremium.isOwner());
-    const cell = (v) => (v === 'free' ? '<span class="pm-ok">✓</span>' : v === 'soon' ? `<span class="pm-soon">${L('wkrótce', 'soon')}</span>` : v === 'all' ? '<span class="pm-ok">✓ ' + L('wszystkie', 'all') + '</span>' : v === '—' ? '<span class="mut">—</span>' : '<span class="mut">' + esc(v) + '</span>');
-    const tierName = tier === 'runners' ? '🏃 Runners' : tier === 'premium' ? '✦ Premium' : L('Darmowy', 'Free');
-    root.innerHTML = `
-      <div class="lg-head"><button type="button" class="back" data-back aria-label="${L('Wstecz', 'Back')}">‹</button><div class="h" style="margin:0">Kyvo Premium</div></div>
-      <div class="pm-hero" translate="no" data-ky-par>
-        <div class="pm-bg" aria-hidden="true" data-depth="-0.5">${window.KyvoArt ? KyvoArt.pic('chrome', '(min-width:700px) 420px, 80vw') : ''}</div>
-        <div class="pm-art" data-depth="0.8">${window.KyvoArt ? KyvoArt.pic('arc', '(min-width:700px) 640px, 100vw', { cls: 'pm-arc' }) + KyvoArt.pic('emblem', '120px', { cls: 'pm-emb', eager: 1, alt: 'Kyvo' }) : '<img src="icons/icon-192.png" width="56" height="56" alt="">'}</div>
-        <div class="pm-badge">${live ? '✦ KYVO PREMIUM' : L('✦ PREMIUM · WKRÓTCE', '✦ PREMIUM · COMING SOON')}</div>
-        <h1>${L('Więcej sygnałów, mniej szumu', 'More signals, less noise')}</h1>
-        <p class="pm-line">${L('Szum jest za darmo. Przewaga nie.', 'Noise is free. An edge isn’t.')}</p>
-        ${C.promoActive ? `<div class="pm-promo">🔥 ${L('Cena startowa', 'Launch price')} -${esc(C.promoPct)}% · ${L('dla pierwszych użytkowników', 'for early users')}</div>` : ''}
-        <div class="pm-cur">${L('Twój plan', 'Your plan')}: <b>${esc(tierName)}</b>${owner ? ` <span class="mut">(${L('właściciel', 'owner')})</span>` : ''}</div>
-        <div class="pl-grid">${planCardHtml(C, C.runners, { tier })}${planCardHtml(C, C.premium, { tier })}</div>
-        <div class="pm-trial">${L(`${esc(C.trialDays)} dni za darmo, potem cena z planu · anulujesz kiedy chcesz`, `${esc(C.trialDays)} days free, then the plan price · cancel anytime`)}</div>
-        <div class="pm-found"><span class="pm-fb"><small>Founding</small><b>#001</b><i>–#100</i></span><div><b>${L('Founding member — pierwsza setka', 'Founding member — the first hundred')}</b><small>${L('Cena startowa na zawsze, dopóki masz aktywną subskrypcję (bez przerwy, na tym samym planie). Pierwszych 100 subskrybentów dostaje numerowaną odznakę #001–#100, która zostaje z Tobą niezależnie od planu.', 'Launch price for good, as long as your subscription stays active (no gap, same plan). The first 100 subscribers get a numbered #001–#100 badge that stays with you whatever your plan.')}${live ? '' : ' ' + L('Ruszy razem z płatnościami.', 'Starts when payments go live.')}</small></div></div>
-        ${S || tier !== 'free' ? '' : `<a class="pm-login" href="#login">🔑 ${L('Zaloguj się, żeby włączyć Premium', 'Sign in to enable Premium')}</a>`}
-        <div class="pm-note" id="pmNote">${live ? L('Płatność obsługuje zewnętrzny operator płatności (Stripe).', 'Payment is handled by an external payment operator (Stripe).') : L('Premium jeszcze nie ruszyło — nic nie sprzedajemy i niczego nie pobieramy.', 'Premium hasn\'t launched yet — we don\'t sell anything and don\'t charge anything.')}</div>
-        <div class="pm-pay">${L(`Okres próbny wymaga podpięcia karty, Apple Pay lub Google Pay. BLIK nie jest dostępny dla subskrypcji. Bez anulowania przed końcem ${esc(C.trialDays)} dni subskrypcja odnowi się automatycznie co miesiąc.`, `The trial requires a card, Apple Pay or Google Pay. BLIK isn't available for subscriptions. Unless you cancel before the end of the ${esc(C.trialDays)}-day trial, the subscription renews automatically every month.`)}</div>
-      </div>
-      <div class="card pm-tbl pm-tbl3" translate="no">
-        <div class="pm-row pm-h"><div>${L('Funkcja', 'Feature')}</div><div>Free</div><div class="pm-pcol">Premium<small>${esc(C.promoActive ? C.premium.promoPrice : C.premium.regularPrice)}</small></div><div class="pm-rcol">🏃 Runners<small>${esc(C.promoActive ? C.runners.promoPrice : C.runners.regularPrice)}</small></div></div>
-        ${PREMIUM_ROWS.map(([f, a, b, c]) => `<div class="pm-row"><div>${esc(f)}</div><div>${cell(a)}</div><div class="pm-pcol">${cell(b)}</div><div class="pm-rcol">${cell(c)}</div></div>`).join('')}
-      </div>
-      <div class="mut" style="font-size:11.5px;line-height:1.5;margin:6px 2px 12px" translate="no">${L(`Ceny w USD za miesiąc. Przekreślona cena = cena regularna po okresie startowym (Premium ${esc(C.premium.regularPrice)}, Runners ${esc(C.runners.regularPrice)}). „Wkrótce” = funkcja w przygotowaniu, jeszcze nie działa. Wszystko z kolumny Free działa już dziś i zostaje za darmo. Ceny i lista funkcji mogą się zmienić przed startem. Premium to nie porada finansowa.`, `Prices in USD per month. Crossed-out price = regular price after the launch period (Premium ${esc(C.premium.regularPrice)}, Runners ${esc(C.runners.regularPrice)}). “Coming soon” = feature in preparation, doesn't work yet. Everything in the Free column works today and stays free. Prices and the feature list may change before launch. Premium is not financial advice.`)}</div>`;
-    wireBack(root, ctx);
-    root.querySelectorAll('[data-plango]').forEach((b) => (b.onclick = () => {
-      const x = C[b.dataset.plango];
-      if (!x) return;
-      if (x.live && S) { window.open(x.link, '_blank', 'noopener'); return; } // only when payments are switched on (enabled:true + https Stripe link)
-      if (x.live && !S) { location.hash = 'login'; return; }
-      const n = root.querySelector('#pmNote');
-      n.innerHTML = `<b>${L('Wkrótce — zapisz się na listę.', 'Coming soon — join the list.')}</b> ${L(`Napisz na Discordzie, że chcesz plan ${esc(x.name)}, a dam znać, gdy ruszy.`, `Message me on Discord that you want the ${esc(x.name)} plan and I'll let you know when it launches.`)}`;
-      n.classList.add('on');
-      b.textContent = L('Wkrótce', 'Coming soon');
-      setTimeout(() => (location.hash = 'kontakt'), 1600);
-    }));
+    const paint = () => {
+      const P = window.KyvoPremium;
+      root.innerHTML = `
+        <div class="lg-head"><button type="button" class="back" data-back aria-label="${L('Wstecz', 'Back')}">‹</button><div class="h" style="margin:0">${L('Dostęp', 'Access')}</div></div>
+        ${P && P.formHtml ? P.formHtml() : '<div class="empty">Hasło niedostępne.</div>'}
+        <p class="mut" style="font-size:12px;line-height:1.45;margin:8px 2px" translate="no">${L('Bez kodu zostaje plan darmowy. To nie jest porada finansowa.', 'Without a code the free limits stay. This is not financial advice.')}</p>`;
+      wireBack(root, ctx);
+      if (P && P.wireAccess) P.wireAccess(root);
+    };
+    const ready = window.KyvoPremiumReady || Promise.resolve();
+    ready.then(paint, paint);
   }
+
 
   /* ---------------- Kontakt ---------------- */
   function renderContact(root, ctx) {
@@ -854,11 +825,11 @@
 
   async function clearData() {
     if (!confirm(T('Usunąć wszystkie dane Kyvo z tej przeglądarki? (portfele w Profilu, nick, filtry, cache)'))) return false;
-    let keepLang = null, keepOwner = null;
-    try { keepLang = localStorage.getItem('kyvo_lang'); keepOwner = localStorage.getItem('kyvo_owner_tok'); } catch (e) {}
+    let keepLang = null, keepOwner = null, keepAccess = null;
+    try { keepLang = localStorage.getItem('kyvo_lang'); keepOwner = localStorage.getItem('kyvo_owner_tok'); keepAccess = localStorage.getItem('kyvo_device_ok'); } catch (e) {}
     try { Object.keys(localStorage).filter((k) => k.startsWith('kyvo_')).forEach((k) => localStorage.removeItem(k)); } catch (e) {}
     try { if (window.caches) for (const k of await caches.keys()) await caches.delete(k); } catch (e) {}
-    try { localStorage.setItem(OB_KEY, String(Date.now())); if (keepLang) localStorage.setItem('kyvo_lang', keepLang); if (keepOwner) localStorage.setItem('kyvo_owner_tok', keepOwner); /* v8.11: owner Premium survives "clear data" */ } catch (e) {}
+    try { localStorage.setItem(OB_KEY, String(Date.now())); if (keepLang) localStorage.setItem('kyvo_lang', keepLang); if (keepOwner) localStorage.setItem('kyvo_owner_tok', keepOwner); if (keepAccess) localStorage.setItem('kyvo_device_ok', keepAccess); } catch (e) {}
     return true;
   }
 

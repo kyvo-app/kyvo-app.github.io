@@ -406,7 +406,7 @@
           <img src="icons/icon-192.png" width="84" height="84" alt="" class="lgn-logo">
           <h1>Zaloguj się do Kyvo</h1>
           <p>Smart money i viralowe memecoiny w jednym miejscu.</p>
-          <p class="lgn-why">Logowanie zapisze Twój portfel i odblokuje Premium. Bez logowania też masz pełny dostęp.</p>
+          <p class="lgn-why">Logowanie zapisuje portfel na tym urządzeniu. Pełny dostęp włącza jednorazowy kod poniżej — Kyvo nie sprzedaje planów w aplikacji.</p>
         </div>
         ${s ? `<div class="lgn-status ok">Jesteś zalogowany: <b>${esc(s.uid ? s.email || s.name : short(s.address))}</b> · <a href="#profil">Profil →</a></div>` : ''}
         <div class="lgn-sec">Portfel <span class="mut">· podpisujesz tylko wiadomość</span></div>
@@ -426,6 +426,7 @@
         ${plHtml()}
         ${standalone() && !s ? `<div class="lgn-btns"><button type="button" class="lgn-btn" id="lgnPasteBtn"><span class="lgn-ic">📋</span><span><b>📋 Wklej logowanie z Safari</b><small>Phantom · iPhone</small></span></button>
           <div class="lgn-mail" id="lgnPaste" hidden><textarea id="lgnCode" rows="3" placeholder="KYVO1.…" autocomplete="off" autocapitalize="off" spellcheck="false" style="width:100%;box-sizing:border-box"></textarea><button type="button" class="pf-btn pf-share" id="lgnCodeGo">Zaloguj</button></div></div>` : ''}
+        <div id="lgnAccess"></div>
         <button type="button" class="lgn-guest" id="lgnGuest">Kontynuuj bez logowania</button>
         <div class="lgn-safe">🔒 Logowanie portfelem to tylko podpis wiadomości tekstowej — <b>to nie jest transakcja i nic nie kosztuje</b>. Kyvo nigdy nie prosi o seed phrase ani klucz prywatny i nie ma dostępu do Twoich środków. Bez logowania masz pełny dostęp do aplikacji.</div>
         <div class="lgn-legal">Logując się akceptujesz <a href="#legal/regulamin">Regulamin</a> i <a href="#legal/prywatnosc">Politykę prywatności</a>.</div>
@@ -463,6 +464,11 @@
     }));
     const send = root.querySelector('#lgnSend');
     if (send) send.onclick = async () => { try { await sendEmailLink(root.querySelector('#lgnEmail').value); } catch (e) { status(errText(e), 'err'); } };
+    const acc = root.querySelector('#lgnAccess');
+    if (acc && window.KyvoPremium && window.KyvoPremium.formHtml) {
+      const paintAcc = () => { if (!acc.isConnected) return; acc.innerHTML = window.KyvoPremium.formHtml(); window.KyvoPremium.wireAccess(acc); };
+      if (window.KyvoPremiumReady) window.KyvoPremiumReady.then(paintAcc, paintAcc); else paintAcc();
+    }
     root.querySelector('#lgnGuest').onclick = () => {
       try { localStorage.setItem(SEEN, '1'); } catch (e) {}
       (opts.onGuest || (() => (location.hash = 'pulse')))();

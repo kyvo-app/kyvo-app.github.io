@@ -1,4 +1,4 @@
-/* KYVO_LIVE_v8_45 — v8.45: 👤 Rowdy — copy of Rowdy's buys (2 Solana wallets, tools/rowdy.py -> data/rowdy_live.json) in the 🏃 Runner tab, same as 👤 bystevenr. v8.44: 🫏 Cichy wspinacz — small young Solana coins ($30K–$150K, ≥ 40 holders) climbing a steady staircase (+100–450% on 5-min candles, ≥ 55% green, higher lows, no spike / dump, every hard-rug test) as a new 🏃 Runner source (badge + push '🏃 Runner · 🫏 Cichy wspinacz'); never 🚀 Runner 2.0. v8.43: 👤 bystevenr — @bystevenr's buys (Solana wallet, polled every 2 s on a free public RPC) as a 🏃 Runner source with its own badge + the normal Runner push (title "🏃 Runner · 👤 bystevenr · $SYM", no Kyvo rules: a copy of his buy). v8.42: 🔥 Trend — established quality coins trending steadily up (MC $300K–$50M, ≥ 6 h, ≥ 1 000 holders, top 10 ≤ 30%, +15–60% 1 h on rising volume) as a new 🏃 Runner source (badge, same push / toggle) + 🌱 Wczesny trend (fresh graduated coins 15 min–3 h, $50K–$300K, climbing hard on real volume, not bundled); both reach 🚀 Runner 2.0 only through extra-strict checks. v8.41: faster pushes (server only: early requeue, per-chain push, cached GT lists). v8.40: 🎯 "zaznaczony przy $X MC · 📈 szczyt $Y" on Runner / ⚡ Early / Runner 2.0 / 'Oznaczone dziś' (and unlocked
+/* KYVO_LIVE_v8_46 — v8.46: Sygnały (coins at least 2 tracked traders bought in the last 6 h, count only). In-app plan sales removed; full access is a one-time code redeemed over HTTPS (no shared password). v8.45: 👤 Rowdy — copy of Rowdy's buys (2 Solana wallets, tools/rowdy.py -> data/rowdy_live.json) in the 🏃 Runner tab, same as 👤 bystevenr. v8.44: 🫏 Cichy wspinacz — small young Solana coins ($30K–$150K, ≥ 40 holders) climbing a steady staircase (+100–450% on 5-min candles, ≥ 55% green, higher lows, no spike / dump, every hard-rug test) as a new 🏃 Runner source (badge + push '🏃 Runner · 🫏 Cichy wspinacz'); never 🚀 Runner 2.0. v8.43: 👤 bystevenr — @bystevenr's buys (Solana wallet, polled every 2 s on a free public RPC) as a 🏃 Runner source with its own badge + the normal Runner push (title "🏃 Runner · 👤 bystevenr · $SYM", no Kyvo rules: a copy of his buy). v8.42: 🔥 Trend — established quality coins trending steadily up (MC $300K–$50M, ≥ 6 h, ≥ 1 000 holders, top 10 ≤ 30%, +15–60% 1 h on rising volume) as a new 🏃 Runner source (badge, same push / toggle) + 🌱 Wczesny trend (fresh graduated coins 15 min–3 h, $50K–$300K, climbing hard on real volume, not bundled); both reach 🚀 Runner 2.0 only through extra-strict checks. v8.41: faster pushes (server only: early requeue, per-chain push, cached GT lists). v8.40: 🎯 "zaznaczony przy $X MC · 📈 szczyt $Y" on Runner / ⚡ Early / Runner 2.0 / 'Oznaczone dziś' (and unlocked
    Runners in GTA): MC at the flag and the peak MC after it (server track record, max raised by the loop's live prices) + 🏔 ATH 48 h.
    v8.39: ✅ "trzyma się" badge on 🏃 Runner coins still at / above their flag price 10 min after the flag (server h10,
    tools/track_record.py; badge only, nothing hidden) + stricter 🚀 Runner 2.0 entry (≤ 5× the 6 h low, ≤ 1.5× the first flag price).
@@ -1686,7 +1686,7 @@
         <div class="r2-chips"><span class="gta-chip">⏱ ${L2('coin ≥ 1 h', 'coin ≥ 1 h old')}</span><span class="gta-chip">🔥 ${L2('≤ +100% w 1 h', '≤ +100% in 1 h')}</span><span class="gta-chip">📊 ${L2('wolumen 1 h ≤ 1,5× MC', '1 h volume ≤ 1.5× MC')}</span><span class="gta-chip">🔁 ${L2('młody: ponownie po 30–60 min', 'young: re-checked after 30–60 min')}</span><span class="gta-chip">👥 ${L2('bez ⚠️ mało holderów / top 10 > 30%', 'no ⚠️ few holders / top 10 > 30%')}</span></div>
         <div class="r2-s">🎯 ${L2('Wyjście: sprzedaj ½ na x2, resztę trailing −30% (stop −40% przed x2). W teście 72 h tylko to wyjście dawało zysk po opłatach.', 'Exit: sell ½ at 2x, trail the rest −30% (stop −40% before 2x). In the 72 h test it was the only exit in profit after fees.')}</div>
         ${res.length ? `<div class="r2-s mut">${L2('72 h', '72 h')}: ${res.length} ${L2('coinów', 'coins')} · ${L2('mediana teraz', 'median now')} ${done.length ? fmtPct(med(done.map((r) => r.nowP))) : '—'} · ${L2('doszło do x2', 'reached 2x')}: ${hit2x}</div>` : ''}</div>
-      ${prem ? '' : `<div class="rplan" translate="no"><div class="rplan-t"><b>${paid ? L2('Premium: Twoje odblokowane Runnery', 'Premium: your unlocked Runners') : L2('Plan darmowy', 'Free plan')}</b><small>${L2('Runner 2.0 odblokowuje się tak samo jak Runner: coiny odblokowane w 🏃 Runner i wszystkie starsze niż 24 h. Wszystkie od razu — plan 🏃 Runners.', 'Runner 2.0 unlocks like Runner: coins unlocked in 🏃 Runner and everything older than 24 h. All of them right away — 🏃 Runners plan.')}</small></div><button type="button" class="rplan-cta" data-unlock>🏃 ${L2('Zobacz plany', 'See plans')}</button></div>`}
+      ${prem ? '' : `<div class="rplan" translate="no"><div class="rplan-t"><b>${L2('Plan darmowy', 'Free plan')}</b><small>${L2('Runner 2.0 odblokowuje się tak samo jak Runner. Pełny dostęp włącza jednorazowy kod.', 'Runner 2.0 unlocks the same way as Runner. A one-time code turns on full access.')}</small></div><button type="button" class="rplan-cta" data-unlock>${L2('Odblokuj', 'Unlock')}</button></div>`}
       ${res.length ? `<div class="card td-card" style="padding:4px 10px">${res.map(row).join('')}</div>` : r2Doc.err ? `<div class="empty" translate="no">${L2('Nie udało się teraz wczytać Runner 2.0 (słaba sieć?). Spróbuję ponownie za chwilę.', 'Could not load Runner 2.0 right now (weak network?). Retrying shortly.')} <a href="#runner">🏃 Runner →</a></div>` : `<div class="empty" translate="no">${L2('Jeszcze żaden coin nie przeszedł filtrów Runner 2.0. Lista odświeża się po każdym skanie (~90 s).', 'No coin has passed the Runner 2.0 filters yet. The list refreshes after every scan (~90 s).')} <a href="#runner">🏃 Runner →</a></div>`}
       <div class="foot" translate="no">${L2('Runner 2.0 to spekulacja, nie porada finansowa — memecoiny mogą spaść do zera. % liczone od ceny w chwili wejścia do Runner 2.0.', 'Runner 2.0 is speculation, not financial advice — memecoins can go to zero. % is measured from the price when the coin entered Runner 2.0.')}</div>`;
     wireRows(box);
@@ -1718,7 +1718,7 @@
       return `<div class="row runner rlock" role="button" tabindex="0" data-unlock translate="no"><div class="rlock-ic" aria-hidden="true">🔒</div>
         <div class="nm"><b>${kindLabel(x)}${at ? ` <span class="mut" style="font-weight:600">· ${esc(flagAgo(at))}</span>` : ''}</b>
           <div class="rlock-bars" aria-hidden="true"><i style="width:62%"></i><i style="width:44%"></i><i style="width:74%"></i></div>
-          <small class="rlock-t">🔒 ${paid ? L2('Wszystkie Runnery — plan 🏃 Runners', 'All Runners — 🏃 Runners plan') : L2('+1 Runner — Premium (3/dzień) lub 🏃 Runners (wszystkie)', '+1 Runner — Premium (3/day) or 🏃 Runners (all)')}</small></div>
+          <small class="rlock-t">🔒 ${L2('Wpisz jednorazowy kod, żeby odblokować', 'Enter the one-time code to unlock')}</small></div>
         <div class="rt"><span class="rlock-cta">${L2('Odblokuj', 'Unlock')}</span></div></div>`; };
     const coinCard = (x) => {
       if (!isOpen(x)) return lockCard(x);
@@ -1767,9 +1767,8 @@
     $('#listBody').innerHTML = `<div class="h">🏃 <span class="chrome">Runner</span> <span class="badge live">LIVE</span></div>
       ${runnerHeroHtml(true)}
       <div class="sub" translate="no">${L2('Najmocniejsze sygnały: rosnący wolumen, dużo transakcji, szybki ruch po filtrach bezpieczeństwa.', 'The strongest signals: rising volume, many txns, a fast move after safety filters.')}</div>
-      ${prem ? `<div class="rplan prem" translate="no">🏃 ${L2('Plan Runners: wszystkie Runnery i push bez limitu.', 'Runners plan: all Runners and push, no limit.')}${window.KyvoPremium && window.KyvoPremium.isOwner && window.KyvoPremium.isOwner() ? ' <span class="mut">(' + L2('właściciel', 'owner') + ')</span>' : window.KyvoPremium && window.KyvoPremium.isFreeHour && window.KyvoPremium.isFreeHour() ? ' <span class="mut">(🎁 ' + L2('za darmo do', 'free until') + ' ' + window.KyvoPremium.freeLabel() + ')</span>' : ''}</div>`
-        : paid ? `<div class="rplan" translate="no"><div class="rplan-t"><b>✦ ${L2(`Premium: ${quota} Runnery dziennie`, `Premium: ${quota} Runners a day`)}</b><small>${freeLeft ? L2(`Twoje Runnery na dziś (${openN}/${quota}) są odblokowane poniżej — pierwsze oznaczone dziś (czas PL).${nLeft ? ` Jeszcze ${nLeft} odblokuje się przy kolejnych.` : ''} Wszystkie Runnery + push są w planie 🏃 Runners.`, `Your Runners for today (${openN}/${quota}) are unlocked below — the first ones flagged today (Polish time).${nLeft ? ` ${nLeft} more unlock with the next ones.` : ''} All Runners + push are in the 🏃 Runners plan.`) : L2(`Odblokujesz ${quota} pierwsze Runnery oznaczone dziś (czas PL). Wszystkie Runnery + push są w planie 🏃 Runners.`, `You unlock the first ${quota} Runners flagged today (Polish time). All Runners + push are in the 🏃 Runners plan.`)}</small></div><button type="button" class="rplan-cta" data-unlock>🏃 ${L2('Przejdź na Runners', 'Upgrade to Runners')}</button></div>`
-        : `<div class="rplan" translate="no"><div class="rplan-t"><b>${L2('Plan darmowy: 1 Runner dziennie', 'Free plan: 1 Runner a day')}</b><small>${freeLeft ? L2('Twój darmowy Runner na dziś jest odblokowany poniżej — pierwszy oznaczony dziś (czas PL).', 'Your free Runner for today is unlocked below — the first one flagged today (Polish time).') : openN ? L2('Dzisiejszy darmowy Runner już minął. Kolejny jutro.', 'Today\u2019s free Runner has passed. Next one tomorrow.') : L2('Darmowy Runner na dziś odblokuje się przy pierwszym coinie oznaczonym dziś (czas PL).', 'Today\u2019s free Runner unlocks with the first coin flagged today (Polish time).')} ${L2('Premium: 3 Runnery dziennie · 🏃 Runners: wszystkie + push.', 'Premium: 3 Runners a day · 🏃 Runners: all + push.')}</small></div><button type="button" class="rplan-cta" data-unlock>✦ ${L2('Zobacz plany', 'See plans')}</button></div>`}
+      ${prem ? `<div class="rplan prem" translate="no">🏃 ${L2('Pełny dostęp: wszystkie Runnery.', 'Full access: all Runners.')}${window.KyvoPremium && window.KyvoPremium.isOwner && window.KyvoPremium.isOwner() ? ' <span class="mut">(' + L2('właściciel', 'owner') + ')</span>' : ''}</div>`
+        : `<div class="rplan" translate="no"><div class="rplan-t"><b>${L2('Plan darmowy: 1 Runner dziennie', 'Free plan: 1 Runner a day')}</b><small>${freeLeft ? L2('Twój darmowy Runner na dziś jest odblokowany poniżej — pierwszy oznaczony dziś (czas PL).', 'Your free Runner for today is unlocked below — the first one flagged today (Polish time).') : openN ? L2('Dzisiejszy darmowy Runner już minął. Kolejny jutro.', 'Today\u2019s free Runner has passed. Next one tomorrow.') : L2('Darmowy Runner na dziś odblokuje się przy pierwszym coinie oznaczonym dziś (czas PL).', 'Today\u2019s free Runner unlocks with the first coin flagged today (Polish time).')}</small></div><button type="button" class="rplan-cta" data-unlock>${L2('Odblokuj', 'Unlock')}</button></div>`}
       <div class="h" style="font-size:14px;margin-top:10px">${L2('Aktywne teraz', 'Active now')} <span class="mut" style="font-size:12px">${items.coins.length}</span> <span class="mut rh-note">${L2('od najmniejszego MC', 'smallest MC first')}</span></div>
       ${items.coins.length ? `<div class="filtbar rstages" style="margin:6px 0" translate="no"><button type="button" class="fbtn ${!runnerStage ? 'on' : ''}" data-rst="0">${L2('Wszystkie', 'All')}</button>${STAGES.map((s2) => `<button type="button" class="fbtn ${runnerStage === s2.n ? 'on' : ''}" data-rst="${s2.n}" ${stCount[s2.n] ? '' : 'disabled'}>${L2('Etap', 'Stage')} ${s2.n} <span class="mut">${esc(s2.range)}</span> ${stCount[s2.n] || 0}</button>`).join('')}</div>` : ''}
       ${items.coins.length ? `<div class="card" style="padding:4px 10px">${shown.map(coinCard).join('')}</div>` : `<div class="empty" translate="no">${L2('Żaden Runner nie spełnia teraz progu na żywo (celowo wysoki).', 'No Runner meets the live bar right now (deliberately high).') + (todayN ? ' ' + L2('Dzisiejsze oznaczenia są poniżej.', 'Today\u2019s flags are below.') : '')}</div>`}
@@ -2874,7 +2873,7 @@
     if (window.KyvoAuth) window.KyvoAuth.renderBar($('#profilTop'));
     window.KyvoProfile.renderOwn($('#profilBody'));
     $('#profilLinks').innerHTML = `<div class="more-grid" style="margin-top:6px">
-        ${mtile('#premium', 'gem', 'Kyvo Premium', 'Cena startowa -50% · wkrótce', true)}
+        ${mtile('#premium', 'gem', 'Hasło / kod', 'Jednorazowy kod z zakupu, na to urządzenie', true)}
         ${mtile('#journal', 'j_log', 'Journal', 'Twój dziennik tradingu')}
         ${mtile('#help', 'book', 'Jak korzystać', 'FAQ i wprowadzenie')}
         ${mtile('#more', 'sliders', 'Więcej', 'Ustawienia, regulamin, prywatność')}
@@ -2891,8 +2890,10 @@
     const tile = (href, t, d, hl) => `<a class="more-tile${hl ? ' hl' : ''}" href="${href}"><b>${t}</b><small>${d}</small></a>`;
     $('#moreBody').innerHTML = `
       <div class="h">Więcej</div>
+      <div id="accessSlot"></div>
       <div class="more-grid">
-        ${mtile('#premium', 'gem', 'Kyvo Premium', 'Premium i Runners · cena startowa -50%', true)}
+        ${mtile('#premium', 'gem', 'Hasło / kod', 'Jednorazowy kod z zakupu, na to urządzenie')}
+        <a class="more-tile hl" href="#signals"><i class="mti" style="font-size:16px;font-style:normal">📡</i><b>Sygnały</b><small>Coiny kupione przez co najmniej 2 obserwowanych traderów w ostatnich 6 h — tylko liczba, bez nazw</small></a>
         <a class="more-tile hl" href="#runner2"><i class="mti" style="font-size:16px;font-style:normal">🚀</i><b>Runner 2.0</b><small>Ostrzejszy Runner: coin ≥ 1 h, bez przegrzania · % od wejścia · ½ na x2 + trailing</small></a>
         <a class="more-tile hl" href="#gta"><i class="mti" style="font-size:16px;font-style:normal">🎮</i><b>GTA 6</b><small>Nowe GTA coiny, te co rosną, runnery i tweety Rockstar — za darmo</small></a>
         ${mtile('#login', S ? 'users' : 'lock', S ? 'Konto' : 'Zaloguj się', S ? 'Jesteś zalogowany' : 'Portfel lub Google — albo bez logowania')}
@@ -2923,6 +2924,11 @@
       </div>
       <div class="card"><div class="h" style="font-size:13px;margin:0 0 4px">O Kyvo</div>
         <div style="font-size:13px;color:#ccc;line-height:1.5">Kyvo — smart money i viralowe memecoiny w jednym miejscu. Live Pulse dla Solany, BSC i Robinhood Chain, wykresy od 1s, ranking traderów on-chain, Viral z X i Twój Profil z PnL. Ranking i smart money odświeżamy kilka razy dziennie z publicznych danych blockchain, Viral z X — kilka razy dziennie.</div></div>`;
+    const accessSlot = $('#accessSlot');
+    if (accessSlot && window.KyvoPremium && window.KyvoPremium.formHtml) {
+      const paintAccess = () => { accessSlot.innerHTML = window.KyvoPremium.formHtml(); window.KyvoPremium.wireAccess(accessSlot); };
+      if (window.KyvoPremiumReady) window.KyvoPremiumReady.then(paintAccess, paintAccess); else paintAccess();
+    }
     if (window.KyvoNotify) window.KyvoNotify.wireSettings($('#moreBody'), () => renderMore());
     $('#moreTour').onclick = () => window.KyvoLaunch && window.KyvoLaunch.openOnboard();
     $('#moreClear').onclick = async () => { if (window.KyvoLaunch && (await window.KyvoLaunch.clearData())) { toast('Dane Kyvo usunięte'); setTimeout(() => location.reload(), 600); } };
@@ -2949,14 +2955,14 @@
     const map = {
       pulse: 's-list', hot: 's-list', good: 's-list', new: 's-list', stretch: 's-list',
       migrated: 's-list', boosted: 's-list', search: 's-list', runner: 's-list', runner2: 's-list', track: 's-list', viral: 's-viral', tweets: 's-tweets', more: 's-more', coin: 's-coin',
-      rank: 's-rank', trader: 's-trader', tracker: 's-tracker', journal: 's-journal', profil: 's-profil', watch: 's-watch', gold: 's-gold', gta: 's-gta',
+      rank: 's-rank', trader: 's-trader', tracker: 's-tracker', journal: 's-journal', profil: 's-profil', watch: 's-watch', gold: 's-gold', gta: 's-gta', signals: 's-signals',
       help: 's-help', legal: 's-legal', login: 's-login', premium: 's-premium', kontakt: 's-kontakt',
     };
     if (which !== 'login') document.body.classList.remove('chrome-off');
     $('#' + (map[which] || 's-list')).classList.add('on');
     $$('#seg button').forEach((b) => b.classList.toggle('on', b.dataset.view === (which === 'coin' ? view : which === 'trader' || which === 'tracker' ? 'rank' : which === 'search' ? 'hot' : which)));
-    if (which === 'gta') { const gb = document.querySelector('#seg button[data-view="gta"]'); try { if (gb) gb.scrollIntoView({ inline: 'center', block: 'nearest' }); } catch (e) {} }   // v8.30: the 🎮 GTA 6 button sits off-screen on a phone
-    const tabMap = { gold: 'gold', runner: 'runner', runner2: 'runner', gta: 'hot', track: 'hot', pulse: 'hot', hot: 'hot', good: 'hot', new: 'hot', stretch: 'hot', migrated: 'hot', boosted: 'hot', search: 'search', viral: 'viral', tweets: 'viral', watch: 'watch', more: 'profil', rank: 'rank', trader: 'rank', tracker: 'rank', journal: 'profil', profil: 'profil', help: 'profil', legal: 'profil', login: 'profil', premium: 'profil', kontakt: 'profil' };
+    if (which === 'gta' || which === 'signals') { const gb = document.querySelector('#seg button[data-view="' + which + '"]'); try { if (gb) gb.scrollIntoView({ inline: 'center', block: 'nearest' }); } catch (e) {} }   // v8.30: the 🎮 GTA 6 button sits off-screen on a phone
+    const tabMap = { gold: 'gold', runner: 'runner', runner2: 'runner', signals: 'signals', gta: 'hot', track: 'hot', pulse: 'hot', hot: 'hot', good: 'hot', new: 'hot', stretch: 'hot', migrated: 'hot', boosted: 'hot', search: 'search', viral: 'viral', tweets: 'viral', watch: 'watch', more: 'profil', rank: 'rank', trader: 'rank', tracker: 'rank', journal: 'profil', profil: 'profil', help: 'profil', legal: 'profil', login: 'profil', premium: 'profil', kontakt: 'profil' };
     $$('.tb button').forEach((b) => b.classList.toggle('on', b.dataset.tab === (tabMap[which] || 'hot')));
   }
 
@@ -3073,6 +3079,14 @@
       location.hash = 'runner';
       return;
     }
+    if (v === 'signals') {   // v8.46 Sygnały — ≥2 tracked traders, count only
+      renderFilterPanel('more');
+      var sigRoot = $('#signalsBody');
+      if (window.KyvoSignals) window.KyvoSignals.show(sigRoot, { toast: toast, fmtUsd: fmtUsd, img: function (r) { return imgTag({ chainId: r.chain, address: r.addr, image: r.img, symbol: r.sym, dexId: r.dex }); }, isEn: function () { return !!(window.KyvoI18n && window.KyvoI18n.isEn()); } });
+      else if (sigRoot) sigRoot.innerHTML = '<div class="empty">Sygnały niedostępne.</div>';
+      location.hash = 'signals';
+      return;
+    }
     if (v === 'track') {
       renderTrack();
       location.hash = 'track';
@@ -3186,7 +3200,7 @@
       runSearch(decodeURIComponent(b));
       return;
     }
-    if (['pulse', 'hot', 'good', 'new', 'stretch', 'migrated', 'boosted', 'viral', 'tweets', 'more', 'rank', 'tracker', 'profil', 'watch', 'runner', 'runner2', 'track', 'gta'].includes(a)) {
+    if (['pulse', 'hot', 'good', 'new', 'stretch', 'migrated', 'boosted', 'viral', 'tweets', 'more', 'rank', 'tracker', 'profil', 'watch', 'runner', 'runner2', 'track', 'gta', 'signals'].includes(a)) {
       setView(a);
       return;
     }
@@ -3227,7 +3241,7 @@
     if (ok && window.KyvoNotify && window.KyvoInsights) { try { window.KyvoNotify.onRunner(window.KyvoInsights.runnerList()); } catch (e) {} }
     if (ok) { try { updateRunnerBadge(); } catch (e) {} trackUpdate(); }
     if (ok && Date.now() - smLoadedAt > 300000) loadSmartMoney().catch(() => {});   // v8.29: live smart money every ~5 min
-    if (['pulse', 'hot', 'good', 'new', 'stretch', 'migrated', 'boosted', 'runner'].includes(view)) {
+    if (['pulse', 'hot', 'good', 'new', 'stretch', 'migrated', 'boosted', 'runner', 'signals'].includes(view)) {
       if (!document.hidden) keepUi(() => setView(view));
     } else if (view === 'coin' && selectedKey && byKey[selectedKey] && !document.hidden) { if (!updateCoinLive(byKey[selectedKey])) keepUi(() => renderCoin(byKey[selectedKey])); }
     updateClock();
@@ -3330,7 +3344,17 @@
     if (!viral) return null;
     return (viral.topics || []).find((t) => (t.coins || []).some((x) => x.address === c.address)) || null;
   }
+  function syncAccessChip() {
+    const el = document.getElementById('accessChip');
+    if (!el) return;
+    let on = false;
+    try { on = !!(window.KyvoPremium && window.KyvoPremium.isRunners && window.KyvoPremium.isRunners()); } catch (e) {}
+    el.hidden = on;
+  }
+  if (window.KyvoPremiumReady) window.KyvoPremiumReady.then(syncAccessChip, syncAccessChip); else syncAccessChip();
   window.addEventListener('kyvo-premium-change', () => { // v8.11: owner unlock / entitlement change → re-render gated views
+    try { syncAccessChip(); } catch (e) {}
+    try { if (view === 'premium') setView('premium'); } catch (e) {}
     try { if (view === 'gold' && window.KyvoGold) window.KyvoGold.render(); } catch (e) {}
     try { if (view === 'runner') keepUi(() => renderRunner()); else if (view === 'runner2') keepUi(() => renderRunner2()); else if (view === 'track') renderTrack(); else if (view === 'tweets') keepUi(() => renderTweets()); } catch (e) {}
   });

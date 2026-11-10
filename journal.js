@@ -1080,7 +1080,7 @@
     const w = st.wallet;
     const cov = coverFrom();
     return `<div class="jr-head">
-        <div class="jr-ttl"><span class="jr-logo">${ICO('book', '📓')}</span><div><b>Journal</b><small>${L('Dziennik memecoinów · Solana', 'Memecoin journal · Solana')}</small></div><span class="jr-pb">✦ Premium</span></div>
+        <div class="jr-ttl"><span class="jr-logo">${ICO('book', '📓')}</span><div><b>Journal</b><small>${L('Dziennik memecoinów · Solana', 'Memecoin journal · Solana')}</small></div></div>
         ${w && isPrem() ? `<div class="jr-wal"><span class="jr-dot${job.busy ? ' busy' : ''}"></span><b translate="no">${E(short(w))}</b><small>${job.busy ? L('synchronizuję…', 'syncing…') : st.at ? L('od', 'since') + ' ' + fDate(cov.from) : ''}</small>
           <button type="button" class="jr-ib" data-act="sync" aria-label="${L('Odśwież', 'Refresh')}" ${job.busy ? 'disabled' : ''}>⟳</button>
           <button type="button" class="jr-ib" data-act="wallet" aria-label="${L('Zmień portfel', 'Change wallet')}">✎</button></div>` : ''}
@@ -1485,10 +1485,10 @@
   function lockedView() {
     const keepDemo = st; st = blank(); recompute(); st = keepDemo;
     return `<div class="jr-lockw"><div class="jr-lockc" aria-hidden="true">${dash()}</div>
-      <div class="jr-locko card">${cine()}<div class="jr-lk">${ICO('lock', '🔒')}</div><b class="jr-chrome jr-lkt">Journal ✦ Premium</b>
+      <div class="jr-locko card">${cine()}<div class="jr-lk">${ICO('lock', '🔒')}</div><b class="jr-chrome jr-lkt">Journal</b>
         <p>${L('Automatyczny dziennik Twoich trade’ów z publicznego adresu portfela: P&L, kalendarz, Kyvo Score, analityka wg godzin / MC / tagów, coach i tilt guard.', 'An automatic journal of your trades from a public wallet address: P&L, calendar, Kyvo Score, analytics by hour / MC / tag, a coach and a tilt guard.')}</p>
         <ul><li>📊 Dashboard · ${L('kalendarz P&L', 'P&L calendar')}</li><li>📓 ${L('Dziennik z notatkami i tagami', 'Journal with notes & tags')}</li><li>📈 ${L('Analityka', 'Analytics')}</li><li>📋 ${L('Plan dnia, cele, refleksje', 'Daily plan, goals, reflections')}</li><li>🤖 Coach + 🧊 tilt guard</li></ul>
-        <button type="button" class="jr-btn on" data-act="premium">✦ ${L('Odblokuj Premium', 'Unlock Premium')}</button>
+        <button type="button" class="jr-btn on" data-act="premium">${L('Odblokuj', 'Unlock')}</button>
         <small class="mut">${L('Na tle: PRZYKŁAD (przykładowe dane).', 'Behind: EXAMPLE (sample data).')}</small></div></div>`;
   }
 

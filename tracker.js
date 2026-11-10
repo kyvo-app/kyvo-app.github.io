@@ -41,7 +41,7 @@
     const s = st();
     if (s.wallets.some((x) => x.address === w.address)) return true;
     if (s.wallets.length >= limit()) {
-      toast(L(`Darmowy plan: max ${CFG.freeFollows} obserwowane portfele · Premium = bez limitu · 🏃 Runners = + push smart money`, `Free plan: max ${CFG.freeFollows} followed wallets · Premium = unlimited · 🏃 Runners = + smart money push`));
+      toast(L(`Darmowy plan: max ${CFG.freeFollows} obserwowane portfele. Jednorazowy kod zdejmuje limit.`, `Free plan: max ${CFG.freeFollows} followed wallets. A one-time code removes the limit.`));
       if (D.openPremium) setTimeout(() => D.openPremium('premium'), 900);
       return false;
     }
@@ -318,7 +318,7 @@
       <div class="sub">${L('Obserwuj portfele top traderów (kolscan + pump.fun) albo wklej dowolny publiczny adres Solany i patrz, co kupują i sprzedają.', 'Follow top traders’ wallets (kolscan + pump.fun) or paste any public Solana address and see what they buy and sell.')}</div>
       <div class="card trk-me">
         <div class="trk-meh"><b>${L('Obserwowane', 'Following')} ${ws.length}/${lim === Infinity ? "∞" : lim}</b>
-          <span class="mut">${prem ? (isRun() ? '🏃 Runners · ' + L('bez limitu + push', 'unlimited + push') : '✦ Premium · ' + L('bez limitu', 'unlimited') + ` · <a href="#premium" class="trk-up">🏃 Runners: + push</a>`) : L('Darmowy plan', 'Free plan') + ` · <a href="#premium" class="trk-up">✦ Premium: ${L('bez limitu', 'unlimited')} · 🏃 Runners: + push</a>`}</span>
+          <span class="mut">${prem ? L('Pełny dostęp', 'Full access') : L('Darmowy plan', 'Free plan') + ` · <a href="#premium" class="trk-up">${L('Odblokuj', 'Unlock')}</a>`}</span>
           <button type="button" class="pill" id="trkAdd">${adding ? '×' : '+ ' + L('Dodaj adres', 'Add address')}</button></div>
         ${adding ? `<form class="trk-form" id="trkForm" autocomplete="off">
           <input id="trkAddr" inputmode="text" spellcheck="false" autocapitalize="off" placeholder="${L('Publiczny adres portfela Solany', 'Public Solana wallet address')}" maxlength="120">
