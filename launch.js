@@ -825,11 +825,11 @@
 
   async function clearData() {
     if (!confirm(T('Usunąć wszystkie dane Kyvo z tej przeglądarki? (portfele w Profilu, nick, filtry, cache)'))) return false;
-    let keepLang = null, keepOwner = null, keepAccess = null;
-    try { keepLang = localStorage.getItem('kyvo_lang'); keepOwner = localStorage.getItem('kyvo_owner_tok'); keepAccess = localStorage.getItem('kyvo_device_ok'); } catch (e) {}
+    let keepLang = null, keepOwner = null, keepOwnerPw = null, keepAccess = null;
+    try { keepLang = localStorage.getItem('kyvo_lang'); keepOwner = localStorage.getItem('kyvo_owner_tok'); keepOwnerPw = localStorage.getItem('kyvo_owner_pw'); keepAccess = localStorage.getItem('kyvo_device_ok'); } catch (e) {}
     try { Object.keys(localStorage).filter((k) => k.startsWith('kyvo_')).forEach((k) => localStorage.removeItem(k)); } catch (e) {}
     try { if (window.caches) for (const k of await caches.keys()) await caches.delete(k); } catch (e) {}
-    try { localStorage.setItem(OB_KEY, String(Date.now())); if (keepLang) localStorage.setItem('kyvo_lang', keepLang); if (keepOwner) localStorage.setItem('kyvo_owner_tok', keepOwner); if (keepAccess) localStorage.setItem('kyvo_device_ok', keepAccess); } catch (e) {}
+    try { localStorage.setItem(OB_KEY, String(Date.now())); if (keepLang) localStorage.setItem('kyvo_lang', keepLang); if (keepOwner) localStorage.setItem('kyvo_owner_tok', keepOwner); if (keepOwnerPw) localStorage.setItem('kyvo_owner_pw', keepOwnerPw); if (keepAccess) localStorage.setItem('kyvo_device_ok', keepAccess); } catch (e) {}
     return true;
   }
 

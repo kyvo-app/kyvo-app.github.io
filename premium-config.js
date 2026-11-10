@@ -52,6 +52,8 @@ window.KYVO_TRACKER_CONFIG = {
 (function () {
   'use strict';
   var KYVO_OWNER_SHA256 = 'fe4e23b1d006665193fb50952d6d357bb7f1da522ae3cc208aa4aca0c4e4ad7e';
+  /* Permanent password accepted in the Hasło/kod field. Hash only. Checked locally, never sent to redeemUrl. */
+  var KYVO_OWNER_PASSWORD_SHA256 = 'b190c797fac3d7eb152a9236254c89e5b2a54fa4c88b9cfd2e8027f9953912ee';
   var owner = false;
   var access = false;
   try { access = localStorage.getItem('kyvo_device_ok') === '1'; } catch (e) {}
@@ -76,6 +78,7 @@ window.KYVO_TRACKER_CONFIG = {
     if (tokUrl !== null) { u.searchParams.delete('owner'); history.replaceState(history.state, '', u.pathname + u.search + u.hash); }
   } catch (e) {}
   var stored = null; try { stored = localStorage.getItem('kyvo_owner_tok'); } catch (e) {}
+  var storedPw = null; try { storedPw = localStorage.getItem('kyvo_owner_pw'); } catch (e) {}
   function changed(detail) {
     try { window.dispatchEvent(new CustomEvent('kyvo-premium-change', { detail: detail || {} })); } catch (e) {}
     setTimeout(function () { try { if (window.KyvoPush && window.KyvoPush.syncTags) window.KyvoPush.syncTags(); } catch (e) {} }, 4000);
@@ -85,7 +88,7 @@ window.KYVO_TRACKER_CONFIG = {
     var u = String(c.redeemUrl || '').replace(/^\s+|\s+$/g, '');
     return /^https:\/\//i.test(u) ? u : '';
   }
-  window.KyvoPremiumReady = Promise.all([sha(tokUrl), sha(stored)]).then(function (r) {
+  window.KyvoPremiumReady = Promise.all([sha(tokUrl), sha(stored), sha(storedPw)]).then(function (r) {
     var en = false; try { en = localStorage.getItem('kyvo_lang') === 'en'; } catch (e) {}
     if (tokUrl && r[0] === KYVO_OWNER_SHA256) {
       owner = true;
@@ -93,6 +96,7 @@ window.KYVO_TRACKER_CONFIG = {
       toast(en ? '🏃 Runners plan active (owner)' : '🏃 Plan Runners aktywny (właściciel)');
     } else if (tokUrl) toast(en ? 'Invalid owner link' : 'Nieprawidłowy link właściciela');
     if (!owner && stored && r[1] === KYVO_OWNER_SHA256) owner = true;
+    if (!owner && storedPw && r[2] === KYVO_OWNER_PASSWORD_SHA256) owner = true;
     if (!owner && !access && freeHour()) toast(en ? '🎁 Premium free until ' + freeLabel() : '🎁 Premium za darmo do ' + freeLabel());
     if (owner || access) changed(owner ? { owner: true } : { access: true });
     return owner || access;
@@ -135,10 +139,17 @@ window.KYVO_TRACKER_CONFIG = {
     /* One-time code. Sent once to redeemUrl, never saved. Empty URL does not unlock. */
     redeem: function (code) {
       var t = String(code == null ? '' : code).trim();
-      var url = redeemUrl();
       if (!t) return Promise.resolve({ ok: false, reason: 'empty' });
-      if (!url) return Promise.resolve({ ok: false, reason: 'pending' });
-      return fetch(url, {
+      return sha(t).then(function (h) {
+        if (h && h === KYVO_OWNER_PASSWORD_SHA256) {
+          owner = true;
+          try { localStorage.setItem('kyvo_owner_pw', t); } catch (e) {}
+          changed({ owner: true });
+          return { ok: true };
+        }
+        var url = redeemUrl();
+        if (!url) return { ok: false, reason: 'pending' };
+        return fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({ code: t }),
@@ -153,6 +164,7 @@ window.KYVO_TRACKER_CONFIG = {
           return { ok: false, reason: 'invalid' };
         });
       }, function () { return { ok: false, reason: 'network' }; });
+      });
     },
     paidTier: paidTier,
     isFreeHour: function () { return !owner && !access && freeHour(); },
@@ -168,7 +180,7 @@ window.KYVO_TRACKER_CONFIG = {
         '<div class="h" style="font-size:15px;margin:0 0 6px">' + (en ? 'Code' : 'Hasło / kod') + '</div>' +
         '<p class="mut" style="font-size:12.5px;line-height:1.45;margin:0 0 8px">' + (en ? 'One-time code from your purchase. It works on one device. Kyvo does not sell plans in the app.' : 'Jednorazowy kod z zakupu. Działa na jednym urządzeniu. Kyvo nie sprzedaje planów w aplikacji.') + '</p>' +
         (pending ? '<p class="mut" style="font-size:12.5px;line-height:1.45;margin:0 0 8px">' + (en ? 'The code will work after the next app update.' : 'Kod zadziała po kolejnej aktualizacji aplikacji.') + '</p>' : '') +
-        '<input class="acc-in" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="80" placeholder="' + (en ? 'Code' : 'Hasło / kod') + '" aria-label="' + (en ? 'Code' : 'Hasło / kod') + '">' +
+        '<input class="acc-in" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="256" placeholder="' + (en ? 'Code' : 'Hasło / kod') + '" aria-label="' + (en ? 'Code' : 'Hasło / kod') + '">' +
         '<button type="submit" class="pf-btn pf-share">' + (en ? 'Unlock' : 'Odblokuj') + '</button>' +
         '<div data-acc-msg class="mut" style="margin-top:8px;font-size:12.5px"></div></form>';
     },
