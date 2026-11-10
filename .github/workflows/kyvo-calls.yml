@@ -1,5 +1,5 @@
 # Kyvo auto-calls + YouTube alerts -> Discord. Runs on GitHub's servers (never on the trading VPS).
-# Secrets: DISCORD_WEBHOOK_SOL, DISCORD_WEBHOOK_BSC, optional DISCORD_WEBHOOK_NEWS, DISCORD_WEBHOOK_YT, DISCORD_WEBHOOK_ANNOUNCE
+# Secrets: DISCORD_WEBHOOK_SOL, DISCORD_WEBHOOK_BSC, DISCORD_WEBHOOK_ROBINHOOD, optional DISCORD_WEBHOOK_NEWS, DISCORD_WEBHOOK_YT, DISCORD_WEBHOOK_ANNOUNCE
 # (repo Settings -> Secrets and variables -> Actions). Missing secrets = the job does nothing.
 name: kyvo-calls
 on:
@@ -56,6 +56,7 @@ jobs:
         env:
           DISCORD_WEBHOOK_SOL: ${{ secrets.DISCORD_WEBHOOK_SOL }}
           DISCORD_WEBHOOK_BSC: ${{ secrets.DISCORD_WEBHOOK_BSC }}
+          DISCORD_WEBHOOK_ROBINHOOD: ${{ secrets.DISCORD_WEBHOOK_ROBINHOOD }}
         run: python3 tools/discord_calls.py --flags-out .kyvo_calls/flags.json ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }}
       - name: Track record (Wyniki) - performance since flag (v8.25 perf only; NEW flags are saved by the kyvo-push loop right after each scan)
         id: track

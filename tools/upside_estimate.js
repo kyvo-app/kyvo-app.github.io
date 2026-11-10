@@ -135,7 +135,7 @@ function estimatePopularity(x) {
  *  1) SAFETY (hard): Kyvo Check ≥ 75, no ⛔; liquidity ≥ $25k and liq/MC ≥ 8%; pair age ≥ 15 min;
  *     contract — Solana: mint + freeze revoked, LP burned/locked ≥ 90% (or still on the pump.fun curve), top-10 holders
  *     (excl. pools/curve) ≤ 30%, creator ≤ 10% · BSC: not honeypot, buy & sell tax ≤ 5%, owner renounced or no dangerous
- *     functions, LP locked ≥ 90% (or four.meme curve). Robinhood: no free contract scanner → never passes.
+ *     functions, LP locked ≥ 90% (or four.meme curve). Robinhood: no free contract scanner, so only the market safety gates apply.
  *  2) HOT NOW: vol 1h ≥ $50k (or 5-min volume pace ×12 ≥ $30k and ≥ 1.2× the 1h pace), txns 1h ≥ 300,
  *     vol1h/MC ≥ 10%, popularity P ≥ 0.30 (boost rank / X tweet / smart money add to P).
  *  3) 8H UPSIDE: buy share 1h ≥ 55%, Δ1h > 0 and ≤ 150% (no parabolic exhaustion), not fading after a pump (Δ24h > 300%
@@ -173,6 +173,8 @@ function goodCoinRule(x, T) {
     add('safety', 'owner', k.ownerSafe === true, null);
     add('safety', 'lp', !!k.onCurve || (n(k.lpLockedPct) != null && k.lpLockedPct >= T.lp), n(k.lpLockedPct));
     if (n(k.top10Pct) != null) add('safety', 'top10', k.top10Pct <= T.top10, k.top10Pct);
+  } else if (k.chain === 'robinhood') {
+    /* market safety only — no public contract scanner for this chain */
   } else add('safety', 'scanner', false, null);
   // 2) HOT NOW
   const pace5 = v5 != null ? v5 * 12 : null;

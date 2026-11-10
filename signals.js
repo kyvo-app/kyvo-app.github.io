@@ -22,6 +22,23 @@
   var STEVEN = 'AH75Bn6QHSt5K2Ad4p1otns3JTwpSJWZTwiwKWNhmnKx';
   var ROWDY = ['DKgvpfttzmJqZXdavDwTxwSVkajibjzJnN2FA99dyciK', 'CzU8MaRcwvwUoNkwJFLbvtFWJugcEXAhDDQqNFE4ybb7'];
   var CHAIN = { solana: 'SOL', bsc: 'BSC', robinhood: 'RH' };
+  var CHAIN_FILTERS = [
+    { id: 'all', pl: 'Wszystkie', en: 'All' },
+    { id: 'solana', pl: 'SOL', en: 'SOL' },
+    { id: 'bsc', pl: 'BSC', en: 'BSC' },
+    { id: 'robinhood', pl: 'Robinhood', en: 'Robinhood' }
+  ];
+  function normChain(c) {
+    var x = String(c || 'solana').toLowerCase();
+    if (x === 'sol' || x === 'solana') return 'solana';
+    if (x === 'bnb' || x === 'bsc') return 'bsc';
+    if (x === 'rh' || x === 'robin' || x === 'robinhood') return 'robinhood';
+    return x || 'solana';
+  }
+  function normAddr(chain, addr) {
+    var a = String(addr || '');
+    return chain === 'solana' ? a : a.toLowerCase();
+  }
 
   function ms(v) {
     var n = +v;
@@ -49,8 +66,8 @@
     return fallback || '';
   }
   function slot(map, chain, addr) {
-    var c = chain || 'solana';
-    var a = String(addr || '');
+    var c = normChain(chain);
+    var a = normAddr(c, addr);
     var k = c + ':' + a;
     var s = map[k];
     if (!s) {
@@ -102,12 +119,13 @@
     for (var i = 0; i < trades.length; i++) {
       var t = trades[i];
       if (!t || !t.buy || !t.m || !t.w || SKIP[t.m]) continue;
-      touch(slot(coins, 'solana', t.m), tid(map, t.w, ''), ms(t.at), cut, now);
+      var ch = normChain(t.chain || t.ch || 'solana');
+      touch(slot(coins, ch, t.m), tid(map, t.w, ''), ms(t.at), cut, now);
     }
     var meta = tf.coins || {};
     for (var mint in meta) {
       if (!Object.prototype.hasOwnProperty.call(meta, mint)) continue;
-      var s = coins['solana:' + mint];
+      var s = coins['solana:' + normAddr('solana', mint)];
       if (!s) continue;
       var c = meta[mint] || {};
       paint(s, { sym: c.s, name: c.n, img: c.img, pair: c.pair, dex: c.dex, mc: c.mc, liq: c.liq, prefer: true });
@@ -198,31 +216,42 @@
       '</div></article>';
   }
 
-  function shell(en, body) {
+  var sigChain = 'all';
+  function shell(en, body, chain) {
     return '<div class="sig-page" translate="no">' +
       '<div class="sig-lead"><h2>' + (en ? 'Signals' : 'Sygnały') + '</h2>' +
       '<p>' + (en
-        ? 'Memecoins that at least 2 traders Kyvo already tracks bought in the last 6 hours. Only the count is shown — no names and no wallet addresses.'
-        : 'Memecoiny, które w ostatnich 6 godzinach kupiło co najmniej 2 traderów śledzonych przez Kyvo. Widać tylko liczbę — bez nazw i bez adresów portfeli.') +
-      '</p></div>' + body +
+        ? 'Memecoins on Solana, BSC and Robinhood Chain that at least 2 traders Kyvo already tracks bought in the last 6 hours. Only the count is shown — no names and no wallet addresses.'
+        : 'Memecoiny na Solanie, BSC i Robinhood Chain, które w ostatnich 6 godzinach kupiło co najmniej 2 traderów śledzonych przez Kyvo. Widać tylko liczbę — bez nazw i bez adresów portfeli.') +
+      '</p><div class="sig-chains" role="tablist">' + CHAIN_FILTERS.map(function (c) {
+        return '<button type="button" data-sig-chain="' + c.id + '"' + (c.id === (chain || 'all') ? ' class="on"' : '') + '>' + (en ? c.en : c.pl) + '</button>';
+      }).join('') + '</div></div>' + body +
       '<p class="sig-note">' + (en
         ? 'Not financial advice. A tracked buy is not a prediction.'
         : 'To nie jest porada finansowa. Zakup obserwowanego tradera nie jest prognozą.') + '</p></div>';
+  }
+
+  function listBody(rows, en, hooks, chain) {
+    var shown = !chain || chain === 'all' ? rows : rows.filter(function (r) { return r.chain === chain; });
+    if (!shown.length) {
+      var name = chain === 'robinhood' ? 'Robinhood Chain' : chain === 'bsc' ? 'BSC' : chain === 'solana' ? 'Solana' : '';
+      return '<div class="empty">' + (name
+        ? (en
+          ? 'No ' + name + ' signal in the last 6 hours. Nothing on this chain was bought by at least 2 tracked traders.'
+          : 'Brak sygnału ' + name + ' w ostatnich 6 h. Na tej sieci żaden coin nie ma wejść od co najmniej 2 obserwowanych traderów.')
+        : (en
+          ? 'No signal in the last 6 hours. Nothing here was bought by at least 2 tracked traders. The list fills itself when that happens — Kyvo does not add examples.'
+          : 'Brak sygnału w ostatnich 6 h. Żaden coin nie ma teraz wejść od co najmniej 2 obserwowanych traderów. Lista uzupełni się sama, gdy tak się stanie — Kyvo nie dodaje przykładów.')) + '</div>';
+    }
+    return '<div class="sig-wrap" role="list">' + shown.map(function (r) { return rowHtml(r, en, hooks || {}); }).join('') + '</div>';
   }
 
   function paintPage(root, src, hooks) {
     var en = !!(hooks && hooks.isEn && hooks.isEn());
     var rows;
     try { rows = build(src || {}, Date.now()); } catch (e) { rows = []; }
-    var body;
-    if (!rows.length) {
-      body = '<div class="empty">' + (en
-        ? 'No signal in the last 6 hours. Nothing here was bought by at least 2 tracked traders. The list fills itself when that happens — Kyvo does not add examples.'
-        : 'Brak sygnału w ostatnich 6 h. Żaden coin nie ma teraz wejść od co najmniej 2 obserwowanych traderów. Lista uzupełni się sama, gdy tak się stanie — Kyvo nie dodaje przykładów.') + '</div>';
-    } else {
-      body = '<div class="sig-wrap" role="list">' + rows.map(function (r) { return rowHtml(r, en, hooks || {}); }).join('') + '</div>';
-    }
-    root.innerHTML = shell(en, body);
+    root._sigRows = rows;
+    root.innerHTML = shell(en, listBody(rows, en, hooks, sigChain), sigChain);
   }
 
   var cache = { at: 0, src: null };
@@ -264,6 +293,8 @@
     if (!root._sigWired) {
       root._sigWired = true;
       root.addEventListener('click', function (e) {
+        var chip = e.target.closest && e.target.closest('[data-sig-chain]');
+        if (chip) { e.preventDefault(); sigChain = chip.getAttribute('data-sig-chain') || 'all'; if (root._sigSrc) paintPage(root, root._sigSrc, hooks); return; }
         var retry = e.target.closest && e.target.closest('[data-sig-retry]');
         if (retry) { e.preventDefault(); cache.at = 0; cache.src = null; show(root, hooks); return; }
         var copy = e.target.closest && e.target.closest('[data-sig-copy]');
@@ -277,10 +308,12 @@
     load(false).then(function (src) {
       if (!root.isConnected) return;
       if (!src._ok) {
+        root._sigSrc = null;
         root.innerHTML = shell(en, '<div class="empty">' + (en ? 'Signals could not load. ' : 'Nie udało się wczytać sygnałów. ') +
-          '<button type="button" class="pill" data-sig-retry>' + (en ? 'Try again' : 'Spróbuj ponownie') + '</button></div>');
+          '<button type="button" class="pill" data-sig-retry>' + (en ? 'Try again' : 'Spróbuj ponownie') + '</button></div>', sigChain);
         return;
       }
+      root._sigSrc = src;
       paintPage(root, src, hooks);
     });
   }

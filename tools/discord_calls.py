@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Kyvo auto-calls -> Discord (runs in GitHub Actions, NOT on the trading VPS).
 
-Every run (cron ~15 min): fresh Solana + BSC coins from public APIs (DexScreener + GeckoTerminal), the same
+Every run (cron ~15 min): fresh Solana, BSC and Robinhood Chain coins from public APIs (DexScreener + GeckoTerminal), the same
 "Good Coins" filter as the app, then Kyvo Check (same scoring as the app: 100 - 25 per red flag - 9 per warning,
 RugCheck for Solana, GoPlus for both), then the v8.3 Good Coins rule — the SAME code as the app, run through
 `node tools/upside_estimate.js --good` (goodCoinRule): 3 gates — SAFETY (Kyvo Check ≥ 75, contract
@@ -11,7 +11,8 @@ not fading, positive base estimate for 1h/3h/8h).
 Candidates are ranked by popularity P × upside signal G. No Node or no positive setup -> nothing is posted.
 
 Secrets (GitHub -> Settings -> Secrets and variables -> Actions), NEVER in the repo:
-  DISCORD_WEBHOOK_SOL, DISCORD_WEBHOOK_BSC   (calls)       DISCORD_WEBHOOK_NEWS  (optional, manual changelog)
+  DISCORD_WEBHOOK_SOL, DISCORD_WEBHOOK_BSC, DISCORD_WEBHOOK_ROBINHOOD   (calls)
+  DISCORD_WEBHOOK_NEWS  (optional, manual changelog)
 Missing secret -> that channel is skipped quietly (exit 0).
 
 State (dedupe + rate limit) lives in a small JSON file (default .kyvo_calls/posted.json) that the workflow keeps
@@ -36,7 +37,8 @@ GT = "https://api.geckoterminal.com/api/v2"
 RC = "https://api.rugcheck.xyz/v1/tokens/"
 GP = "https://api.gopluslabs.io/api/v1/"
 CHAINS = {"solana": {"gt": "solana", "secret": "DISCORD_WEBHOOK_SOL", "fomo": "solana", "label": "Solana"},
-          "bsc": {"gt": "bsc", "secret": "DISCORD_WEBHOOK_BSC", "fomo": "bnb", "label": "BSC"}}
+          "bsc": {"gt": "bsc", "secret": "DISCORD_WEBHOOK_BSC", "fomo": "bnb", "label": "BSC"},
+          "robinhood": {"gt": "robinhood", "secret": "DISCORD_WEBHOOK_ROBINHOOD", "fomo": "robinhood", "label": "Robinhood Chain"}}
 # Good Coins defaults from the app (app.js DEFAULT_FILTERS.good) + stricter posting floor
 GOOD = {"mcap_min": 0, "liq_min": 25_000, "vol_min": 0, "age_max_h": 1e9, "age_min_h": 0.25, "buy_ratio_min": 0.55, "socials": False}  # = app v8.3 Good defaults
 MIN_SCORE = int(os.environ.get("KYVO_CALLS_MIN_SCORE", "75"))
@@ -83,7 +85,8 @@ _T: dict = {}   # v8.41 per-phase timing (last output line, the loop log shows i
 # v8.9: quote / stable tokens that top the volume lists (never a "coin" for Kyvo)
 QUOTE_TOKENS = {"so11111111111111111111111111111111111111112", "epjfwdd5aufqssqem2qn1xzybapc8g4weggkzwytdt1v", "es9vmfrzacermjfrf4h2fyd4kconky11mcce8benwnyb",
                 "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c", "0x55d398326f99059ff775485246999027b3197955", "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
-                "0xe9e7cea3dedca5984780bafc599bd69add087d56", "0x2170ed0880ac9a755fd29b2688956bd959f933f8", "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c"}
+                "0xe9e7cea3dedca5984780bafc599bd69add087d56", "0x2170ed0880ac9a755fd29b2688956bd959f933f8", "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c",
+                "0x0bd7d308f8e1639fab988df18a8011f41eacad73", "0x5fc5360d0400a0fd4f2af552add042d716f1d168"}
 UA = {"User-Agent": "kyvo-discord-calls/8.3 (+" + KYVO_REPO + ")", "Accept": "application/json"}
 RC_PL = {
     "Top 10 holders high ownership": "Top 10 holderów ma >70% podaży", "High holder concentration": "Top 10 holderów ma >50% podaży",
@@ -168,7 +171,7 @@ def candidates(chain: str) -> list[str]:
             if isinstance(t, dict) and t.get("chainId") == chain and t.get("tokenAddress"): addrs.append(t["tokenAddress"])
     net = CHAINS[chain]["gt"]
     for kind in ("trending_pools", "new_pools"):
-        for page in (1, 2):
+        for page in ((1,) if chain == "robinhood" else (1, 2)):   # robinhood rejects page>1 (same as the app)
             u = f"{GT}/networks/{net}/{kind}?page={page}"
             if kind == "trending_pools" and page == 2: d, live = gt_list(u)            # v8.41 cached (slow list)
             else: d, live = get(u) or {}, True
@@ -745,7 +748,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--dry-run", action="store_true", help="print embeds, post nothing")
     ap.add_argument("--state", type=Path, default=Path(os.environ.get("KYVO_CALLS_STATE", ".kyvo_calls/posted.json")))
-    ap.add_argument("--chains", default="solana,bsc")
+    ap.add_argument("--chains", default="solana,bsc,robinhood")
     ap.add_argument("--news", help="post this changelog text to DISCORD_WEBHOOK_NEWS and exit")
     ap.add_argument("--flags-out", type=Path, help="v8.3 track record: write every coin that passes the Good / Runner rule "
                     "(first-flag price + MC) to this JSON, even when no webhook is set (tools/track_record.py merges it)")
@@ -786,7 +789,7 @@ def main() -> int:
                                    "age_h": round(c["age_h"], 3) if c.get("age_h") is not None else None, "created": int(time.time() * 1000 - (c.get("age_h") or 0) * 3.6e6)}})
             flags.append(f)
     if not chains:
-        print("No DISCORD_WEBHOOK_SOL / DISCORD_WEBHOOK_BSC secret set -> nothing to do."); return 0
+        print("No DISCORD_WEBHOOK_SOL / DISCORD_WEBHOOK_BSC / DISCORD_WEBHOOK_ROBINHOOD secret set -> nothing to do."); return 0
     st = load_state(a.state); now = time.time()
     st["posted"] = {k: t for k, t in st.get("posted", {}).items() if now - t < REPOST_AFTER_H * 3600}
     _t0 = time.time()
