@@ -3,7 +3,7 @@
    Empty redeemUrl does not unlock anyone. The code is not stored. A successful redeem only
    sets kyvo_device_ok=1 on this device (separate from kyvo_owner_tok). Never put a code,
    a shared password, or a Stripe secret in this file. */
-window.KYVO_ACCESS_CONFIG = { redeemUrl: '' };
+window.KYVO_ACCESS_CONFIG = { redeemUrl: 'https://kyvo.46-224-229-212.sslip.io/api/redeem' };
 window.KYVO_PREMIUM_CONFIG = {
   enabled: false,
   currency: 'USD',
