@@ -1,7 +1,94 @@
 {
  "version": 1,
- "updated_at": "2026-11-10T04:33:05Z",
+ "updated_at": "2026-11-10T04:39:41Z",
  "items": [
+  {
+   "k": "solana:Eqx3sZXKgZ49XrZfKkUAdNz8D8keZtQtNG83wisxpump",
+   "sym": "KAWAENE",
+   "name": "Chikuwa and Nene",
+   "chain": "solana",
+   "addr": "Eqx3sZXKgZ49XrZfKkUAdNz8D8keZtQtNG83wisxpump",
+   "pair": "Hn73kdSjtRQG19uy9znVNLCY9ovfXmFQADf7EMth1Bhg",
+   "img": "https://cdn.dexscreener.com/cms/images/SRMM1eLrZmjtHR3G?width=800&height=800&quality=95&format=auto",
+   "kind": "runner",
+   "at": 1794285289285,
+   "px0": 0.0001545,
+   "mc0": 154569,
+   "h1": 312,
+   "m5": 5.37,
+   "age_h": 0.56,
+   "vol1h": 168412.27,
+   "h6": 312,
+   "badge": "etrend",
+   "kol": null,
+   "top_pct": null,
+   "top_is": null,
+   "concentrated": null,
+   "evidence": [],
+   "tweeted_by": [],
+   "buyers1h": null,
+   "big": null,
+   "tweet": null,
+   "trend": {
+    "h1": 312,
+    "m5": 5.37,
+    "age_h": 0.56,
+    "holders": 1831,
+    "t10": 25.1,
+    "t1": 2.6,
+    "br": 0.6,
+    "tx1h": 4047
+   },
+   "snap": {
+    "liq": 29429.55,
+    "vol1h": 168412.27,
+    "h1": 312,
+    "m5": 5.37,
+    "tx1h": 4047,
+    "age_h": 0.56,
+    "created": 1794283272113
+   },
+   "pred": {
+    "G": 0.099,
+    "scen": "low",
+    "sc": 91,
+    "as": false,
+    "h": {
+     "0.5": [
+      6,
+      25,
+      -12,
+      30
+     ],
+     "1": [
+      8,
+      30,
+      -17,
+      29
+     ],
+     "3": [
+      8,
+      35,
+      -33,
+      25
+     ],
+     "6": [
+      17,
+      70,
+      -47,
+      18,
+      1
+     ],
+     "8": [
+      17,
+      70,
+      -52,
+      14,
+      1
+     ]
+    }
+   }
+  },
   {
    "k": "solana:2ZLU8yV2mgG9M3PFNDskTeJRcfWYFQ86Byhmk3Jppump",
    "sym": "HABIBI",
@@ -454,93 +541,6 @@
    },
    "mcNow": 3751060,
    "lastAt": 1794237977704
-  },
-  {
-   "k": "bsc:0x0c6302401aa5325C2E36F170f52C00B1d220B405",
-   "sym": "GANG",
-   "name": "Gang",
-   "chain": "bsc",
-   "addr": "0x0c6302401aa5325C2E36F170f52C00B1d220B405",
-   "pair": "0x0bd5dEd695d61C2db15C703c345D57e039FD0b6D",
-   "img": "https://cdn.dexscreener.com/cms/images/JDZWSg7LJulXW84z?width=800&height=800&quality=95&format=auto",
-   "kind": "runner",
-   "at": 1794199087551,
-   "px0": 0.003116,
-   "mc0": 3085261,
-   "h1": 26.83,
-   "m5": 5.06,
-   "age_h": 426.673,
-   "vol1h": 577306.23,
-   "h6": 13.15,
-   "badge": "big",
-   "kol": null,
-   "top_pct": null,
-   "top_is": null,
-   "concentrated": false,
-   "evidence": [],
-   "tweeted_by": [],
-   "buyers1h": 470,
-   "big": {
-    "h1": 26.83,
-    "h6": 13.15,
-    "acc": 12.0,
-    "txAcc": 4.9,
-    "br": 0.53
-   },
-   "tweet": null,
-   "trend": null,
-   "snap": {
-    "liq": 244654.21,
-    "vol1h": 577306.23,
-    "h1": 26.83,
-    "m5": 5.06,
-    "tx1h": 2929,
-    "age_h": 426.673,
-    "created": 1792663063605
-   },
-   "pd": {
-    "b": 13,
-    "ath": 3540273,
-    "w": false
-   },
-   "pred": {
-    "G": 0.255,
-    "scen": "low",
-    "sc": 75,
-    "as": true,
-    "h": {
-     "0.5": [
-      3,
-      11,
-      -2,
-      38
-     ],
-     "1": [
-      4,
-      16,
-      -3,
-      36
-     ],
-     "3": [
-      7,
-      25,
-      -7,
-      31
-     ],
-     "6": [
-      10,
-      40,
-      -13,
-      23
-     ],
-     "8": [
-      10,
-      40,
-      -15,
-      18
-     ]
-    }
-   }
   }
  ]
 }
