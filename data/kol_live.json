@@ -1,94 +1,182 @@
 {
  "version": 1,
- "updated_at": "2026-11-09T23:58:27Z",
+ "updated_at": "2026-11-10T00:07:56Z",
  "items": [
   {
-   "k": "solana:5wsjHxT5nW5jQuVupXUNnYszF3WoWCfGGk9LMcsCJzY8",
-   "sym": "STANK",
-   "name": "STANK",
+   "k": "solana:BH5bq6NamreYUbu1hG6RQyCXXzrDvQ7Zi7w82mrbpump",
+   "sym": "PERPULATOR",
+   "name": "Perpulator",
    "chain": "solana",
-   "addr": "5wsjHxT5nW5jQuVupXUNnYszF3WoWCfGGk9LMcsCJzY8",
-   "pair": "6hYFMyE2BYYScTErqUeCKhihQ5X9j2WD2z9waTdwy38N",
-   "img": "https://cdn.dexscreener.com/cms/images/xOljTGtIz_HUn9dG?width=800&height=800&quality=95&format=auto",
+   "addr": "BH5bq6NamreYUbu1hG6RQyCXXzrDvQ7Zi7w82mrbpump",
+   "pair": "7oVTrbkj98RRBzrU81wozRmNkJ7BNGUrLEBDmvCWjiFV",
+   "img": null,
    "kind": "runner",
-   "at": 1794268604249,
-   "px0": 0.003844,
-   "mc0": 3844820,
-   "h1": 21.08,
-   "m5": 7.48,
-   "age_h": 273.991,
-   "vol1h": 67716.05,
-   "h6": 29.08,
-   "badge": "trend",
+   "at": 1794269074387,
+   "px0": 0.0001497,
+   "mc0": 149521,
+   "h1": 296,
+   "m5": 14.98,
+   "age_h": 0.295,
+   "vol1h": 471406.94,
+   "h6": 296,
+   "badge": "etrend",
    "kol": null,
-   "top_pct": 3.2,
+   "top_pct": null,
    "top_is": null,
-   "concentrated": false,
+   "concentrated": null,
    "evidence": [],
    "tweeted_by": [],
-   "buyers1h": 208,
+   "buyers1h": null,
    "big": null,
    "tweet": null,
    "trend": {
-    "h1": 21.08,
-    "h6": 29.08,
-    "h24": 135,
-    "holders": 8606,
-    "t10": 18.2,
-    "t1": 3.2,
-    "br": 0.54,
-    "ins": 0,
-    "vup": 2.7
+    "h1": 296,
+    "m5": 14.98,
+    "age_h": 0.29,
+    "holders": 2034,
+    "t10": 20.3,
+    "t1": 2.6,
+    "br": 0.55,
+    "tx1h": 8550
    },
    "snap": {
-    "liq": 116820.95,
-    "vol1h": 67716.05,
-    "h1": 21.08,
-    "m5": 7.48,
-    "tx1h": 774,
-    "age_h": 273.991,
-    "created": 1793282235843
-   },
-   "pd": {
-    "b": 1,
-    "ath": 3900379,
-    "w": false
+    "liq": 30012.74,
+    "vol1h": 471406.94,
+    "h1": 296,
+    "m5": 14.98,
+    "tx1h": 8550,
+    "age_h": 0.295,
+    "created": 1794268013262
    },
    "pred": {
-    "G": 0.211,
+    "G": 0.12,
     "scen": "low",
-    "sc": 100,
+    "sc": 73,
     "as": false,
     "h": {
      "0.5": [
-      2,
-      7,
-      -1,
-      36
-     ],
-     "1": [
-      2,
-      10,
-      -2,
-      34
-     ],
-     "3": [
-      4,
-      17,
-      -5,
-      29
-     ],
-     "6": [
       6,
       25,
-      -9,
-      22
+      -14,
+      31
+     ],
+     "1": [
+      8,
+      35,
+      -20,
+      30
+     ],
+     "3": [
+      9,
+      35,
+      -39,
+      26
+     ],
+     "6": [
+      18,
+      70,
+      -55,
+      19,
+      1
      ],
      "8": [
-      7,
+      18,
+      70,
+      -60,
+      15,
+      1
+     ]
+    }
+   }
+  },
+  {
+   "k": "solana:5JZCjeSSXPzibDJUcoAFnsvGyM4mqtS1CHb8VTJopump",
+   "sym": "Microsoft",
+   "name": "Microsoft",
+   "chain": "solana",
+   "addr": "5JZCjeSSXPzibDJUcoAFnsvGyM4mqtS1CHb8VTJopump",
+   "pair": "527Xjv8gNDStMSug8HqiEnkxonNqQP3jYom5kFUGno2a",
+   "img": null,
+   "kind": "runner",
+   "at": 1794268937117,
+   "px0": 0.0001134,
+   "mc0": 113439,
+   "h1": 213,
+   "m5": 42.94,
+   "age_h": 0.581,
+   "vol1h": 54869.05,
+   "h6": 213,
+   "badge": "etrend",
+   "kol": null,
+   "top_pct": null,
+   "top_is": null,
+   "concentrated": null,
+   "evidence": [],
+   "tweeted_by": [],
+   "buyers1h": null,
+   "big": null,
+   "tweet": null,
+   "trend": {
+    "h1": 213,
+    "m5": 42.94,
+    "age_h": 0.58,
+    "holders": 2859,
+    "t10": 9.1,
+    "t1": 7.2,
+    "br": 0.61,
+    "tx1h": 8146
+   },
+   "snap": {
+    "liq": 24908.57,
+    "vol1h": 54869.05,
+    "h1": 213,
+    "m5": 42.94,
+    "tx1h": 8146,
+    "age_h": 0.581,
+    "created": 1794266847068
+   },
+   "pd": {
+    "b": 5,
+    "ath": 119995,
+    "w": false
+   },
+   "pred": {
+    "G": 0.27,
+    "scen": "low",
+    "sc": 82,
+    "as": false,
+    "h": {
+     "0.5": [
+      8,
+      35,
+      -11,
+      38
+     ],
+     "1": [
+      12,
+      45,
+      -17,
+      37
+     ],
+     "3": [
+      12,
+      50,
+      -34,
+      32
+     ],
+     "6": [
       25,
-      -12,
-      17
+      100,
+      -52,
+      24,
+      1
+     ],
+     "8": [
+      25,
+      100,
+      -58,
+      18,
+      1
      ]
     }
    }
@@ -703,93 +791,6 @@
       70,
       -48,
       15,
-      1
-     ]
-    }
-   }
-  },
-  {
-   "k": "solana:6odokGfZAeEm667cRiE3H7sLEhctKYaxPUTmE514pump",
-   "sym": "NIVI",
-   "name": "Nvidia Mascot",
-   "chain": "solana",
-   "addr": "6odokGfZAeEm667cRiE3H7sLEhctKYaxPUTmE514pump",
-   "pair": "7izWLpjQHimqpipWhZa4QbGNrKuEGbmBzJVFNAoJtgNG",
-   "img": "https://cdn.dexscreener.com/cms/images/-TolOgeQrGwkOEBl?width=800&height=800&quality=95&format=auto",
-   "kind": "runner",
-   "at": 1794182317677,
-   "px0": 0.0001253,
-   "mc0": 125379,
-   "h1": 187,
-   "m5": 7.67,
-   "age_h": 0.305,
-   "vol1h": 230836.73,
-   "h6": 187,
-   "badge": "etrend",
-   "kol": null,
-   "top_pct": null,
-   "top_is": null,
-   "concentrated": null,
-   "evidence": [],
-   "tweeted_by": [],
-   "buyers1h": null,
-   "big": null,
-   "tweet": null,
-   "trend": {
-    "h1": 187,
-    "m5": 7.67,
-    "age_h": 0.31,
-    "holders": 3185,
-    "t10": 2.1,
-    "t1": 0.2,
-    "br": 0.76,
-    "tx1h": 7398
-   },
-   "snap": {
-    "liq": 26562.5,
-    "vol1h": 230836.73,
-    "h1": 187,
-    "m5": 7.67,
-    "tx1h": 7398,
-    "age_h": 0.305,
-    "created": 1794181218989
-   },
-   "pred": {
-    "G": 0.171,
-    "scen": "low",
-    "sc": 91,
-    "as": false,
-    "h": {
-     "0.5": [
-      7,
-      25,
-      -15,
-      34
-     ],
-     "1": [
-      10,
-      40,
-      -21,
-      32
-     ],
-     "3": [
-      10,
-      40,
-      -41,
-      28
-     ],
-     "6": [
-      20,
-      80,
-      -59,
-      21,
-      1
-     ],
-     "8": [
-      20,
-      80,
-      -64,
-      16,
       1
      ]
     }
