@@ -1,9 +1,12 @@
-/* Kyvo v8.46 Sygnały — coins where at least 2 traders Kyvo already tracks bought in the last 6 hours.
-   Sources (public feeds already produced by the server loop, no new APIs, no keys):
+/* Kyvo v8.50 Sygnały — coins where at least 2 traders Kyvo already tracks bought in the last 6 hours,
+   plus coins currently viral / popular on Pump.fun (hottest ungraduated coins on the official board).
+   Sources (public feeds, no keys, no account):
      * data/tracker_feed.json — top Ranking wallets' pump.fun buys (tools/pump_tracker.py)
      * data/steven_live.json — 👤 bystevenr copy feed (tools/steven.py), one trader
      * data/rowdy_live.json — 👤 Rowdy copy feed (tools/rowdy.py), both of his wallets count as one trader
-   The tab shows the count only. Trader names and wallet addresses are never put in the DOM.
+     * https://kyvo.46-224-229-212.sslip.io/api/signals/pump-viral.json — Pump.fun viral poller
+   The trader block shows the count only. Trader names and wallet addresses are never put in the DOM.
+   Pump.fun viral rows are labelled "Pump.fun viral" and are not trader counts.
    No sample rows: zero qualifying coins → the empty state. Not financial advice. */
 (function (root, factory) {
   var api = factory();
@@ -21,6 +24,7 @@
      Used only to collapse one person into one count. Never rendered. */
   var STEVEN = 'AH75Bn6QHSt5K2Ad4p1otns3JTwpSJWZTwiwKWNhmnKx';
   var ROWDY = ['DKgvpfttzmJqZXdavDwTxwSVkajibjzJnN2FA99dyciK', 'CzU8MaRcwvwUoNkwJFLbvtFWJugcEXAhDDQqNFE4ybb7'];
+  var PUMP_FEED = 'https://kyvo.46-224-229-212.sslip.io/api/signals/pump-viral.json';
   var CHAIN = { solana: 'SOL', bsc: 'BSC', robinhood: 'RH' };
   var CHAIN_FILTERS = [
     { id: 'all', pl: 'Wszystkie', en: 'All' },
@@ -162,6 +166,41 @@
     return rows;
   }
 
+  function viralItems(src, now) {
+    var feed = src && src.pump;
+    var list = (feed && feed.items) || [];
+    var cut = (now || Date.now()) - WINDOW_MS;
+    var out = [];
+    for (var i = 0; i < list.length; i++) {
+      var e = list[i];
+      if (!e || !e.addr || SKIP[e.addr]) continue;
+      var chain = normChain(e.chain || 'solana');
+      if (chain !== 'solana') continue;
+      var first = ms(e.first), last = ms(e.last || e.first);
+      if (!(last >= cut)) continue;
+      out.push({
+        key: chain + ':' + e.addr,
+        chain: chain,
+        addr: e.addr,
+        sym: e.sym || '?',
+        name: e.name || e.sym || '?',
+        img: e.img || '',
+        mc: e.mc,
+        liq: e.liq,
+        pair: e.pair || '',
+        dex: e.dex || '',
+        pumpUrl: e.pump_url || ('https://pump.fun/coin/' + e.addr),
+        dexUrl: e.dex_url || ('https://dexscreener.com/solana/' + e.addr),
+        source: 'pumpfun-viral',
+        n: 0,
+        first: first || last,
+        last: last
+      });
+    }
+    out.sort(function (a, b) { return b.last - a.last || (b.mc || 0) - (a.mc || 0); });
+    return out;
+  }
+
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (ch) {
       return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch];
@@ -201,17 +240,23 @@
     var facts = [];
     if (mc) facts.push('MC <b>' + esc(mc) + '</b>');
     if (liq) facts.push((en ? 'Liq' : 'Płynność') + ' <b>' + esc(liq) + '</b>');
-    var chart = 'https://dexscreener.com/' + encodeURIComponent(r.chain || 'solana') + '/' + encodeURIComponent(r.addr);
-    return '<article class="sig' + hotClass(r.n) + '" data-key="' + esc(r.key) + '" role="listitem">' +
+    var viral = r.source === 'pumpfun-viral';
+    var chart = r.dexUrl || ('https://dexscreener.com/' + encodeURIComponent(r.chain || 'solana') + '/' + encodeURIComponent(r.addr));
+    var pump = r.pumpUrl || ('https://pump.fun/coin/' + encodeURIComponent(r.addr));
+    var badgeN = viral
+      ? (en ? 'Pump.fun viral' : 'Pump.fun viral')
+      : (r.n + ' ' + (en ? (r.n === 1 ? 'trader' : 'traders') : 'traderów'));
+    return '<article class="sig' + (viral ? ' viral' : hotClass(r.n)) + '" data-key="' + esc(r.key) + '" role="listitem">' +
       '<div class="sig-top">' + img +
         '<div class="nm"><b><span class="cbadge c-' + esc(r.chain || 'solana') + '">' + esc(badge) + '</span> ' +
           esc(r.name) + ' <span class="mut" style="font-weight:600">$' + esc(r.sym) + '</span></b>' +
-          '<span class="sig-n">' + r.n + ' ' + (en ? (r.n === 1 ? 'trader' : 'traders') : 'traderów') + '</span></div></div>' +
+          '<span class="sig-n">' + esc(badgeN) + '</span></div></div>' +
       '<div class="sig-meta">' + (en ? 'First' : 'Pierwsze') + ' <b>' + esc(clock(r.first, en)) + '</b> <span class="mut">(' + esc(ago(r.first, en)) + ')</span>' +
         ' · ' + (en ? 'latest' : 'ostatnie') + ' <b>' + esc(clock(r.last, en)) + '</b> <span class="mut">(' + esc(ago(r.last, en)) + ')</span></div>' +
       (facts.length ? '<div class="sig-meta">' + facts.join(' · ') + '</div>' : '') +
       '<div class="sig-acts">' +
         '<button type="button" data-sig-copy="' + esc(r.addr) + '">' + (en ? 'Copy CA' : 'Kopiuj CA') + '</button>' +
+        (viral ? '<a data-sig-pump href="' + esc(pump) + '" target="_blank" rel="noopener noreferrer">Pump.fun</a>' : '') +
         '<a data-sig-chart href="' + esc(chart) + '" target="_blank" rel="noopener noreferrer">' + (en ? 'Chart' : 'Wykres') + '</a>' +
       '</div></article>';
   }
@@ -221,8 +266,8 @@
     return '<div class="sig-page" translate="no">' +
       '<div class="sig-lead"><h2>' + (en ? 'Signals' : 'Sygnały') + '</h2>' +
       '<p>' + (en
-        ? 'Memecoins on Solana, BSC and Robinhood Chain that at least 2 traders Kyvo already tracks bought in the last 6 hours. Only the count is shown — no names and no wallet addresses.'
-        : 'Memecoiny na Solanie, BSC i Robinhood Chain, które w ostatnich 6 godzinach kupiło co najmniej 2 traderów śledzonych przez Kyvo. Widać tylko liczbę — bez nazw i bez adresów portfeli.') +
+        ? 'Memecoins on Solana, BSC and Robinhood Chain that at least 2 traders Kyvo already tracks bought in the last 6 hours, plus coins Pump.fun is showing as viral or popular right now. Trader rows show only the count — no names and no wallet addresses.'
+        : 'Memecoiny na Solanie, BSC i Robinhood Chain, które w ostatnich 6 godzinach kupiło co najmniej 2 traderów śledzonych przez Kyvo, plus coiny oznaczone teraz jako viral albo popularne na Pump.fun. Przy traderach widać tylko liczbę — bez nazw i bez adresów portfeli.') +
       '</p><div class="sig-chains" role="tablist">' + CHAIN_FILTERS.map(function (c) {
         return '<button type="button" data-sig-chain="' + c.id + '"' + (c.id === (chain || 'all') ? ' class="on"' : '') + '>' + (en ? c.en : c.pl) + '</button>';
       }).join('') + '</div></div>' + body +
@@ -231,27 +276,39 @@
         : 'To nie jest porada finansowa. Zakup obserwowanego tradera nie jest prognozą.') + '</p></div>';
   }
 
-  function listBody(rows, en, hooks, chain) {
+  function listBody(rows, viral, en, hooks, chain) {
     var shown = !chain || chain === 'all' ? rows : rows.filter(function (r) { return r.chain === chain; });
-    if (!shown.length) {
+    var vir = !chain || chain === 'all' || chain === 'solana' ? (viral || []) : [];
+    if (!shown.length && !vir.length) {
       var name = chain === 'robinhood' ? 'Robinhood Chain' : chain === 'bsc' ? 'BSC' : chain === 'solana' ? 'Solana' : '';
       return '<div class="empty">' + (name
         ? (en
-          ? 'No ' + name + ' signal in the last 6 hours. Nothing on this chain was bought by at least 2 tracked traders.'
-          : 'Brak sygnału ' + name + ' w ostatnich 6 h. Na tej sieci żaden coin nie ma wejść od co najmniej 2 obserwowanych traderów.')
+          ? 'No ' + name + ' signal in the last 6 hours. Nothing on this chain was bought by at least 2 tracked traders' + (chain === 'solana' ? ', and no Pump.fun viral coin passed the filters.' : '.')
+          : 'Brak sygnału ' + name + ' w ostatnich 6 h. Na tej sieci żaden coin nie ma wejść od co najmniej 2 obserwowanych traderów' + (chain === 'solana' ? ', i nie ma teraz coina viral z Pump.fun.' : '.'))
         : (en
-          ? 'No signal in the last 6 hours. Nothing here was bought by at least 2 tracked traders. The list fills itself when that happens — Kyvo does not add examples.'
-          : 'Brak sygnału w ostatnich 6 h. Żaden coin nie ma teraz wejść od co najmniej 2 obserwowanych traderów. Lista uzupełni się sama, gdy tak się stanie — Kyvo nie dodaje przykładów.')) + '</div>';
+          ? 'No signal in the last 6 hours. Nothing here was bought by at least 2 tracked traders, and no Pump.fun viral coin passed the filters. The list fills itself when that happens — Kyvo does not add examples.'
+          : 'Brak sygnału w ostatnich 6 h. Żaden coin nie ma teraz wejść od co najmniej 2 obserwowanych traderów i nie ma coina viral z Pump.fun. Lista uzupełni się sama, gdy tak się stanie — Kyvo nie dodaje przykładów.')) + '</div>';
     }
-    return '<div class="sig-wrap" role="list">' + shown.map(function (r) { return rowHtml(r, en, hooks || {}); }).join('') + '</div>';
+    var html = '';
+    if (vir.length) {
+      html += '<h3 class="sig-sub">' + (en ? 'Pump.fun viral' : 'Viral na Pump.fun') + '</h3>';
+      html += '<div class="sig-wrap" role="list">' + vir.map(function (r) { return rowHtml(r, en, hooks || {}); }).join('') + '</div>';
+    }
+    if (shown.length) {
+      html += '<h3 class="sig-sub">' + (en ? 'Tracked traders' : 'Obserwowani traderzy') + '</h3>';
+      html += '<div class="sig-wrap" role="list">' + shown.map(function (r) { return rowHtml(r, en, hooks || {}); }).join('') + '</div>';
+    }
+    return html;
   }
 
   function paintPage(root, src, hooks) {
     var en = !!(hooks && hooks.isEn && hooks.isEn());
-    var rows;
+    var rows, viral;
     try { rows = build(src || {}, Date.now()); } catch (e) { rows = []; }
+    try { viral = viralItems(src || {}, Date.now()); } catch (e) { viral = []; }
     root._sigRows = rows;
-    root.innerHTML = shell(en, listBody(rows, en, hooks, sigChain), sigChain);
+    root._sigViral = viral;
+    root.innerHTML = shell(en, listBody(rows, viral, en, hooks, sigChain), sigChain);
   }
 
   var cache = { at: 0, src: null };
@@ -265,9 +322,10 @@
     return Promise.all([
       one('data/tracker_feed.json'),
       one('data/steven_live.json'),
-      one('data/rowdy_live.json')
+      one('data/rowdy_live.json'),
+      one(PUMP_FEED)
     ]).then(function (all) {
-      var src = { tracker: all[0], steven: all[1], rowdy: all[2], _ok: !!(all[0] || all[1] || all[2]) };
+      var src = { tracker: all[0], steven: all[1], rowdy: all[2], pump: all[3], _ok: !!(all[0] || all[1] || all[2] || (all[3] && all[3].items)) };
       if (src._ok) { cache.src = src; cache.at = Date.now(); }
       return src;
     });
@@ -299,7 +357,7 @@
         if (retry) { e.preventDefault(); cache.at = 0; cache.src = null; show(root, hooks); return; }
         var copy = e.target.closest && e.target.closest('[data-sig-copy]');
         if (copy) { e.preventDefault(); e.stopPropagation(); copyText(copy.getAttribute('data-sig-copy'), hooks); return; }
-        if (e.target.closest && e.target.closest('[data-sig-chart]')) return;
+        if (e.target.closest && e.target.closest('[data-sig-chart], [data-sig-pump]')) return;
         var row = e.target.closest && e.target.closest('[data-key]');
         if (row) location.hash = '#coin/' + encodeURIComponent(row.getAttribute('data-key'));
       });
@@ -318,5 +376,5 @@
     });
   }
 
-  return { WINDOW_MS: WINDOW_MS, build: build, show: show, load: load };
+  return { WINDOW_MS: WINDOW_MS, build: build, viralItems: viralItems, show: show, load: load };
 });
