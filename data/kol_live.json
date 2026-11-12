@@ -1,7 +1,94 @@
 {
  "version": 1,
- "updated_at": "2026-11-12T22:58:41Z",
+ "updated_at": "2026-11-12T23:12:18Z",
  "items": [
+  {
+   "k": "solana:9a13W5HdqE95g3YE8Dk9wCHPucrCH33h6BTfdFvRpump",
+   "sym": "plumber",
+   "name": "plumber",
+   "chain": "solana",
+   "addr": "9a13W5HdqE95g3YE8Dk9wCHPucrCH33h6BTfdFvRpump",
+   "pair": "HqyxyL1kgKijYfswbKR8tnTd1GX1AZbHFwRf3KJaqEq9",
+   "img": "https://cdn.dexscreener.com/cms/images/9o-NpJ_d4mf6gJFT?width=800&height=800&quality=95&format=auto",
+   "kind": "runner",
+   "at": 1794524696197,
+   "px0": 0.0002189,
+   "mc0": 211708,
+   "h1": 349,
+   "m5": 15.63,
+   "age_h": 0.987,
+   "vol1h": 834144.78,
+   "h6": 349,
+   "badge": "etrend",
+   "kol": null,
+   "top_pct": null,
+   "top_is": null,
+   "concentrated": null,
+   "evidence": [],
+   "tweeted_by": [],
+   "buyers1h": null,
+   "big": null,
+   "tweet": null,
+   "trend": {
+    "h1": 349,
+    "m5": 15.63,
+    "age_h": 0.99,
+    "holders": 3188,
+    "t10": 16.5,
+    "t1": 2.8,
+    "br": 0.58,
+    "tx1h": 18951
+   },
+   "snap": {
+    "liq": 41755.48,
+    "vol1h": 834144.78,
+    "h1": 349,
+    "m5": 15.63,
+    "tx1h": 18951,
+    "age_h": 0.987,
+    "created": 1794521144602
+   },
+   "pred": {
+    "G": 0.007,
+    "scen": "low",
+    "sc": 91,
+    "as": false,
+    "h": {
+     "0.5": [
+      4,
+      17,
+      -12,
+      25
+     ],
+     "1": [
+      6,
+      25,
+      -17,
+      24
+     ],
+     "3": [
+      6,
+      25,
+      -32,
+      21
+     ],
+     "6": [
+      13,
+      50,
+      -44,
+      16,
+      1
+     ],
+     "8": [
+      13,
+      50,
+      -46,
+      12,
+      1
+     ]
+    }
+   }
+  },
   {
    "k": "solana:npz2FhoufQ7pKqhGpaipYWacrAkidyW2yDpVWSvpump",
    "sym": "DESSA",
@@ -519,98 +606,6 @@
       100,
       -63,
       16,
-      1
-     ]
-    }
-   }
-  },
-  {
-   "k": "solana:9RyENt3gJ1MEsFPiJAMyNerYYngLDuyZfVP4GBqepump",
-   "sym": "TILLY",
-   "name": "TILLY",
-   "chain": "solana",
-   "addr": "9RyENt3gJ1MEsFPiJAMyNerYYngLDuyZfVP4GBqepump",
-   "pair": "FUNcSoydYYhusuJd99dG3apeqZVTZuX9VtxWVtgG6ADm",
-   "img": "https://cdn.dexscreener.com/cms/images/m1NO3yEtzJPkMcSJ?width=800&height=800&quality=95&format=auto",
-   "kind": "runner",
-   "at": 1794438534200,
-   "px0": 0.000195,
-   "mc0": 191387,
-   "h1": 450,
-   "m5": 6.71,
-   "age_h": 0.957,
-   "vol1h": 155946.49,
-   "h6": 450,
-   "badge": "etrend",
-   "kol": null,
-   "top_pct": null,
-   "top_is": null,
-   "concentrated": null,
-   "evidence": [],
-   "tweeted_by": [],
-   "buyers1h": null,
-   "big": null,
-   "tweet": null,
-   "trend": {
-    "h1": 450,
-    "m5": 6.71,
-    "age_h": 0.96,
-    "holders": 343,
-    "t10": 8.6,
-    "t1": 2.0,
-    "br": 0.6,
-    "tx1h": 1440
-   },
-   "snap": {
-    "liq": 32733.75,
-    "vol1h": 155946.49,
-    "h1": 450,
-    "m5": 6.71,
-    "tx1h": 1440,
-    "age_h": 0.957,
-    "created": 1794435088352
-   },
-   "pd": {
-    "b": 6,
-    "ath": 203201,
-    "w": false
-   },
-   "pred": {
-    "G": 0.085,
-    "scen": "low",
-    "sc": 82,
-    "as": false,
-    "h": {
-     "0.5": [
-      5,
-      20,
-      -11,
-      29
-     ],
-     "1": [
-      7,
-      30,
-      -16,
-      28
-     ],
-     "3": [
-      8,
-      30,
-      -31,
-      24
-     ],
-     "6": [
-      16,
-      60,
-      -45,
-      18,
-      1
-     ],
-     "8": [
-      16,
-      60,
-      -49,
-      14,
       1
      ]
     }
