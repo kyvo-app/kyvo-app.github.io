@@ -1,7 +1,99 @@
 {
  "version": 1,
- "updated_at": "2026-11-15T23:47:43Z",
+ "updated_at": "2026-11-16T00:04:29Z",
  "items": [
+  {
+   "k": "solana:6XGN3oMrjLuWvDyvHL1VZNNPN5d7dTspD9N7LKjAnime",
+   "sym": "ANIME",
+   "name": "Anime",
+   "chain": "solana",
+   "addr": "6XGN3oMrjLuWvDyvHL1VZNNPN5d7dTspD9N7LKjAnime",
+   "pair": "J5WmwNcqqxmUgFjLydZ66H81JRHxrKHSk8zjgPawsmiu",
+   "img": "https://cdn.dexscreener.com/cms/images/v394XKNcapDKr0-D?width=800&height=800&quality=95&format=auto",
+   "kind": "runner",
+   "at": 1794787083467,
+   "px0": 8.04e-05,
+   "mc0": 76902,
+   "h1": 173,
+   "m5": 52.99,
+   "age_h": 0.918,
+   "vol1h": 462145.3,
+   "h6": 173,
+   "badge": "etrend",
+   "kol": null,
+   "top_pct": null,
+   "top_is": null,
+   "concentrated": null,
+   "evidence": [],
+   "tweeted_by": [],
+   "buyers1h": null,
+   "big": null,
+   "tweet": null,
+   "trend": {
+    "h1": 173,
+    "m5": 52.99,
+    "age_h": 0.92,
+    "holders": 1915,
+    "t10": 24.0,
+    "t1": 5.9,
+    "br": 0.57,
+    "tx1h": 12909
+   },
+   "snap": {
+    "liq": 20132.13,
+    "vol1h": 462145.3,
+    "h1": 173,
+    "m5": 52.99,
+    "tx1h": 12909,
+    "age_h": 0.918,
+    "created": 1794783780005
+   },
+   "pd": {
+    "b": 0,
+    "ath": 76902,
+    "w": false
+   },
+   "pred": {
+    "G": 0.172,
+    "scen": "low",
+    "sc": 91,
+    "as": false,
+    "h": {
+     "0.5": [
+      8,
+      30,
+      -16,
+      34
+     ],
+     "1": [
+      11,
+      40,
+      -23,
+      32
+     ],
+     "3": [
+      11,
+      40,
+      -45,
+      28
+     ],
+     "6": [
+      25,
+      90,
+      -65,
+      21,
+      1
+     ],
+     "8": [
+      25,
+      90,
+      -70,
+      16,
+      1
+     ]
+    }
+   }
+  },
   {
    "k": "solana:7mH4PaR9BMxAid2i1QNDBmziAwxyXBsPNKSMiWySpump",
    "sym": "worth",
@@ -267,95 +359,6 @@
      ]
     }
    }
-  },
-  {
-   "k": "solana:7N2g5tHX2isAXyKmtUek72waREtNKSFuR6KW2xthpump",
-   "sym": "DOJE",
-   "name": "Doge Jensen",
-   "chain": "solana",
-   "addr": "7N2g5tHX2isAXyKmtUek72waREtNKSFuR6KW2xthpump",
-   "pair": "DzkV6xvkpPDDYHHUk2bCNt4yoXwF1wAvcLDyV4ifNKmr",
-   "img": "https://cdn.dexscreener.com/cms/images/C9sWROkt7_cYizBi?width=800&height=800&quality=95&format=auto",
-   "kind": "runner",
-   "at": 1794700156581,
-   "px0": 0.000124,
-   "mc0": 123975,
-   "h1": 264,
-   "m5": 37.02,
-   "age_h": 0.355,
-   "vol1h": 96497.12,
-   "h6": 264,
-   "badge": "etrend",
-   "kol": null,
-   "top_pct": null,
-   "top_is": null,
-   "concentrated": null,
-   "evidence": [],
-   "tweeted_by": [],
-   "buyers1h": null,
-   "big": null,
-   "tweet": null,
-   "trend": {
-    "h1": 264,
-    "m5": 37.02,
-    "age_h": 0.36,
-    "holders": 985,
-    "t10": 20.9,
-    "t1": 2.2,
-    "br": 0.84,
-    "tx1h": 1720
-   },
-   "snap": {
-    "liq": 23768.37,
-    "vol1h": 96497.12,
-    "h1": 264,
-    "m5": 37.02,
-    "tx1h": 1720,
-    "age_h": 0.355,
-    "created": 1794698876882
-   },
-   "pred": {
-    "G": 0.307,
-    "scen": "med",
-    "sc": 91,
-    "as": false,
-    "h": {
-     "0.5": [
-      9,
-      35,
-      -10,
-      40
-     ],
-     "1": [
-      12,
-      50,
-      -16,
-      39
-     ],
-     "3": [
-      12,
-      50,
-      -32,
-      33
-     ],
-     "6": [
-      25,
-      110,
-      -50,
-      25,
-      1
-     ],
-     "8": [
-      25,
-      110,
-      -56,
-      19,
-      1
-     ]
-    }
-   },
-   "mcNow": 218577,
-   "lastAt": 1794707455299
   }
  ]
 }
