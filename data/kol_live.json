@@ -1,94 +1,90 @@
 {
  "version": 1,
- "updated_at": "2026-11-17T02:42:33Z",
+ "updated_at": "2026-11-17T02:48:06Z",
  "items": [
   {
-   "k": "solana:FVzqGqRmr4UH1Fif6dewmwbJ1p4YUZCu8dcw4Efopump",
-   "sym": "HOGE",
-   "name": "Hogecoin",
+   "k": "solana:9k2nqjUrSh9p2ZBnWxNE3QRWYiLocrWZfoDm3Vdxpump",
+   "sym": "CHAR",
+   "name": "Onchain Chars",
    "chain": "solana",
-   "addr": "FVzqGqRmr4UH1Fif6dewmwbJ1p4YUZCu8dcw4Efopump",
-   "pair": "7CNC9gGegzEfFK8fLXiYUhdtMEeFPQZoND56U1Mxhnor",
-   "img": "https://cdn.dexscreener.com/cms/images/1a7ktmZ_jATJAPOV?width=800&height=800&quality=95&format=auto",
+   "addr": "9k2nqjUrSh9p2ZBnWxNE3QRWYiLocrWZfoDm3Vdxpump",
+   "pair": "J5JQhQtLcLU24ZTbJ85oqgX2rSkv1BgS7Kteo8fLHtGU",
+   "img": "https://cdn.dexscreener.com/cms/images/BnlVj5wWycNjrPh8?width=800&height=800&quality=95&format=auto",
    "kind": "runner",
-   "at": 1794882472321,
-   "px0": 0.0005483,
-   "mc0": 523917,
-   "h1": 40.83,
-   "m5": 19.52,
-   "age_h": 43.521,
-   "vol1h": 87963.33,
-   "h6": -24.12,
-   "badge": "trend",
+   "at": 1794883546955,
+   "px0": 9.966e-05,
+   "mc0": 99543,
+   "h1": 231,
+   "m5": 10.91,
+   "age_h": 0.578,
+   "vol1h": 586723.51,
+   "h6": 231,
+   "badge": "etrend",
    "kol": null,
-   "top_pct": 2.3,
+   "top_pct": null,
    "top_is": null,
-   "concentrated": false,
+   "concentrated": null,
    "evidence": [],
    "tweeted_by": [],
-   "buyers1h": 279,
+   "buyers1h": null,
    "big": null,
    "tweet": null,
    "trend": {
-    "h1": 40.83,
-    "h6": -24.12,
-    "h24": -59.31,
-    "holders": 8412,
-    "t10": 17.0,
-    "t1": 2.3,
-    "br": 0.52,
-    "ins": 62,
-    "vup": 1.4
+    "h1": 231,
+    "m5": 10.91,
+    "age_h": 0.58,
+    "holders": 1787,
+    "t10": 14.3,
+    "t1": 2.4,
+    "br": 0.55,
+    "tx1h": 12862
    },
    "snap": {
-    "liq": 84934.97,
-    "vol1h": 87963.33,
-    "h1": 40.83,
-    "m5": 19.52,
-    "tx1h": 1082,
-    "age_h": 43.521,
-    "created": 1794725796986
-   },
-   "pd": {
-    "b": 57,
-    "ath": 1224628,
-    "w": true
+    "liq": 22485.7,
+    "vol1h": 586723.51,
+    "h1": 231,
+    "m5": 10.91,
+    "tx1h": 12862,
+    "age_h": 0.578,
+    "created": 1794881465647
    },
    "pred": {
-    "G": 0.349,
-    "scen": "med",
-    "sc": 100,
+    "G": 0.126,
+    "scen": "low",
+    "sc": 82,
     "as": false,
     "h": {
      "0.5": [
-      5,
-      19,
-      -1,
-      42
-     ],
-     "1": [
       7,
       25,
-      -2,
-      41
+      -15,
+      31
+     ],
+     "1": [
+      9,
+      35,
+      -22,
+      30
      ],
      "3": [
-      12,
-      45,
-      -7,
-      35
-     ],
-     "6": [
-      17,
-      70,
-      -16,
+      10,
+      35,
+      -42,
       26
      ],
-     "8": [
-      19,
+     "6": [
+      20,
       80,
-      -23,
-      20
+      -60,
+      19,
+      1
+     ],
+     "8": [
+      20,
+      80,
+      -65,
+      15,
+      1
      ]
     }
    }
