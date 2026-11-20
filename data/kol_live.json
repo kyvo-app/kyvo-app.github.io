@@ -1,7 +1,94 @@
 {
  "version": 1,
- "updated_at": "2026-11-20T02:51:29Z",
+ "updated_at": "2026-11-20T03:04:41Z",
  "items": [
+  {
+   "k": "solana:J368btynAg5qCa414hj9WriSmRwp6H2sgWzXoRt3pump",
+   "sym": "MISU",
+   "name": "Misucoin",
+   "chain": "solana",
+   "addr": "J368btynAg5qCa414hj9WriSmRwp6H2sgWzXoRt3pump",
+   "pair": "Gu2mHdqAovokPeKrFsnkv26Bp8Ju9FfjQ7jMQxUZkxNZ",
+   "img": "https://cdn.dexscreener.com/cms/images/MeClIdu0x6Ogz9Kt?width=800&height=800&quality=95&format=auto",
+   "kind": "runner",
+   "at": 1795143756286,
+   "px0": 0.0001199,
+   "mc0": 119762,
+   "h1": 170,
+   "m5": 58.66,
+   "age_h": 0.27,
+   "vol1h": 235773.96,
+   "h6": 170,
+   "badge": "etrend",
+   "kol": null,
+   "top_pct": null,
+   "top_is": null,
+   "concentrated": null,
+   "evidence": [],
+   "tweeted_by": [],
+   "buyers1h": null,
+   "big": null,
+   "tweet": null,
+   "trend": {
+    "h1": 170,
+    "m5": 58.66,
+    "age_h": 0.27,
+    "holders": 1459,
+    "t10": 18.0,
+    "t1": 3.7,
+    "br": 0.59,
+    "tx1h": 5947
+   },
+   "snap": {
+    "liq": 28992,
+    "vol1h": 235773.96,
+    "h1": 170,
+    "m5": 58.66,
+    "tx1h": 5947,
+    "age_h": 0.27,
+    "created": 1795142785209
+   },
+   "pred": {
+    "G": 0.183,
+    "scen": "low",
+    "sc": 91,
+    "as": false,
+    "h": {
+     "0.5": [
+      7,
+      30,
+      -15,
+      34
+     ],
+     "1": [
+      10,
+      40,
+      -22,
+      33
+     ],
+     "3": [
+      10,
+      40,
+      -41,
+      28
+     ],
+     "6": [
+      20,
+      90,
+      -60,
+      21,
+      1
+     ],
+     "8": [
+      20,
+      90,
+      -65,
+      16,
+      1
+     ]
+    }
+   }
+  },
   {
    "k": "solana:HF2RBPrfNBk9TxggL2cYZFEKSgirzh5HKCngLENTpump",
    "sym": "LOOSY",
@@ -705,93 +792,6 @@
    },
    "mcNow": 85056,
    "lastAt": 1795085985725
-  },
-  {
-   "k": "solana:8zHjeXjf5zs3v9cQ116GGfbTqAP6BYkkucNF1f8Hpump",
-   "sym": "MAGACITY",
-   "name": "MAGA CITY XLVII ",
-   "chain": "solana",
-   "addr": "8zHjeXjf5zs3v9cQ116GGfbTqAP6BYkkucNF1f8Hpump",
-   "pair": "HaDzaM25VmxFPyKQuGoLz9r8vnLiieXnuLcc7TC7Z83x",
-   "img": "https://cdn.dexscreener.com/cms/images/Fz50L4OpQszFecwn?width=800&height=800&quality=95&format=auto",
-   "kind": "runner",
-   "at": 1795057102325,
-   "px0": 7.326e-05,
-   "mc0": 69401,
-   "h1": 60.14,
-   "m5": 13.65,
-   "age_h": 0.932,
-   "vol1h": 548880.75,
-   "h6": 60.14,
-   "badge": "etrend",
-   "kol": null,
-   "top_pct": null,
-   "top_is": null,
-   "concentrated": null,
-   "evidence": [],
-   "tweeted_by": [],
-   "buyers1h": null,
-   "big": null,
-   "tweet": null,
-   "trend": {
-    "h1": 60.14,
-    "m5": 13.65,
-    "age_h": 0.93,
-    "holders": 2558,
-    "t10": 18.5,
-    "t1": 4.5,
-    "br": 0.59,
-    "tx1h": 14598
-   },
-   "snap": {
-    "liq": 23372.96,
-    "vol1h": 548880.75,
-    "h1": 60.14,
-    "m5": 13.65,
-    "tx1h": 14598,
-    "age_h": 0.932,
-    "created": 1795053747103
-   },
-   "pred": {
-    "G": 0.199,
-    "scen": "low",
-    "sc": 91,
-    "as": false,
-    "h": {
-     "0.5": [
-      8,
-      30,
-      -13,
-      35
-     ],
-     "1": [
-      11,
-      45,
-      -19,
-      34
-     ],
-     "3": [
-      12,
-      50,
-      -38,
-      29
-     ],
-     "6": [
-      25,
-      100,
-      -57,
-      21,
-      1
-     ],
-     "8": [
-      25,
-      100,
-      -63,
-      17,
-      1
-     ]
-    }
-   }
   }
  ]
 }
