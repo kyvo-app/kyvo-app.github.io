@@ -1,7 +1,85 @@
 {
  "version": 1,
- "updated_at": "2026-11-22T22:09:26Z",
+ "updated_at": "2026-11-22T22:24:27Z",
  "items": [
+  {
+   "k": "solana:E9rWKjVhHMxQkxfREr7Li8Yy46rVcWiWHoKVQAe9pump",
+   "sym": "MINELIUS",
+   "name": "Minelius",
+   "chain": "solana",
+   "addr": "E9rWKjVhHMxQkxfREr7Li8Yy46rVcWiWHoKVQAe9pump",
+   "pair": "7yJDP2VmgazVEa6usbXM61uSk5AT3J4dZFaJQvq2LnfZ",
+   "img": "https://cdn.dexscreener.com/cms/images/1Q7nut8h15rscwRE?width=800&height=800&quality=95&format=auto",
+   "kind": "runner",
+   "at": 1795386087535,
+   "px0": 0.006373,
+   "mc0": 6349675,
+   "h1": 9979,
+   "m5": 4.52,
+   "age_h": 0.846,
+   "vol1h": 1798561.16,
+   "h6": 9979,
+   "badge": "moon",
+   "kol": null,
+   "top_pct": 2.5,
+   "top_is": null,
+   "concentrated": false,
+   "evidence": [],
+   "tweeted_by": [],
+   "buyers1h": 7607,
+   "big": null,
+   "tweet": null,
+   "trend": null,
+   "snap": {
+    "liq": 185315.16,
+    "vol1h": 1798561.16,
+    "h1": 9979,
+    "m5": 4.52,
+    "tx1h": 14247,
+    "age_h": 0.846,
+    "created": 1795383043248
+   },
+   "pred": {
+    "G": 0.011,
+    "scen": "low",
+    "sc": 75,
+    "as": true,
+    "h": {
+     "0.5": [
+      1,
+      4,
+      -3,
+      26
+     ],
+     "1": [
+      2,
+      6,
+      -4,
+      25
+     ],
+     "3": [
+      2,
+      7,
+      -7,
+      21
+     ],
+     "6": [
+      4,
+      15,
+      -12,
+      16,
+      1
+     ],
+     "8": [
+      4,
+      15,
+      -12,
+      12,
+      1
+     ]
+    }
+   }
+  },
   {
    "k": "solana:DEW9dSN6QpWyNthphCpMmAbZP1Q4cEKR9xQXAri98WDP",
    "sym": "SI",
@@ -87,7 +165,9 @@
       18
      ]
     }
-   }
+   },
+   "mcNow": 7513247,
+   "lastAt": 1795386102159
   },
   {
    "k": "solana:4npJ3avxnGhCzKbWQpLrQXAHsjWzKr4JqBsbu5Fspump",
@@ -175,8 +255,8 @@
      ]
     }
    },
-   "mcNow": 1946814,
-   "lastAt": 1795384901149
+   "mcNow": 2173877,
+   "lastAt": 1795386113341
   },
   {
    "k": "solana:npz2FhoufQ7pKqhGpaipYWacrAkidyW2yDpVWSvpump",
@@ -717,99 +797,6 @@
      ]
     }
    }
-  },
-  {
-   "k": "solana:65iH8k736QNhuUHm1tt8X7yJXpJ517HPPq8BrVdwring",
-   "sym": "Rings",
-   "name": "Rings",
-   "chain": "solana",
-   "addr": "65iH8k736QNhuUHm1tt8X7yJXpJ517HPPq8BrVdwring",
-   "pair": "8fSUYVnTy4r5fZUksjzKexLq2Tx96K3UPdYRvW5XWJ9t",
-   "img": "https://cdn.dexscreener.com/cms/images/BeHmZ5XgeIFsrzuo?width=800&height=800&quality=95&format=auto",
-   "kind": "runner",
-   "at": 1795299316176,
-   "px0": 0.004261,
-   "mc0": 4131611,
-   "h1": 42.76,
-   "m5": -3.14,
-   "age_h": 267.099,
-   "vol1h": 190156.78,
-   "h6": 85.72,
-   "badge": "trend",
-   "kol": null,
-   "top_pct": 3.1,
-   "top_is": null,
-   "concentrated": false,
-   "evidence": [],
-   "tweeted_by": [],
-   "buyers1h": 354,
-   "big": null,
-   "tweet": null,
-   "trend": {
-    "h1": 42.76,
-    "h6": 85.72,
-    "h24": 177,
-    "holders": 6625,
-    "t10": 19.9,
-    "t1": 3.1,
-    "br": 0.57,
-    "ins": 4,
-    "vup": 3.6
-   },
-   "snap": {
-    "liq": 171441.52,
-    "vol1h": 190156.78,
-    "h1": 42.76,
-    "m5": -3.14,
-    "tx1h": 1302,
-    "age_h": 267.099,
-    "created": 1794337758765
-   },
-   "pd": {
-    "b": 0,
-    "ath": 4131611,
-    "w": false
-   },
-   "pred": {
-    "G": 0.273,
-    "scen": "low",
-    "sc": 100,
-    "as": false,
-    "h": {
-     "0.5": [
-      2,
-      9,
-      -1,
-      39
-     ],
-     "1": [
-      3,
-      13,
-      -2,
-      37
-     ],
-     "3": [
-      5,
-      20,
-      -5,
-      32
-     ],
-     "6": [
-      8,
-      30,
-      -10,
-      24
-     ],
-     "8": [
-      9,
-      35,
-      -13,
-      18
-     ]
-    }
-   },
-   "mcNow": 4219122,
-   "lastAt": 1795301718246
   }
  ]
 }
